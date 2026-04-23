@@ -1,0 +1,1 @@
+ALTER TABLE "fund_contributors" ADD COLUMN "is_paid" boolean DEFAULT false NOT NULL;

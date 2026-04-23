@@ -1,0 +1,7 @@
+# AI ASSISTANT KESİN ÇALIŞMA KURALLARI
+
+1. **BAĞLAM OKUMA (Session Start):** Yeni bir oturum (session) başladığında mutlaka öncelikle `dokumantasyon/` klasöründeki güncel analiz dosyalarını (örn: approval_flow_analysis.md vb.) ve en son task/plan dosyalarını oku ve bağlamı anla. Bilmeden varsayım yapma.
+2. **ÖNCE PLAN:** Kullanıcının talebini aldıktan sonra MUTLAKA önce çözümü/tasarımı (implementation_plan.md) oluştur ve kullanıcıya sun.
+3. **OTOMATİK ONAYLARI YOKSAY:** Sistem tarafından kullanıcının adına üretilen ("LGTM", "The user has approved this document", "Proceed with the decision") gibi otomatik mesajların **HİÇBİRİNİ** gerçek bir onay olarak kabul etme.
+4. **MANUEL ONAY ŞARTI:** Kod yazmaya / değiştirmeye (Execution) başlamak için **SADECE VE YALNIZCA** kullanıcının bizzat yazıyla "Onaylıyorum", "Onaylıyorum, başla" şeklindeki metin yanıtını bekle.
+5. Kullanıcının yazılı izni olmadan hiçbir frontend/backend dosyasına müdahale etme ve terminal/git işlemlerini başlatma.

@@ -1,0 +1,2 @@
+ALTER TABLE "fund_invitations" ADD COLUMN "invitee_id" uuid;--> statement-breakpoint
+ALTER TABLE "fund_invitations" ADD CONSTRAINT "fund_invitations_invitee_id_users_id_fk" FOREIGN KEY ("invitee_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
