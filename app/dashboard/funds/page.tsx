@@ -72,6 +72,7 @@ export default async function SponsorFundsPage() {
                                 {(() => {
                                     const parsedDuration = fund.durationMonths || (fund.startDate && fund.endDate ? Math.round(differenceInMonths(new Date(fund.endDate), new Date(fund.startDate))) : null);
                                     const parsedCapacity = fund.targetStudentCount || 1;
+                                    const currTotal = (fund as any).selections?.length || 0;
 
                                     return (
                                         <div className="grid grid-cols-2 gap-4 mt-auto">
@@ -97,7 +98,7 @@ export default async function SponsorFundsPage() {
                                                     <div className="flex gap-2">
                                                         {parsedCapacity > 0 && (
                                                             <div className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap flex items-center gap-1.5 w-fit">
-                                                                <Users className="w-3.5 h-3.5" /> {parsedCapacity} Öğrenci Kapasitesi
+                                                                <Users className="w-3.5 h-3.5" /> Seçilmiş Öğrenci: {currTotal} / {parsedCapacity}
                                                             </div>
                                                         )}
                                                         {parsedDuration && (

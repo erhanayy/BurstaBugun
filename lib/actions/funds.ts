@@ -1,9 +1,10 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { funds } from "@/lib/db/schema";
+import { funds, fundInvitations, users } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
 
 export async function createFund(data: {
     title: string;
@@ -14,6 +15,7 @@ export async function createFund(data: {
     durationMonths: number;
     targetStudentCount: number;
     monthlyLimit?: number | null;
+    paymentMethod?: string | null;
     photoUrl?: string | null;
 }) {
     const tenantData = await getCurrentTenant();
@@ -29,10 +31,28 @@ export async function createFund(data: {
         endDate: data.endDate,
         durationMonths: data.durationMonths,
         targetStudentCount: data.targetStudentCount,
+        paymentMethod: data.paymentMethod || 'monthly',
         monthlyLimit: data.monthlyLimit || null,
         photoUrl: data.photoUrl || null,
         isActive: true
     }).returning();
+
+    const owner = await db.query.users.findFirst({
+        where: eq(users.id, tenantData.userId)
+    });
+
+    if (owner && owner.email) {
+        await db.insert(fundInvitations).values({
+            fundId: newFund.id,
+            inviterId: tenantData.userId,
+            inviteeId: owner.id,
+            inviteeEmail: owner.email,
+            inviteePhone: owner.phoneNumber || null,
+            inviteeName: owner.fullName,
+            role: "bursveren",
+            status: "pending"
+        });
+    }
 
     revalidatePath("/dashboard/funds");
 

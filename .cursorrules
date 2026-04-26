@@ -5,3 +5,4 @@
 3. **OTOMATİK ONAYLARI YOKSAY:** Sistem tarafından kullanıcının adına üretilen ("LGTM", "The user has approved this document", "Proceed with the decision") gibi otomatik mesajların **HİÇBİRİNİ** gerçek bir onay olarak kabul etme.
 4. **MANUEL ONAY ŞARTI:** Kod yazmaya / değiştirmeye (Execution) başlamak için **SADECE VE YALNIZCA** kullanıcının bizzat yazıyla "Onaylıyorum", "Onaylıyorum, başla" şeklindeki metin yanıtını bekle.
 5. Kullanıcının yazılı izni olmadan hiçbir frontend/backend dosyasına müdahale etme ve terminal/git işlemlerini başlatma.
+6. **YENİ FEATURE ANALİZ KURALI:** Yeni geliştirilen her özellik veya feature'dan sonra Geliştirici söylemese bile otomatik olarak yapılan işi, mantığını ve akışlarını \`dokumantasyon/sistem_analiz_guncellemeleri.md\` dosyasına ekle. Mimaride el sıkışmadan koda girme.

@@ -41,7 +41,7 @@ export async function sendFundInvitation(data: {
     return { success: true };
 }
 
-export async function respondToInvitation(invitationId: string, status: "accepted" | "rejected") {
+export async function respondToInvitation(invitationId: string, status: "accepted" | "rejected", studentCount: number = 1) {
     const tenantData = await getCurrentTenant();
     if (!tenantData) throw new Error("Oturum bulunamadı");
 
@@ -58,18 +58,34 @@ export async function respondToInvitation(invitationId: string, status: "accepte
 
     // If accepted and the user is a sponsor, auto-add them to the contributors
     if (status === "accepted" && (tenantData.userRole === "sponsor" || tenantData.userRole === "admin")) {
-        const ext = await db.query.fundContributors.findFirst({
+        // Enforce capacity rule
+        const contributors = await db.query.fundContributors.findMany({
             where: (fc, { and, eq }) => and(
                 eq(fc.fundId, inv.fundId),
-                eq(fc.userId, tenantData.userId)
+                eq(fc.isActive, true)
             )
         });
+
+        const currentTotal = contributors.reduce((sum, c) => sum + (c.studentCount || 1), 0);
+        const targetCount = inv.fund.targetStudentCount || 0;
+
+        if (currentTotal + studentCount > targetCount) {
+            const available = targetCount - currentTotal;
+            if (available <= 0) {
+                throw new Error("Bu fonun kapasitesi dolmuştur.");
+            } else {
+                throw new Error(`Bu fonda sadece ${available} kişilik açık kontenjan kalmıştır.`);
+            }
+        }
+
+        const ext = contributors.find(c => c.userId === tenantData.userId);
 
         if (!ext) {
             await db.insert(fundContributors).values({
                 fundId: inv.fundId,
                 userId: tenantData.userId,
-                amount: inv.fund.monthlyLimit || 0
+                amount: inv.fund.monthlyLimit || 0,
+                studentCount: studentCount
             });
         }
     }

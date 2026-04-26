@@ -12,12 +12,25 @@ export async function getSponsorFunds() {
 
     const ownedFunds = await db.query.funds.findMany({
         where: eq(funds.ownerId, tenantData.userId),
+        with: {
+            contributors: true,
+            selections: { where: eq(fundSelections.isActive, true) },
+            invitations: true
+        },
         orderBy: (funds, { desc }) => [desc(funds.createdAt)],
     });
 
     const contributed = await db.query.fundContributors.findMany({
         where: eq(fundContributors.userId, tenantData.userId),
-        with: { fund: true }
+        with: {
+            fund: {
+                with: {
+                    contributors: true,
+                    selections: { where: eq(fundSelections.isActive, true) },
+                    invitations: true
+                }
+            }
+        }
     });
 
     const fundsMap = new Map();
@@ -72,7 +85,7 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
     });
 
     if (fundObj.targetStudentCount !== null && currentSelections.length >= fundObj.targetStudentCount) {
-        throw new Error(`Bu fonun öğrenci kapasitesi dolmuştur. Maksimum: ${fundObj.targetStudentCount} kişi`);
+        throw new Error(`Bu fon tamamen dolmuştur! Belirlenen kapasite (${fundObj.targetStudentCount} kişi) aşılmış olduğu için havuza yeni kişi seçemezsiniz.`);
     }
 
     const existingSelection = await db.query.fundSelections.findFirst({
@@ -98,12 +111,21 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
         .set({ status: 'selected', fundId: fundId })
         .where(eq(applications.id, applicationId));
 
+    // Calculate duration strictly
+    let finalDuration = fundObj.durationMonths;
+    if (!finalDuration && fundObj.startDate && fundObj.endDate) {
+        // Fallback calculation manually or just rely on months
+        const m1 = fundObj.startDate.getFullYear() * 12 + fundObj.startDate.getMonth();
+        const m2 = fundObj.endDate.getFullYear() * 12 + fundObj.endDate.getMonth();
+        finalDuration = Math.max(1, m2 - m1);
+    }
+
     // Generate Payment Orders automatically
-    if (fundObj.durationMonths && fundObj.startDate) {
+    if (finalDuration && finalDuration > 0 && fundObj.startDate) {
         const paymentRecords = [];
         const monthlyAmount = fundObj.monthlyLimit || 0;
 
-        for (let i = 0; i < fundObj.durationMonths; i++) {
+        for (let i = 0; i < finalDuration; i++) {
             const currentPayDate = new Date(fundObj.startDate);
             // 18 Nisan start -> Mayis kart çekimi -> Haziran 1 odeme (Start month + 2, day 1)
             currentPayDate.setMonth(currentPayDate.getMonth() + i + 2);

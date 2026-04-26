@@ -4,11 +4,19 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Users, FileText, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { FundSelector } from "./fund-selector";
 
-export default async function PoolPage({ searchParams }: { searchParams: { fundId?: string } }) {
+export default async function PoolPage({ searchParams }: { searchParams: Promise<{ fundId?: string }> }) {
     const poolData = await getApplicationPool();
     const myFunds = await getSponsorFunds();
-    const specificFundId = searchParams?.fundId || (myFunds.length === 1 ? myFunds[0].id : "");
+
+    const eligibleFunds = myFunds.filter(f => {
+        if (!f.invitations || f.invitations.length === 0) return true;
+        return f.invitations.every((inv: any) => inv.status === 'accepted');
+    });
+
+    const parsedParams = await searchParams;
+    const specificFundId = parsedParams?.fundId || (eligibleFunds.length === 1 ? eligibleFunds[0].id : "");
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -20,6 +28,14 @@ export default async function PoolPage({ searchParams }: { searchParams: { fundI
                     </p>
                 </div>
             </div>
+
+            {eligibleFunds.length > 0 ? (
+                <FundSelector funds={eligibleFunds} currentFundId={specificFundId} />
+            ) : myFunds.length > 0 ? (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-xl text-amber-800 dark:text-amber-300 text-sm mb-6">
+                    <strong>Bilgi: </strong> Sahibi olduğunuz veya katıldığınız fonlara gönderilen davetlerden henüz onaylanmamış olanlar bulunmaktadır. Havuzdan bursiyer seçebilmek için <strong>tüm katılımcıların davetleri kabul etmesi</strong> gerekmektedir.
+                </div>
+            ) : null}
 
             {poolData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm text-center px-4">

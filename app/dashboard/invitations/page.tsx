@@ -24,7 +24,9 @@ export default async function PendingInvitationsPage() {
             eq(fundInvitations.inviteeEmail, currentUser.email || "")
         ),
         with: {
-            fund: true,
+            fund: {
+                with: { contributors: true }
+            },
             inviter: true
         },
         orderBy: (invitations, { desc }) => [desc(invitations.createdAt)]
@@ -137,9 +139,31 @@ export default async function PendingInvitationsPage() {
                                     </div>
                                 </div>
 
-                                <div className="border-t border-gray-100 dark:border-zinc-800 p-4 bg-gray-50 dark:bg-zinc-900/50">
-                                    <InvitationActions invitationId={inv.id} fundId={inv.fund.id} />
-                                </div>
+                                {(() => {
+                                    const fund = inv.fund;
+                                    const targetCount = fund.targetStudentCount || 1;
+                                    const currentTotal = (fund.contributors as any[])?.filter(c => c.isActive).reduce((sum, c) => sum + (c.studentCount || 1), 0) || 0;
+
+                                    return (
+                                        <>
+                                            <div className="bg-blue-50/50 dark:bg-blue-900/10 px-4 py-2 border-y border-blue-100 dark:border-blue-900/30 text-sm flex justify-between items-center">
+                                                <span className="font-medium text-blue-700 dark:text-blue-300">Doluluk Oranı:</span>
+                                                <span className="font-bold text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-800/40 px-2 py-0.5 rounded">
+                                                    Kabul Gören: {currentTotal} / {targetCount}
+                                                </span>
+                                            </div>
+                                            <div className="p-4 bg-gray-50 dark:bg-zinc-900/50">
+                                                <InvitationActions
+                                                    invitationId={inv.id}
+                                                    fundId={fund.id}
+                                                    fund={fund}
+                                                    currentTotal={currentTotal}
+                                                    targetCount={targetCount}
+                                                />
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </div>
                         ))}
                     </div>

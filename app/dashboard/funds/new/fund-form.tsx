@@ -38,6 +38,7 @@ const fundSchema = z.object({
     durationMonths: z.string().min(1, "Lütfen süreyi seçiniz."),
     targetStudentCount: z.coerce.number().min(1, "Lütfen hedef kapasite giriniz.").default(1),
     monthlyLimit: z.coerce.number().min(0).optional().default(0),
+    paymentMethod: z.string().min(1, "Ödeme şekli seçiniz.").default('monthly'),
     photoUrl: z.string().optional(),
 });
 
@@ -52,6 +53,7 @@ export function FundForm() {
             description: "",
             period: "",
             monthlyLimit: 0,
+            paymentMethod: "monthly",
             photoUrl: "",
             startDate: "",
             endDate: "",
@@ -83,6 +85,7 @@ export function FundForm() {
                     endDate: new Date(values.endDate),
                     durationMonths: parseInt(values.durationMonths),
                     targetStudentCount: values.targetStudentCount,
+                    paymentMethod: values.paymentMethod,
                 };
 
                 const result = await createFund(parsedValues as any);
@@ -155,6 +158,31 @@ export function FundForm() {
                                         <Input type="number" placeholder="1500" className="pl-10" {...field} value={field.value ?? ""} />
                                     </div>
                                 </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="paymentMethod"
+                        render={({ field }) => (
+                            <FormItem className="col-span-1 md:col-span-2">
+                                <FormLabel>Ödeme Şekli *</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || undefined} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="pl-4">
+                                            <SelectValue placeholder="Ödeme şekli seçiniz" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="upfront">Kredi Kartı ile Tek Seferde Peşin (Tüm Dönem)</SelectItem>
+                                        <SelectItem value="monthly">Aylık Kredi Kartı Provizyonu (Taksit Taksit)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-gray-500 mt-1 pl-1">
+                                    Bu seçenek, fon oluşturulduktan sonra katılımcıların ne şekilde ödeme yapacaklarını belirler.
+                                </p>
                                 <FormMessage />
                             </FormItem>
                         )}

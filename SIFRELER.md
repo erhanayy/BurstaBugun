@@ -49,3 +49,17 @@ Böylece testlerinizi hiçbir engele takılmadan "sanki e-posta gelmiş gibi" bu
 - Rol: sponsor
 - İlk Şifre: Burs1659!
 - Doğrulama (OTP) Kodu: 196215
+
+[26.04.2026 16:02:13] YENİ KAYIT:
+- Ad Soyad: Aykut Şenel
+- Email: aykutsenel@bb.com
+- Rol: sponsor
+- İlk Şifre: Burs3049!
+- Doğrulama (OTP) Kodu: 124572
+
+[26.04.2026 16:37:09] YENİ KAYIT:
+- Ad Soyad: Mustafa Şenel
+- Email: mustafasenel@bb.com
+- Rol: sponsor
+- İlk Şifre: Burs6274!
+- Doğrulama (OTP) Kodu: 426190

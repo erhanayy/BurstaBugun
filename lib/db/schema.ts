@@ -94,6 +94,7 @@ export const funds = pgTable('funds', {
     endDate: timestamp('end_date'),
     durationMonths: integer('duration_months'),
     targetStudentCount: integer('target_student_count'),
+    paymentMethod: text('payment_method').default('monthly'), // 'upfront' | 'monthly'
     photoUrl: text('photo_url'),
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -105,6 +106,7 @@ export const fundContributors = pgTable('fund_contributors', {
     fundId: uuid('fund_id').references(() => funds.id).notNull(),
     userId: uuid('user_id').references(() => users.id).notNull(),
     amount: integer('amount').notNull(),
+    studentCount: integer('student_count').default(1).notNull(),
     isPaid: boolean('is_paid').default(false).notNull(),
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
