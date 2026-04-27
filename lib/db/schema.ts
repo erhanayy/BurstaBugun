@@ -185,19 +185,7 @@ export const payments = pgTable('payments', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// Notifications (Bildirimler)
-export const notifications = pgTable('notifications', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
-    userId: uuid('user_id').references(() => users.id).notNull(),
-    type: text('type', { enum: ['system', 'reference_request', 'selection_alert'] }).notNull(),
-    title: text('title').notNull(),
-    body: text('body').notNull(),
-    actionUrl: text('action_url'),
-    isRead: boolean('is_read').default(false).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+// End of Payments table
 
 // Fund Invitations (Davetler)
 export const fundInvitations = pgTable('fund_invitations', {
@@ -214,6 +202,75 @@ export const fundInvitations = pgTable('fund_invitations', {
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// --- Contracts & Agreements ---
+
+export const contractTypeEnum = pgEnum('contract_type', ['KVKK', 'USER_AGREEMENT', 'STUDENT_AGREEMENT', 'OTHER']);
+
+export const contracts = pgTable('contracts', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    type: contractTypeEnum('type').notNull(),
+    version: text('version').notNull(), // e.g. "1.0", "2024-02-19"
+    title: text('title').notNull(),
+    content: text('content').notNull(), // HTML or Markdown
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const userContracts = pgTable('user_contracts', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    contractId: uuid('contract_id').references(() => contracts.id).notNull(),
+    acceptedAt: timestamp('accepted_at').defaultNow().notNull(),
+});
+
+// --- Notifications & Web Push ---
+
+export const notifications = pgTable('notifications', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    type: text('type', { enum: ['payment', 'application', 'reference', 'system'] }).notNull(),
+    title: text('title').notNull(),
+    body: text('body').notNull(),
+    actionUrl: text('action_url'),
+    isRead: boolean('is_read').default(false).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => ({
+    userIdx: index('notifications_user_idx').on(t.userId),
+}));
+
+export const userNotificationSettings = pgTable('user_notification_settings', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    notifyPayments: boolean('notify_payments').default(true).notNull(),
+    notifyApplications: boolean('notify_applications').default(true).notNull(),
+    notifyReferences: boolean('notify_references').default(true).notNull(),
+    notifySystem: boolean('notify_system').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => ({
+    unq: unique().on(t.tenantId, t.userId),
+}));
+
+export const pushSubscriptions = pgTable('push_subscriptions', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    endpoint: text('endpoint').notNull(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const systemParameters = pgTable('system_parameters', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    key: varchar('key', { length: 255 }).notNull().unique(),
+    value: text('value').notNull(),
+    description: text('description'),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // --- Relations ---
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -222,9 +279,12 @@ export const usersRelations = relations(users, ({ many }) => ({
     fundContributions: many(fundContributors),
     applications: many(applications),
     referenceTokens: many(references),
-    notifications: many(notifications),
     sentInvitations: many(fundInvitations, { relationName: 'inviter' }),
     receivedInvitations: many(fundInvitations, { relationName: 'invitee' }),
+    acceptedContracts: many(userContracts),
+    notifications: many(notifications),
+    notificationSettings: many(userNotificationSettings),
+    pushSubscriptions: many(pushSubscriptions),
 }));
 
 export const tenantUsersRelations = relations(tenantUsers, ({ one }) => ({
@@ -340,5 +400,49 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
     application: one(applications, {
         fields: [payments.applicationId],
         references: [applications.id],
+    }),
+}));
+
+export const contractsRelations = relations(contracts, ({ many }) => ({
+    acceptances: many(userContracts),
+}));
+
+export const userContractsRelations = relations(userContracts, ({ one }) => ({
+    user: one(users, {
+        fields: [userContracts.userId],
+        references: [users.id],
+    }),
+    contract: one(contracts, {
+        fields: [userContracts.contractId],
+        references: [contracts.id],
+    }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+    tenant: one(tenants, {
+        fields: [notifications.tenantId],
+        references: [tenants.id],
+    }),
+    user: one(users, {
+        fields: [notifications.userId],
+        references: [users.id],
+    }),
+}));
+
+export const userNotificationSettingsRelations = relations(userNotificationSettings, ({ one }) => ({
+    tenant: one(tenants, {
+        fields: [userNotificationSettings.tenantId],
+        references: [tenants.id],
+    }),
+    user: one(users, {
+        fields: [userNotificationSettings.userId],
+        references: [users.id],
+    }),
+}));
+
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+    user: one(users, {
+        fields: [pushSubscriptions.userId],
+        references: [users.id],
     }),
 }));

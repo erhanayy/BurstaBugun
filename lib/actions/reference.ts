@@ -5,6 +5,7 @@ import { applications, references, users } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "@/lib/actions/notification";
 
 export async function addReference(applicationId: string, email: string, fullName: string, title: "muhtar" | "teacher" | "other") {
     const tenantData = await getCurrentTenant();
@@ -152,6 +153,20 @@ export async function processReferenceApproval(referenceId: string, status: "app
             await db.update(applications)
                 .set({ status: "in_pool" })
                 .where(eq(applications.id, ref.applicationId));
+        }
+
+        const appObj = await db.query.applications.findFirst({
+            where: eq(applications.id, ref.applicationId)
+        });
+
+        if (appObj) {
+            await createNotification(
+                tenantData.tenantId,
+                [appObj.userId],
+                'reference',
+                'Referans Değerlendirmesi Tamamlandı',
+                `${ref.fullName} referans onay formunu başarıyla doldurdu.`
+            );
         }
     }
 

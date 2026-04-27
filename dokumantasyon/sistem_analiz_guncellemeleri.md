@@ -1,42 +1,40 @@
-# BurstaBugun Sistem Analizi ve Kurallar Dokümanı
+# Sistem Analiz Güncellemeleri
 
-Bu doküman, sistem üzerinde yapılan son geliştirmelerin ve iş kurallarının (business logic) teknik analizini içermektedir. Projenin ilerleyen fazlarında veya yeni geliştiricilerin katılımında bu kurallar baz alınmalıdır.
+Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışlarını ve analiz detaylarını barındırır. Yeni bir eklenti / feature geliştirildiğinde mimari detaylarıyla birlikte buraya işlenmelidir.
 
-## 1. Finansal Ödeme Emirleri (Taksitlendirme) Altyapısı
+## 1. Bildirim Sistemi ve Arka Plan Tetikleyicileri (Triggers)
+- **Açıklama:** Sistemde gerçekleşen kritik eylemlerde ilgili kullanıcılara anında bildirim (web-push) gönderilmesini sağlayan altyapı.
+- **Mantık:** 
+  - `user_notification_settings` tablosundan kullanıcının aktif izinleri kontrol edilir.
+  - İzin verilmişse `createNotification` fonksiyonu aracılığıyla bildirimler `notifications` tablosuna yazılır.
+- **Tetikleme Noktaları (Triggers):**
+  - Seçim (Placement): Öğrenci, Sponsor tarafından bir fona seçildiğinde (`selectBursiyer`).
+  - Referans Onayı: Bir Referans, onayını sisteme kaydettiğinde (`processReferenceApproval`).
+  - Ödeme: Zamanı gelen bir tahsisat admin tarafından `Paid` yapıldığında (`markAsPaid`).
 
-Bursiyer seçimi ve ödemelerin takibi, "dinamik sorgulama" mantığından çıkartılıp **"Kesinleşmiş Ödeme Emirleri (Taksit)"** mantığına geçirilmiştir.
+## 2. Kümülatif Kazanç Limiti (MAX_MONTHLY_LIMIT)
+- **Açıklama:** Öğrencinin haksız zenginleşmesini veya fondaki bütçelerin adaletsiz dağıtımını önleyen güvenlik kilidi.
+- **Mantık:**
+  - `system_parameters` tablosunda `MAX_MONTHLY_LIMIT` isimli global değişken kontrol edilir.
+  - Sponsor, havuzdaki bir öğrenciyi fona seçmeye tıkladığında öğrencinin halihazırda bağlı olduğu (Aktif) tüm `fundSelections` kayıtlarının ödemeleri (amount) toplanır.
+  - Sınır aşılıyorsa hata fırlatılır. Aşılmıyorsa onaya izin verilir.
+- **Arayüz Etkileri:** Bursiyer havuzundaki liste görünümünde öğrenci hali hazırda para alıyorsa `AlertTriangle` komponenti ile amber renkli bir uyarı ve kalan tutar limiti panel üzerinden Sporsor'a gösterilir.
 
-### 1.1 Taksit (Ödeme Emri) Oluşturma Kuralları
-- **Tetikleyici (Trigger):** Fon sahibi (Sponsor), kendi oluşturduğu fonun havuzundan bir aday seçtiğinde (selectBursiyer aksiyonu) çalışır.
-- **Takvim Ötelemesi (+2 Ay Kuralı):** Bursun başladığı aya (fonun *startDate* değeri) sistem standart olarak `+2` ay ekler. (Örn: Fon 18 Nisan'da başladıysa, kredi kartından tahsilat Mayıs'ta yapılır, öğrenciye ödeme ise 1 Haziran'da gerçekleşir).
-- **Sabitleme:** Hesaplanan tüm ödeme emirleri ilgili ayın **1. gününe** kilitlenir (`setDate(1)`).
+## 3. Sistem Parametreleri (Admin Ekranı)
+- **Açıklama:** Hardcoded (Koda gömülü) kısıtlamaların terk edilerek tamamen Admin paneline taşınması.
+- **Mantık:**
+  - `system_parameters` isimli yeni PostgreSQL tablosu.
+  - "Sistem Yönetimi" menüsünün altında `/dashboard/admin/parameters` ekranında bu kısıt değişiklikleri anlık olarak yapılabilir. Değişiklik kaydedildiği anda yeni sınırlar yürürlüğe girer. Restarta gerek yoktur.
 
-### 1.2 Ödemesi Gelenler (Upcoming) ve Geçmiş Ödemeler (History) İlişkisi
-- **Ödemesi Gelenler (Bekleyen):** Sadece `status = 'pending'` olan ödeme emirleri (payments) listelenir. Bu sayfa sayfaya ilk girişte (default) "Tüm Aylar" ve "Tüm Yıllar" filtresi ile açılır. Kullanıcı, ekrandaki checkbox'lar yardımıyla ödendi bildirimi yaptığında, seçili taksitlerin durumu `completed`'a döner ve ekranı terk ederler.
-- **Geçmiş Ödemeler (Tamamlananlar):** Sadece `status = 'completed'` veya `failed` vb. kesinleşmiş olanlar listelenir. Bekleyen (`pending`) hiçbir ödeme emri geçmişte görünmez.
+## 4. Kullanıcı Deneyimi Header Logoları
+- **Açıklama:** Sisteme giriş yapıldığında Top-Right Header (Sağ üst) köşesinin profesyonel Dashboard stiline oturtulması.
+- **Mantık:** 
+  - Notification Popover (Bildirim zili, okundu sayacı, dinleyici altyapı).
+  - Kullanıcı isminin baş harflerinden (Split ile) oluşturulan gradient yuvarlak Profil ikonu.
+  - BurstaBugün marka logosu (Image bileşeni).
 
-### 1.3 İptal ve Geri Alma (Revert) Mekanizması
-- Geçmiş Ödemeler ekranında bir ödeme "İptal Et / Kaldır" butonuna tıklanıldığında, kayıt veritabanından silinmez (`DELETE` çalışmaz). 
-- Bunun yerine kaydın statüsü geri alınarak yeniden `'pending'` değerine atanır.
-- Bu işlem sayesinde finansal kayıtlar hiçbir zaman kaybolmaz; iptal edilen kayıt eşzamanlı olarak tekrar "Ödemesi Gelenler" sayfasına düşer ve döngüsel bütünlük sağlanır.
-
-## 2. Referans Sistemi (Değerlendirme Onayları)
-Sistemde Bursiyer referans onaylarının (Mahalle Muhtarı ve Üniversite Hocası) güvenli olarak toplanması amaçlanmıştır.
-
-### 2.1 İsimlendirme Çakışmaları ve Modüller
-- **İlgili İşlem:** `processReferenceApproval` (Referans isteklerinin `approved` / `rejected` yapılması ve gerekçe yazılması).
-- **Listeleme:** `getReferenceRequests` modülü; ilgili referans şahsının e-posta adresini (Kendi açtığı platform profili e-postası `users.email` ile referans dosyasındaki e-posta) karşılaştırır. Sadece uyuşan adreslere yönlendirilmiş istekleri "Referans Onayları" sayfasında görüntüler.
-
-## Mimarideki Avantajlar
-Sistemin veritabanında fiziksel ödeme satırları tutması (taksit ödemeleri); ilerleyen dönemde kredi kartı entegrasyonu (Iyzico/Stripe), geciken ödemelerin tespiti ve toplam borç bakiyesinin (Sponsor Ödeme Detayları Ekranı) sağlıklı render edilmesi için zemin hazırlamıştır.
-
-## 3. Bağışçı Davet ve Kapasite (Öğrenci) Yönetimi (Yeni Kural)
-Bir fona ait "Target Student Count" (Öğrenci Kapasitesi) kavramı, artık doğrudan davetiye ve onay (`fundContributors`) ekranlarıyla bütünleştirilmiştir.
-- **Kapasite Tahsisi:** Bir davetli (veya fon kurucusu bizzat kendisi), kendisine gelen davetiyede fon kapsamında "Kaç Öğrenci Alacağını" (studentCount) yazarak işlemi onaylar.
-- **Kapasite Validirasyonu:** Her onay işleminden önce, fona halihazırda dahil olmuş katılımcıların (`Contributors`) üstlendiği toplam öğrenci sayısı toplanır (`reduce(c.studentCount)`). Eğer davetlinin girdiği yeni rakam + mevcut toplam > fon kapasitesini geçerse işlem backend tarafından reddedilir.
-- **Kurucu Onay Akışı:** `createFund` işleminde fonu tescil eden kurucunun ("Owner") doğrudan fona katılımcı olması otomatikliği kaldırılmıştır. Kurucu, fonunu yarattığı an kendisine bir Davetiye (`fundInvitation`) düşer. Kendi "Davetler" menüsünden, yarattığı fonun kaç öğrencisini üstleneceğini kapasite kutucuğuna bizzat girip onaylayarak katkıda bulunmaya başlar.
-- **Şeffaf Ekran:** Bekleyen Davetiyeler ve Fon özetleri (Funds Grid) ekranında "Kapasite yerine `Sahiplenilen Öğrenci (Örn: 2 / 5)`" oranı dinamik hesaplanıp yansıtılır.
-- **Gerçek Zamanlı Maliyet Simülasyonu:** Sponsorların fona katılırken kaç öğrenci seçeceğine rahat karar verebilmesi adına, giriş yapılan öğrenci sayısına göre eşzamanlı bir bütçe maliyet hesabı eklenmiştir. Fona ait ödeme şekli `upfront` (Tek Seferde) ise doğrudan toplam kesilecek ücret yansıtılır. Ödeme şekli `monthly` (Aylık) ise `Öğrenci Sayısı X Aylık Tutar X Ay Sayısı = Toplam Taahhüt` formülüyle ekrana şeffafça bilgi verilir. Fon Detayları modalı da `Ödeme Şekli` bilgisiyle güncellenmiştir.
-- **Fon Seçimi (Combobox):** Bursiyer Havuzu ekranının en üstüne bir `FundSelector` eklendi. Bağışçı havuza girdiğinde, işlemi hangi fon adına yapacağını bu combobox ile seçmektedir. Eğer bir fonun kapasitesi (`targetStudentCount`) tamamen dolmuşsa, dropdown üzerinde "Dolu (5/5)" ibaresiyle tıklanmaz hale (disabled) getirilerek kilitlenir.
-- **Kesin Kapasite Validirasyonu:** Sadece UI'da değil backend'de (`selectBursiyer` dâhilinde) `targetStudentCount` kontrolü null-safe yapılarak eklendi. Önceden seçilmiş katılımcı sayısı hedeflenen kapasiteye eşit veya daha büyük olduğunda kesin hata fırlatılarak fonun kontenjanı korunur. Havuzdan limit aşan seçim yapılması imkânsız hale getirildi.
-- **Havuz Fon Uygunluk Kuralı (Eligibility):** Bir fonun Bursiyer Havuzundaki seçici Combobox'a (FundSelector) yansıyabilmesi için, o fona gönderilmiş olan **tüm davetiyelerin (`fundInvitations`) ilgili katılımcılar tarafından onaylanmış (`status === 'accepted'`) olması** kısıtlaması getirildi. Eğer bekleyen (veya reddedilmiş) davetiye varsa fon havuza açılmaz ve kullanıcıya onay sürecinin bitmesini beklemesi gerektiği yönünde ikaz (Amber alert) verilir.
+## 5. Sözleşmeler Modülü (My Contracts)
+- **Açıklama:** Kvkk, Kullanıcı Koşulları vb. yasal belgelerin versiyonlu şekilde sürüm atlamasını sağlayan, kullanıcılar giriş yaptığında eski sözleşmelerde eksiklik varsa tamamlamalarını zorlayan kapı kilidi sistemi.
+- **Mantık:** 
+  - Admin (Sistem Yönetimi -> Sözleşmeler) her bir metni yazar ve "Yayınla" der. Versiyon artar.
+  - Kullanıcı login olduğunda Layout bazında `ContractEnforcer` devreye girer. Onaylanmamış sürüm varsa ana ekrana değil zorunlu onay popupına düşer. Onayladıkça `userAgreements` onayı işaretlenir.

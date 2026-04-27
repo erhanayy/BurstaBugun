@@ -1,8 +1,9 @@
-import { getApplicationPool, getSponsorFunds } from "@/lib/actions/sponsor";
+import { getApplicationPool, getSponsorFunds, getStudentsAllocationsStats } from "@/lib/actions/sponsor";
+import { getSystemParameter } from "@/lib/actions/parameters";
 import { SelectionButton } from "./selection-button";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { Users, FileText, CheckCircle2 } from "lucide-react";
+import { Users, FileText, CheckCircle2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { FundSelector } from "./fund-selector";
 
@@ -17,6 +18,12 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
 
     const parsedParams = await searchParams;
     const specificFundId = parsedParams?.fundId || (eligibleFunds.length === 1 ? eligibleFunds[0].id : "");
+
+    const userIds = Array.from(new Set(poolData.map((a: any) => a.userId)));
+    const allocationStats = await getStudentsAllocationsStats(userIds);
+
+    // Dynamic System Param Limit
+    const maxLimitStr = await getSystemParameter("MAX_MONTHLY_LIMIT", "5000");
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -115,6 +122,21 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
                                         <div className="mt-5 pt-5 border-t border-gray-100 dark:border-zinc-800">
                                             <span className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider block mb-2">Motivasyon</span>
                                             <p className="text-gray-700 dark:text-gray-300 text-sm line-clamp-3 italic">"{answers.motivationLetter}"</p>
+                                        </div>
+                                    )}
+
+                                    {/* Burs Göstergesi */}
+                                    {allocationStats[app.userId] > 0 && (
+                                        <div className="mt-4 flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/40">
+                                            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                                                    Halihazırda Fona Dahil (Mevcut Alan: {allocationStats[app.userId]} TL / Ay)
+                                                </p>
+                                                <p className="text-[10px] text-amber-700/70 dark:text-amber-400/70 mt-0.5 leading-tight">
+                                                    Sistem limiti: {maxLimitStr} TL. Kalan boşluğu dikkate alarak fona seçin.
+                                                </p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

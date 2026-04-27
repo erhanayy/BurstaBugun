@@ -29,6 +29,20 @@
       "when": 1776530615275,
       "tag": "0003_motionless_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777222594280,
+      "tag": "0004_clumsy_jimmy_woo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777306511340,
+      "tag": "0005_cute_ken_ellis",
+      "breakpoints": true
     }
   ]
 }

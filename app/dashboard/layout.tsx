@@ -17,9 +17,12 @@ import { getCurrentTenant } from "@/lib/data/tenant";
 import { SignOutButton } from "@/components/sign-out-button";
 import { TenantSwitcher } from "@/components/tenant-switcher";
 import { ForcePasswordCheck } from "./force-password-check";
+import { ContractEnforcer } from "./contract-enforcer";
+import { getMissingContracts } from "@/lib/actions/agreements";
 import { auth } from "@/auth";
 import Image from "next/image";
 import { CollapsibleNavSection } from "@/components/ui/collapsible-nav-section";
+import { NotificationBell } from "@/components/notification-bell";
 
 export default async function DashboardLayout({
     children,
@@ -53,8 +56,14 @@ export default async function DashboardLayout({
         );
     }
 
+    let pendingContracts: any[] = [];
+    if (tenantData?.userId) {
+        pendingContracts = await getMissingContracts(tenantData.userId);
+    }
+
     return (
         <>
+            {tenantData?.userId && <ContractEnforcer userId={tenantData.userId} pendingContracts={pendingContracts} />}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 :root {
@@ -115,12 +124,18 @@ export default async function DashboardLayout({
                             </CollapsibleNavSection>
                         )}
 
+                        {/* Ayarlar Menüsü (Tüm Roller) */}
+                        <CollapsibleNavSection title="Ayarlar" storageKey="user">
+                            <NavItem href="/dashboard/settings" icon={Settings} label="Ayarlar" />
+                        </CollapsibleNavSection>
+
                         {/* Admin Menüsü (Sadece Admin) */}
                         {userRole === 'admin' && (
                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="admin">
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                 <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı (Builder)" />
-                                <NavItem href="/dashboard/settings" icon={Settings} label="Sistem Ayarları" />
+                                <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşme / Metinler" />
+                                <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Sistem Parametreleri" />
                             </CollapsibleNavSection>
                         )}
 
@@ -142,9 +157,9 @@ export default async function DashboardLayout({
                         </div>
 
                         {/* Right: tools layout */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             {tenantData && (
-                                <div className="hidden lg:flex items-center gap-2">
+                                <div className="hidden lg:flex items-center gap-4">
                                     <TenantSwitcher
                                         currentTenant={{
                                             id: tenantData.tenantId,
@@ -153,8 +168,23 @@ export default async function DashboardLayout({
                                         }}
                                         availableTenants={tenantData.availableTenants}
                                     />
-                                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium text-sm">
-                                        {tenantData.userName?.charAt(0) || 'A'}
+
+                                    <div className="h-6 w-px bg-white/20 mx-1"></div>
+
+                                    {/* 1. Bildirim Logosu */}
+                                    <NotificationBell tenantId={tenantData.tenantId} userId={tenantData.userId} />
+
+                                    {/* 2. Kişi Adı Baş Harfleri Logosu */}
+                                    <div className="w-9 h-9 rounded-full relative overflow-hidden ring-2 ring-white/20 flex items-center justify-center">
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 to-indigo-400 opacity-90" />
+                                        <span className="relative z-10 text-white font-bold text-sm tracking-wider">
+                                            {tenantData.userName?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AB'}
+                                        </span>
+                                    </div>
+
+                                    {/* 3. Uygulama Logosu */}
+                                    <div className="w-10 h-10 bg-white rounded-xl shadow-md p-1 border border-white/10 flex items-center justify-center relative overflow-hidden">
+                                        <Image src="/logo.png" alt="BurstaBugün Logo" width={40} height={40} className="w-full h-full object-contain" />
                                     </div>
                                 </div>
                             )}

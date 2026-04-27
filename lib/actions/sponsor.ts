@@ -5,6 +5,8 @@ import { applications, funds, fundSelections, fundContributors, payments } from 
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, and, inArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "@/lib/actions/notification";
+import { getSystemParameter } from "@/lib/actions/parameters";
 
 export async function getSponsorFunds() {
     const tenantData = await getCurrentTenant();
@@ -67,6 +69,36 @@ export async function getApplicationPool() {
     });
 }
 
+
+
+export async function getStudentsAllocationsStats(userIds: string[]) {
+    if (userIds.length === 0) return {};
+
+    const apps = await db.query.applications.findMany({
+        where: inArray(applications.userId, userIds),
+        with: {
+            selections: {
+                where: eq(fundSelections.isActive, true)
+            }
+        }
+    });
+
+    const stats: Record<string, number> = {};
+    for (const uid of userIds) {
+        stats[uid] = 0;
+    }
+
+    apps.forEach(app => {
+        if (app.selections && app.selections.length > 0) {
+            app.selections.forEach((fs: any) => {
+                stats[app.userId] += (fs.amount || 0);
+            });
+        }
+    });
+
+    return stats;
+}
+
 export async function selectBursiyer(applicationId: string, fundId: string) {
     const tenantData = await getCurrentTenant();
     if (!tenantData) throw new Error("Oturum bulunamadı");
@@ -99,10 +131,42 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
         throw new Error("Bu başvuruyu zaten seçtiniz.");
     }
 
+    const appObj = await db.query.applications.findFirst({
+        where: eq(applications.id, applicationId)
+    });
+
+    if (!appObj) throw new Error("Başvuru bulunamadı.");
+
+    // MAX LIMIT CHECK
+    const studentUserApps = await db.query.applications.findMany({
+        where: eq(applications.userId, appObj.userId),
+        with: {
+            selections: {
+                where: eq(fundSelections.isActive, true)
+            }
+        }
+    });
+    let currentTotalAllocated = 0;
+    studentUserApps.forEach(a => {
+        if (a.selections) {
+            a.selections.forEach((s: any) => {
+                currentTotalAllocated += (s.amount || 0);
+            });
+        }
+    });
+
+    const maxLimitParam = await getSystemParameter("MAX_MONTHLY_LIMIT", "5000");
+    const dynamicMaxLimit = parseFloat(maxLimitParam) || 5000;
+
+    const amountToAdd = fundObj.monthlyLimit || 0;
+    if (currentTotalAllocated + amountToAdd > dynamicMaxLimit) {
+        throw new Error(`Bu adayın halihazırda ${currentTotalAllocated} TL aylık burs tahsisatı bulunmaktadır. Bu fona dahil edilmesi durumunda sistemin belirlediği "Öğrenci Başına Maksimum Aylık Limit" (${dynamicMaxLimit} TL) aşılacaktır.`);
+    }
+
     await db.insert(fundSelections).values({
         fundId: fundId,
         applicationId: applicationId,
-        amount: fundObj.monthlyLimit || 0,
+        amount: amountToAdd,
         paymentType: 'one_time',
     });
 
@@ -148,6 +212,16 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
         if (paymentRecords.length > 0) {
             await db.insert(payments).values(paymentRecords);
         }
+    }
+
+    if (appObj) {
+        await createNotification(
+            tenantData.tenantId,
+            [appObj.userId],
+            'application',
+            'Tebrikler! Bursa Seçildiniz 🎉',
+            `Başvurunuz onaylandı ve bir burs fonuna atandınız. Gelecek aylar için ödeme takviminiz oluşturuldu.`
+        );
     }
 
     revalidatePath("/dashboard/pool");
