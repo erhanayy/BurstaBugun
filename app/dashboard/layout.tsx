@@ -175,7 +175,7 @@ export default async function DashboardLayout({
                                     <NotificationBell tenantId={tenantData.tenantId} userId={tenantData.userId} />
 
                                     {/* 2. Kişi Adı Baş Harfleri Logosu */}
-                                    <div className="w-9 h-9 rounded-full relative overflow-hidden ring-2 ring-white/20 flex items-center justify-center">
+                                    <div className="w-9 h-9 rounded-full relative overflow-hidden flex items-center justify-center">
                                         <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 to-indigo-400 opacity-90" />
                                         <span className="relative z-10 text-white font-bold text-sm tracking-wider">
                                             {tenantData.userName?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AB'}
@@ -183,8 +183,8 @@ export default async function DashboardLayout({
                                     </div>
 
                                     {/* 3. Uygulama Logosu */}
-                                    <div className="w-10 h-10 bg-white rounded-xl shadow-md p-1 border border-white/10 flex items-center justify-center relative overflow-hidden">
-                                        <Image src="/logo.png" alt="BurstaBugün Logo" width={40} height={40} className="w-full h-full object-contain" />
+                                    <div className="w-9 h-9 bg-white rounded-full shadow-md border border-white/10 flex items-center justify-center relative overflow-hidden">
+                                        <Image src="/bursiyer-menu.jpeg" alt="BurstaBugün Logo" fill className="object-cover" />
                                     </div>
                                 </div>
                             )}

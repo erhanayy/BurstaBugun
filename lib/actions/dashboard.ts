@@ -190,7 +190,7 @@ export async function getApplicantDashboardData(period: string | null) {
     });
 
     let approvedRefs = 0;
-    let totalRefs = myApp.references.length;
+    const totalRefs = myApp.references.length;
     myApp.references.forEach(r => {
         if (r.status === 'approved') approvedRefs++;
     });

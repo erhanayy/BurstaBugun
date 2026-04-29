@@ -63,3 +63,24 @@ Böylece testlerinizi hiçbir engele takılmadan "sanki e-posta gelmiş gibi" bu
 - Rol: sponsor
 - İlk Şifre: Burs6274!
 - Doğrulama (OTP) Kodu: 426190
+
+[27.04.2026 20:55:01] YENİ KAYIT:
+- Ad Soyad: Test Sponsor
+- Email: test_sponsor_browser_test@gmail.com
+- Rol: sponsor
+- İlk Şifre: Burs1786!
+- Doğrulama (OTP) Kodu: 518001
+
+[27.04.2026 20:57:06] YENİ KAYIT:
+- Ad Soyad: Test Student
+- Email: test_student_browser_test@gmail.com
+- Rol: applicant
+- İlk Şifre: Burs6559!
+- Doğrulama (OTP) Kodu: 846501
+
+[27.04.2026 21:01:51] YENİ KAYIT:
+- Ad Soyad: Final Test Student
+- Email: final_test@gmail.com
+- Rol: applicant
+- İlk Şifre: Burs2593!
+- Doğrulama (OTP) Kodu: 413362

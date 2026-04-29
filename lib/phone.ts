@@ -1,7 +1,7 @@
 export function formatPhoneForDisplay(value: string | null | undefined): string {
     if (!value) return '';
 
-    let digits = value.replace(/\D/g, '');
+    const digits = value.replace(/\D/g, '');
 
     if (!digits.startsWith('0090')) {
         return digits;

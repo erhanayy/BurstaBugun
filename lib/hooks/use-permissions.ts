@@ -21,11 +21,6 @@ export function usePermissions() {
     });
     const [isNative, setIsNative] = useState(false);
 
-    useEffect(() => {
-        setIsNative(Capacitor.isNativePlatform());
-        checkAllPermissions();
-    }, []);
-
     const checkAllPermissions = async () => {
         if (!Capacitor.isNativePlatform()) return;
 
@@ -42,6 +37,11 @@ export function usePermissions() {
             console.error('Permission check failed:', error);
         }
     };
+
+    useEffect(() => {
+        setIsNative(Capacitor.isNativePlatform());
+        checkAllPermissions();
+    }, []);
 
     const requestPermission = async (type: keyof AppPermissions) => {
         if (!Capacitor.isNativePlatform()) return 'granted';

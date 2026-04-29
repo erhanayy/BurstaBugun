@@ -5,7 +5,7 @@ import { applications, funds } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 async function getPoolFund(tenantId: string) {
-    let poolFund = await db.query.funds.findFirst({
+    const poolFund = await db.query.funds.findFirst({
         where: eq(funds.tenantId, tenantId)
     });
     return poolFund;

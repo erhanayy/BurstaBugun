@@ -28,7 +28,7 @@ async function main() {
     console.log(`Generating ${count} mock student(s)...`);
 
     // Get Tenant
-    let tenant = await db.query.tenants.findFirst({
+    const tenant = await db.query.tenants.findFirst({
         where: eq(tenants.shortName, "BurstaBugün")
     });
 
