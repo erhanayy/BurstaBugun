@@ -4,10 +4,20 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Bursta Bugün",
-  description: "Burs Yönetim ve İletişim Platformu",
-};
+import { getPublicTenantInfo } from "@/lib/data/tenant";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const tenantInfo = await getPublicTenantInfo();
+  
+  return {
+    title: tenantInfo.tenantName || "Bursta Bugün",
+    description: "Burs Yönetim ve İletişim Platformu",
+    icons: {
+      icon: tenantInfo.logoUrl || "/favicon.ico",
+      apple: tenantInfo.logoUrl || "/apple-icon.png",
+    }
+  };
+}
 
 export const viewport = {
   width: "device-width",

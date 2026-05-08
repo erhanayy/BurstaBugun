@@ -41,6 +41,7 @@ export async function getCurrentTenant() {
             logoUrl: selectedTenant.logoUrl,
             websiteUrl: selectedTenant.websiteUrl,
             primaryColor: selectedTenant.primaryColor,
+            backgroundColor: (selectedTenant.features as any)?.backgroundColor as string | null,
             userRole: 'admin',
             userName: currentUser?.fullName || session.user.name || "Uygulama Yöneticisi",
             availableTenants: envTenantId ? [selectedTenant] : allTenants, // Lock if Strict Mode
@@ -92,6 +93,7 @@ export async function getCurrentTenant() {
         logoUrl: activeMembership.tenant.logoUrl,
         websiteUrl: activeMembership.tenant.websiteUrl,
         primaryColor: activeMembership.tenant.primaryColor,
+        backgroundColor: (activeMembership.tenant.features as any)?.backgroundColor as string | null,
         userRole: activeMembership.role,
         userName: activeMembership.user.fullName || session.user.name || "Kullanıcı",
         availableTenants: envTenantId ? [activeMembership.tenant] : memberships.map(m => m.tenant),
@@ -110,7 +112,8 @@ export async function getPublicTenantInfo() {
                 tenantName: tenant.longName,
                 tenantShortName: tenant.shortName,
                 logoUrl: tenant.logoUrl,
-                primaryColor: tenant.primaryColor
+                primaryColor: tenant.primaryColor,
+                backgroundColor: (tenant.features as any)?.backgroundColor as string | null
             };
         }
     }

@@ -8,7 +8,8 @@ export default async function LoginPage() {
         <LoginForm 
             tenantName={tenantInfo.tenantName} 
             logoUrl={tenantInfo.logoUrl} 
-            primaryColor={tenantInfo.primaryColor} 
+            primaryColor={tenantInfo.primaryColor}
+            backgroundColor={tenantInfo.backgroundColor}
         />
     );
 }

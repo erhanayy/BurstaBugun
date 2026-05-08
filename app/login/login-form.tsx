@@ -9,16 +9,17 @@ interface LoginFormProps {
     tenantName: string;
     logoUrl: string | null;
     primaryColor: string | null;
+    backgroundColor?: string | null;
 }
 
-export function LoginForm({ tenantName, logoUrl, primaryColor }: LoginFormProps) {
+export function LoginForm({ tenantName, logoUrl, primaryColor, backgroundColor }: LoginFormProps) {
     const [errorMessage, dispatch, isPending] = useActionState(
         authenticate,
         undefined,
     );
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-zinc-950">
+        <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: backgroundColor || undefined }}>
             <div className="w-full max-w-md p-8 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-800">
                 <div className="text-center mb-8 flex flex-col items-center">
                     <div className="w-32 h-32 mb-4 relative flex items-center justify-center">

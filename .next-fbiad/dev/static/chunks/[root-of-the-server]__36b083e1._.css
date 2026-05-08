@@ -3953,6 +3953,10 @@
     key:   4ng;
   }
 
+  .\[key\:\5 \16 4ng\] {
+    key:   4ng;
+  }
+
   .\[key\:\7 \3 4ng\] {
     key:   4ng;
   }
@@ -4001,6 +4005,14 @@
     key: G 4ng;
   }
 
+  .\[key\:H\#4ng\] {
+    key: H#4ng;
+  }
+
+  .\[key\:Kd4ng\] {
+    key: Kd4ng;
+  }
+
   .\[key\:M\1f \14 \] {
     key: M  ;
   }
@@ -4011,6 +4023,10 @@
 
   .\[key\:V\#\14 \] {
     key: V#  ;
+  }
+
+  .\[key\:b\&4ng\] {
+    key: b& 4ng;
   }
 
   .\[key\:i\1a 4ng\] {
@@ -4031,6 +4047,10 @@
 
   .\[key\:uP\14 \] {
     key: uP ;
+  }
+
+  .\[key\:v\*\14 \] {
+    key: v *  ;
   }
 
   .\[key\:y\14 4ng\] {
@@ -4063,6 +4083,10 @@
 
   .\[key\:�\13 4ng\] {
     key: � 4ng;
+  }
+
+  .\[key\:�\16 \14 \] {
+    key: �  ;
   }
 
   .\[key\:�\17 4ng\] {
@@ -4113,12 +4137,28 @@
     key: �9 ;
   }
 
+  .\[key\:�24ng\] {
+    key: �24ng;
+  }
+
   .\[key\:�54ng\] {
     key: �54ng;
   }
 
+  .\[key\:�J4ng\] {
+    key: �J4ng;
+  }
+
   .\[key\:�e\14 \] {
     key: �e ;
+  }
+
+  .\[key\:�f\14 \] {
+    key: �f ;
+  }
+
+  .\[key\:�l4ng\] {
+    key: �l4ng;
   }
 
   .\[key\:�p4ng\] {
@@ -4127,6 +4167,14 @@
 
   .\[key\:��4ng\] {
     key: ��4ng;
+  }
+
+  .\[keyn\:\14 \] {
+    keyn:  ;
+  }
+
+  .\[l\:r\] {
+    l: r;
   }
 
   .\[metatype\:�\5 c\] {
@@ -4155,6 +4203,10 @@
 
   .\[v\:Rsc\] {
     v: Rsc;
+  }
+
+  .\[x\:Vsc\] {
+    x: Vsc;
   }
 
   :where(.divide-x-reverse > :not(:last-child)) {

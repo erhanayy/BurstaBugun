@@ -2,6 +2,7 @@
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/api/upload/route": "app/api/upload/route.js",
   "/dashboard/admin/parameters/page": "app/dashboard/admin/parameters/page.js",
+  "/dashboard/applications/new/page": "app/dashboard/applications/new/page.js",
   "/dashboard/applications/page": "app/dashboard/applications/page.js",
   "/dashboard/change-password/page": "app/dashboard/change-password/page.js",
   "/dashboard/funds/[id]/page": "app/dashboard/funds/[id]/page.js",

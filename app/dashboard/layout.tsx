@@ -70,12 +70,12 @@ export default async function DashboardLayout({
                 :root {
                     --menu-text: #FFFFFF;
                     --screen-text: #1F2937;
-                    --bg-color: #F9FAFB;
+                    --bg-color: ${tenantData?.backgroundColor || '#F9FAFB'};
                     --header-bg: #1E3A5F;
                     --nav-bg: ${tenantData?.primaryColor || '#2563EB'};
                 }
                 .dark {
-                    --bg-color: #18181b;
+                    --bg-color: ${tenantData?.backgroundColor || '#18181b'};
                     --screen-text: #f4f4f5;
                 }
             `}} />
