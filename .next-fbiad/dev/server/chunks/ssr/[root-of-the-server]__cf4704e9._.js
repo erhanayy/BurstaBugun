@@ -56,6 +56,8 @@ __turbopack_context__.n(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$r
 "[project]/app/register/page.tsx [app-rsc] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
+return __turbopack_context__.a(async (__turbopack_handle_async_dependencies__, __turbopack_async_result__) => { try {
+
 __turbopack_context__.s([
     "default",
     ()=>RegisterPage
@@ -64,33 +66,48 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/image.js [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.react-server.js [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$register$2f$register$2d$form$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/app/register/register-form.tsx [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2f$tenant$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/data/tenant.ts [app-rsc] (ecmascript)");
+var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
+    __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2f$tenant$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__
+]);
+[__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2f$tenant$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__] = __turbopack_async_dependencies__.then ? (await __turbopack_async_dependencies__)() : __turbopack_async_dependencies__;
 ;
 ;
 ;
 ;
-function RegisterPage() {
+;
+async function RegisterPage() {
+    const tenantInfo = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2f$tenant$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getPublicTenantInfo"])();
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "flex flex-col md:flex-row min-h-screen bg-gray-100 dark:bg-zinc-950",
+        className: "flex flex-col md:flex-row min-h-screen",
+        style: {
+            backgroundColor: tenantInfo.backgroundColor || undefined
+        },
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "hidden md:flex flex-col items-center justify-center w-full md:w-1/2 lg:w-5/12 bg-gradient-to-br from-blue-700 to-indigo-900 text-white p-12",
+                className: "hidden md:flex flex-col items-center justify-center w-full md:w-1/2 lg:w-5/12 text-white p-12",
+                style: tenantInfo.primaryColor ? {
+                    backgroundImage: `linear-gradient(to bottom right, ${tenantInfo.primaryColor}, #312e81)`
+                } : {
+                    backgroundImage: `linear-gradient(to bottom right, #1d4ed8, #312e81)`
+                },
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "w-24 h-24 bg-white/10 rounded-2xl flex items-center justify-center mb-8 backdrop-blur-sm border border-white/20 p-4",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
-                            src: "/logo-v3-transparent.png",
-                            alt: "Bursta Bugün Logo",
+                            src: tenantInfo.logoUrl || "/logo-v3-transparent.png",
+                            alt: tenantInfo.tenantName,
                             width: 80,
                             height: 80,
-                            className: "w-full h-full object-contain brightness-0 invert"
+                            className: "w-full h-full object-contain"
                         }, void 0, false, {
                             fileName: "[project]/app/register/page.tsx",
-                            lineNumber: 11,
+                            lineNumber: 17,
                             columnNumber: 21
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/register/page.tsx",
-                        lineNumber: 10,
+                        lineNumber: 16,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -98,15 +115,18 @@ function RegisterPage() {
                         children: "Eğitimde Fırsat Eşitliği"
                     }, void 0, false, {
                         fileName: "[project]/app/register/page.tsx",
-                        lineNumber: 13,
+                        lineNumber: 19,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         className: "text-blue-100 text-center max-w-sm text-lg",
-                        children: "BurstaBugün platformuna katılarak binlerce yetenekli öğrencinin vizyonuna ortak olun veya eğitim hayatınız için aradığınız desteği bulun."
-                    }, void 0, false, {
+                        children: [
+                            tenantInfo.tenantName,
+                            " platformuna katılarak binlerce yetenekli öğrencinin vizyonuna ortak olun veya eğitim hayatınız için aradığınız desteği bulun."
+                        ]
+                    }, void 0, true, {
                         fileName: "[project]/app/register/page.tsx",
-                        lineNumber: 14,
+                        lineNumber: 20,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -119,7 +139,7 @@ function RegisterPage() {
                                     children: "Şeffaf Değerlendirme"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/page.tsx",
-                                    lineNumber: 19,
+                                    lineNumber: 25,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -127,24 +147,24 @@ function RegisterPage() {
                                     children: "Gelişmiş aday havuzu ile doğrudan en uygun fon eşleşmesi."
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/page.tsx",
-                                    lineNumber: 20,
+                                    lineNumber: 26,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/page.tsx",
-                            lineNumber: 18,
+                            lineNumber: 24,
                             columnNumber: 21
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/register/page.tsx",
-                        lineNumber: 17,
+                        lineNumber: 23,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/register/page.tsx",
-                lineNumber: 9,
+                lineNumber: 12,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -158,33 +178,36 @@ function RegisterPage() {
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "w-16 h-16 flex items-center justify-center mb-4 mx-auto rounded-full bg-blue-50 dark:bg-blue-900/20 p-2 border border-blue-100 dark:border-blue-900",
                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
-                                        src: "/logo-v3-transparent.png",
-                                        alt: "Bursta Bugün",
+                                        src: tenantInfo.logoUrl || "/logo-v3-transparent.png",
+                                        alt: tenantInfo.tenantName,
                                         width: 60,
                                         height: 60,
                                         className: "w-full h-full object-contain"
                                     }, void 0, false, {
                                         fileName: "[project]/app/register/page.tsx",
-                                        lineNumber: 32,
+                                        lineNumber: 38,
                                         columnNumber: 29
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/page.tsx",
-                                    lineNumber: 31,
+                                    lineNumber: 37,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                                     className: "text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400",
-                                    children: "Bursta Bugün"
+                                    style: tenantInfo.primaryColor ? {
+                                        backgroundImage: `linear-gradient(to right, ${tenantInfo.primaryColor}, #4f46e5)`
+                                    } : {},
+                                    children: tenantInfo.tenantName
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/page.tsx",
-                                    lineNumber: 34,
+                                    lineNumber: 40,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/page.tsx",
-                            lineNumber: 30,
+                            lineNumber: 36,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -195,7 +218,7 @@ function RegisterPage() {
                                     children: "Hesap Oluştur"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/page.tsx",
-                                    lineNumber: 40,
+                                    lineNumber: 46,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -203,18 +226,20 @@ function RegisterPage() {
                                     children: "Platforma dahil olmak için lütfen aşağıdaki bilgileri eksiksiz doldurun."
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/page.tsx",
-                                    lineNumber: 41,
+                                    lineNumber: 47,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/page.tsx",
-                            lineNumber: 39,
+                            lineNumber: 45,
                             columnNumber: 21
                         }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$register$2f$register$2d$form$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["RegisterForm"], {}, void 0, false, {
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$register$2f$register$2d$form$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["RegisterForm"], {
+                            primaryColor: tenantInfo.primaryColor
+                        }, void 0, false, {
                             fileName: "[project]/app/register/page.tsx",
-                            lineNumber: 46,
+                            lineNumber: 52,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -227,42 +252,46 @@ function RegisterPage() {
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
                                         href: "/login",
                                         className: "font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400",
+                                        style: tenantInfo.primaryColor ? {
+                                            color: tenantInfo.primaryColor
+                                        } : {},
                                         children: "Buradan Giriş Yapın"
                                     }, void 0, false, {
                                         fileName: "[project]/app/register/page.tsx",
-                                        lineNumber: 51,
+                                        lineNumber: 57,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/register/page.tsx",
-                                lineNumber: 49,
+                                lineNumber: 55,
                                 columnNumber: 25
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/register/page.tsx",
-                            lineNumber: 48,
+                            lineNumber: 54,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/register/page.tsx",
-                    lineNumber: 27,
+                    lineNumber: 33,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/register/page.tsx",
-                lineNumber: 26,
+                lineNumber: 32,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/register/page.tsx",
-        lineNumber: 7,
+        lineNumber: 10,
         columnNumber: 9
     }, this);
 }
-}),
+__turbopack_async_result__();
+} catch(e) { __turbopack_async_result__(e); } }, false);}),
 "[project]/app/register/page.tsx [app-rsc] (ecmascript, Next.js Server Component)", ((__turbopack_context__) => {
 
 __turbopack_context__.n(__turbopack_context__.i("[project]/app/register/page.tsx [app-rsc] (ecmascript)"));

@@ -36,7 +36,11 @@ const registerSchema = z.object({
     role: z.enum(["applicant", "sponsor"], { message: "Lütfen platformu kullanım amacınızı (Rol) seçiniz." }),
 });
 
-export function RegisterForm() {
+interface RegisterFormProps {
+    primaryColor?: string | null;
+}
+
+export function RegisterForm({ primaryColor }: RegisterFormProps = {}) {
     const router = useRouter();
     const [step, setStep] = useState<1 | 2>(1);
     const [userId, setUserId] = useState<string | null>(null);
@@ -116,6 +120,7 @@ export function RegisterForm() {
                         onClick={handleVerify}
                         disabled={isPending || otpCode.length !== 6}
                         className="w-full bg-blue-600 hover:bg-blue-700"
+                        style={primaryColor ? { backgroundColor: primaryColor } : {}}
                     >
                         {isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
                         Hesabımı Doğrula
@@ -201,7 +206,7 @@ export function RegisterForm() {
                     )}
                 />
 
-                <Button type="submit" disabled={isPending} className="w-full mt-6 h-12 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                <Button type="submit" disabled={isPending} className="w-full mt-6 h-12 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors" style={primaryColor ? { backgroundColor: primaryColor } : {}}>
                     {isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ArrowRight className="mr-2 h-5 w-5" />}
                     Kayıt Ol ve Doğrula
                 </Button>

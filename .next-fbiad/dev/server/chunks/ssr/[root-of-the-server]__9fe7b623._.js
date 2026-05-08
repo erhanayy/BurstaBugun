@@ -666,7 +666,7 @@ const registerSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modu
         message: "Lütfen platformu kullanım amacınızı (Rol) seçiniz."
     })
 });
-function RegisterForm() {
+function RegisterForm({ primaryColor } = {}) {
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     const [step, setStep] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(1);
     const [userId, setUserId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
@@ -722,7 +722,7 @@ function RegisterForm() {
                             className: "w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5"
                         }, void 0, false, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 93,
+                            lineNumber: 97,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -732,7 +732,7 @@ function RegisterForm() {
                                     children: "E-Posta Doğrulaması"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 95,
+                                    lineNumber: 99,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -740,19 +740,19 @@ function RegisterForm() {
                                     children: "Lütfen e-posta adresinize gönderilen 6 haneli doğrulama kodunu giriniz."
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 96,
+                                    lineNumber: 100,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 94,
+                            lineNumber: 98,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/register/register-form.tsx",
-                    lineNumber: 92,
+                    lineNumber: 96,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -765,7 +765,7 @@ function RegisterForm() {
                                     children: "Doğrulama Kodu"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 104,
+                                    lineNumber: 108,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -776,50 +776,53 @@ function RegisterForm() {
                                     className: "text-center text-2xl tracking-[0.5em] h-14"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 107,
+                                    lineNumber: 111,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 103,
+                            lineNumber: 107,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
                             onClick: handleVerify,
                             disabled: isPending || otpCode.length !== 6,
                             className: "w-full bg-blue-600 hover:bg-blue-700",
+                            style: primaryColor ? {
+                                backgroundColor: primaryColor
+                            } : {},
                             children: [
                                 isPending ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
                                     className: "mr-2 h-5 w-5 animate-spin"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 120,
+                                    lineNumber: 125,
                                     columnNumber: 38
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$check$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__CheckCircle2$3e$__["CheckCircle2"], {
                                     className: "mr-2 h-5 w-5"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 120,
+                                    lineNumber: 125,
                                     columnNumber: 90
                                 }, this),
                                 "Hesabımı Doğrula"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 115,
+                            lineNumber: 119,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/register/register-form.tsx",
-                    lineNumber: 102,
+                    lineNumber: 106,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/register/register-form.tsx",
-            lineNumber: 91,
+            lineNumber: 95,
             columnNumber: 13
         }, this);
     }
@@ -838,7 +841,7 @@ function RegisterForm() {
                                     children: "Rol Seçimi *"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 136,
+                                    lineNumber: 141,
                                     columnNumber: 29
                                 }, void 0),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Select"], {
@@ -852,17 +855,17 @@ function RegisterForm() {
                                                     placeholder: "Sistemi hangi amaçla kullanacaksınız?"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/register/register-form.tsx",
-                                                    lineNumber: 140,
+                                                    lineNumber: 145,
                                                     columnNumber: 41
                                                 }, void 0)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/register/register-form.tsx",
-                                                lineNumber: 139,
+                                                lineNumber: 144,
                                                 columnNumber: 37
                                             }, void 0)
                                         }, void 0, false, {
                                             fileName: "[project]/app/register/register-form.tsx",
-                                            lineNumber: 138,
+                                            lineNumber: 143,
                                             columnNumber: 33
                                         }, void 0),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -872,7 +875,7 @@ function RegisterForm() {
                                                     children: "Öğrenci / Bursiyer Olarak Yeralacağım"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/register/register-form.tsx",
-                                                    lineNumber: 144,
+                                                    lineNumber: 149,
                                                     columnNumber: 37
                                                 }, void 0),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -880,35 +883,35 @@ function RegisterForm() {
                                                     children: "Bursveren / Referans / Kurum Olarak Yeralacağım"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/register/register-form.tsx",
-                                                    lineNumber: 145,
+                                                    lineNumber: 150,
                                                     columnNumber: 37
                                                 }, void 0)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/register/register-form.tsx",
-                                            lineNumber: 143,
+                                            lineNumber: 148,
                                             columnNumber: 33
                                         }, void 0)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 137,
+                                    lineNumber: 142,
                                     columnNumber: 29
                                 }, void 0),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormMessage"], {}, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 148,
+                                    lineNumber: 153,
                                     columnNumber: 29
                                 }, void 0)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 135,
+                            lineNumber: 140,
                             columnNumber: 25
                         }, void 0)
                 }, void 0, false, {
                     fileName: "[project]/app/register/register-form.tsx",
-                    lineNumber: 131,
+                    lineNumber: 136,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -920,7 +923,7 @@ function RegisterForm() {
                                     children: "Ad Soyad *"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 158,
+                                    lineNumber: 163,
                                     columnNumber: 29
                                 }, void 0),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormControl"], {
@@ -931,7 +934,7 @@ function RegisterForm() {
                                                 className: "absolute left-3 top-3 h-5 w-5 text-gray-400"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/register/register-form.tsx",
-                                                lineNumber: 161,
+                                                lineNumber: 166,
                                                 columnNumber: 37
                                             }, void 0),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -940,34 +943,34 @@ function RegisterForm() {
                                                 ...field
                                             }, void 0, false, {
                                                 fileName: "[project]/app/register/register-form.tsx",
-                                                lineNumber: 162,
+                                                lineNumber: 167,
                                                 columnNumber: 37
                                             }, void 0)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/register/register-form.tsx",
-                                        lineNumber: 160,
+                                        lineNumber: 165,
                                         columnNumber: 33
                                     }, void 0)
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 159,
+                                    lineNumber: 164,
                                     columnNumber: 29
                                 }, void 0),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormMessage"], {}, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 165,
+                                    lineNumber: 170,
                                     columnNumber: 29
                                 }, void 0)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 157,
+                            lineNumber: 162,
                             columnNumber: 25
                         }, void 0)
                 }, void 0, false, {
                     fileName: "[project]/app/register/register-form.tsx",
-                    lineNumber: 153,
+                    lineNumber: 158,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -979,7 +982,7 @@ function RegisterForm() {
                                     children: "E-Posta Adresi *"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 175,
+                                    lineNumber: 180,
                                     columnNumber: 29
                                 }, void 0),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormControl"], {
@@ -990,7 +993,7 @@ function RegisterForm() {
                                                 className: "absolute left-3 top-3 h-5 w-5 text-gray-400"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/register/register-form.tsx",
-                                                lineNumber: 178,
+                                                lineNumber: 183,
                                                 columnNumber: 37
                                             }, void 0),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -1000,34 +1003,34 @@ function RegisterForm() {
                                                 ...field
                                             }, void 0, false, {
                                                 fileName: "[project]/app/register/register-form.tsx",
-                                                lineNumber: 179,
+                                                lineNumber: 184,
                                                 columnNumber: 37
                                             }, void 0)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/register/register-form.tsx",
-                                        lineNumber: 177,
+                                        lineNumber: 182,
                                         columnNumber: 33
                                     }, void 0)
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 176,
+                                    lineNumber: 181,
                                     columnNumber: 29
                                 }, void 0),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormMessage"], {}, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 182,
+                                    lineNumber: 187,
                                     columnNumber: 29
                                 }, void 0)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 174,
+                            lineNumber: 179,
                             columnNumber: 25
                         }, void 0)
                 }, void 0, false, {
                     fileName: "[project]/app/register/register-form.tsx",
-                    lineNumber: 170,
+                    lineNumber: 175,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -1039,7 +1042,7 @@ function RegisterForm() {
                                     children: "Cep Telefonu *"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 192,
+                                    lineNumber: 197,
                                     columnNumber: 29
                                 }, void 0),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormControl"], {
@@ -1050,7 +1053,7 @@ function RegisterForm() {
                                                 className: "absolute left-3 h-5 w-5 text-gray-400 z-10"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/register/register-form.tsx",
-                                                lineNumber: 195,
+                                                lineNumber: 200,
                                                 columnNumber: 37
                                             }, void 0),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$phone$2d$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PhoneInput"], {
@@ -1060,70 +1063,73 @@ function RegisterForm() {
                                                 onChange: field.onChange
                                             }, void 0, false, {
                                                 fileName: "[project]/app/register/register-form.tsx",
-                                                lineNumber: 196,
+                                                lineNumber: 201,
                                                 columnNumber: 37
                                             }, void 0)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/register/register-form.tsx",
-                                        lineNumber: 194,
+                                        lineNumber: 199,
                                         columnNumber: 33
                                     }, void 0)
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 193,
+                                    lineNumber: 198,
                                     columnNumber: 29
                                 }, void 0),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$form$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormMessage"], {}, void 0, false, {
                                     fileName: "[project]/app/register/register-form.tsx",
-                                    lineNumber: 199,
+                                    lineNumber: 204,
                                     columnNumber: 29
                                 }, void 0)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 191,
+                            lineNumber: 196,
                             columnNumber: 25
                         }, void 0)
                 }, void 0, false, {
                     fileName: "[project]/app/register/register-form.tsx",
-                    lineNumber: 187,
+                    lineNumber: 192,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
                     type: "submit",
                     disabled: isPending,
                     className: "w-full mt-6 h-12 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors",
+                    style: primaryColor ? {
+                        backgroundColor: primaryColor
+                    } : {},
                     children: [
                         isPending ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
                             className: "mr-2 h-5 w-5 animate-spin"
                         }, void 0, false, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 205,
+                            lineNumber: 210,
                             columnNumber: 34
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {
                             className: "mr-2 h-5 w-5"
                         }, void 0, false, {
                             fileName: "[project]/app/register/register-form.tsx",
-                            lineNumber: 205,
+                            lineNumber: 210,
                             columnNumber: 86
                         }, this),
                         "Kayıt Ol ve Doğrula"
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/register/register-form.tsx",
-                    lineNumber: 204,
+                    lineNumber: 209,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/register/register-form.tsx",
-            lineNumber: 130,
+            lineNumber: 135,
             columnNumber: 13
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/register/register-form.tsx",
-        lineNumber: 129,
+        lineNumber: 134,
         columnNumber: 9
     }, this);
 }

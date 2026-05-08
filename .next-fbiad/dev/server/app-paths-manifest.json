@@ -1,6 +1,9 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/api/upload/route": "app/api/upload/route.js",
+  "/dashboard/admin/agreements/page": "app/dashboard/admin/agreements/page.js",
+  "/dashboard/admin/forms/page": "app/dashboard/admin/forms/page.js",
   "/dashboard/admin/parameters/page": "app/dashboard/admin/parameters/page.js",
   "/dashboard/applications/new/page": "app/dashboard/applications/new/page.js",
   "/dashboard/applications/page": "app/dashboard/applications/page.js",
@@ -11,9 +14,11 @@
   "/dashboard/funds/page": "app/dashboard/funds/page.js",
   "/dashboard/home/page": "app/dashboard/home/page.js",
   "/dashboard/invitations/page": "app/dashboard/invitations/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
   "/dashboard/payments/history/page": "app/dashboard/payments/history/page.js",
   "/dashboard/payments/upcoming/page": "app/dashboard/payments/upcoming/page.js",
   "/dashboard/pool/page": "app/dashboard/pool/page.js",
   "/login/page": "app/login/page.js",
-  "/register/page": "app/register/page.js"
+  "/register/page": "app/register/page.js",
+  "/unauthorized/page": "app/unauthorized/page.js"
 }

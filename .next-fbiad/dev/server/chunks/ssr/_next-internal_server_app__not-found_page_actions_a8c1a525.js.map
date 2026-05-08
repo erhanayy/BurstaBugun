@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 6, "column": 0}, "map": {"version":3,"sources":["file:///Users/erhanayyildiz/Desktop/Work/BurstaBugun/.next-internal/server/app/_not-found/page/actions.js%20%28server%20actions%20loader%29"],"sourcesContent":["export {getCurrentTenant as '00eddb97164ab25bf86b0259e5b5d5ed8385052ad6'} from 'ACTIONS_MODULE0'\nexport {getPublicTenantInfo as '00f14b2652a6a15b221e52c5ed2de81c4b9557784d'} from 'ACTIONS_MODULE0'\n"],"names":[],"mappings":";AAAA"}}]
+}

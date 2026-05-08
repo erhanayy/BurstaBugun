@@ -45,3 +45,55 @@
 [00:51:33.022] Browser WARN    Image with src "/fbiad-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
 [00:52:07.202] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 [00:52:07.312] Browser WARN    Image with src "/fbiad-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:56:10.776] Server  LOG     ✓ Compiled in 5.4s
+[00:56:19.054] Server  LOG     ✓ Compiled in 341ms
+[00:56:34.060] Server  LOG     ✓ Compiled in 3.3s
+[00:56:56.012] Server  LOG     ✓ Compiled in 388ms
+[00:57:27.968] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:57:28.086] Browser WARN    Image with src "/fbiad-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:57:36.410] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:57:38.819] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:05:33.787] Browser WARN    Image with src "/fbiad-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:17:14.492] Browser ERROR   uncaughtError: Error: An unexpected response was received from the server.
+[01:22:12.236] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:22:12.259] Server  LOG     ✓ Compiled in 4.3s
+[01:22:12.744] Server  ERROR   ResponseAborted
+[01:22:13.292] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:22:33.517] Server  LOG     ✓ Compiled in 400ms
+[01:22:44.821] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:44.873] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:44.886] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:44.907] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:44.908] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:44.990] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.045] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.102] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.146] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.198] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.273] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.318] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.398] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.454] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.505] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:45.548] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:46.176] Browser ERROR   uncaughtError: ReferenceError: redirect is not defined
+[01:22:57.128] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:22:57.626] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:22:57.799] Server  LOG     ✓ Compiled in 0ms
+[01:22:58.278] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:58.418] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:58.424] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:22:58.553] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:22:59.173] Browser ERROR   uncaughtError: ReferenceError: redirect is not defined
+[01:27:57.118] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:27:57.225] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:27:57.225] Browser ERROR   uncaughtError: ReferenceError: redirect is not defined
+[01:28:04.309] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:28:10.972] Server  ERROR   ⨯ ReferenceError: redirect is not defined
+[01:28:11.067] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:28:11.067] Browser ERROR   uncaughtError: ReferenceError: redirect is not defined
+[01:28:59.197] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:28:59.256] Server  LOG     ✓ Compiled in 5.1s
+[01:29:00.175] Browser ERROR   unhandledRejection: Error: No link element found for chunk /_next/static/chunks/%5Broot-of-the-server%5D__36b083e1._.css
+[01:29:00.283] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:30:34.728] Browser WARN    Image with src "/fbiad-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes

@@ -352,6 +352,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$auth$2e$ts__$5b$app$2d$rsc$5
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/image.js [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$collapsible$2d$nav$2d$section$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/collapsible-nav-section.tsx [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$notification$2d$bell$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/notification-bell.tsx [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$api$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/next/dist/api/navigation.react-server.js [app-rsc] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/components/navigation.react-server.js [app-rsc] (ecmascript)");
 var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
     __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2f$tenant$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__,
     __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$actions$2f$agreements$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__,
@@ -371,10 +373,14 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 ;
 ;
 ;
+;
 async function DashboardLayout({ children }) {
     const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$auth$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["auth"])();
     const tenantData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2f$tenant$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getCurrentTenant"])();
-    const activeTenantName = tenantData?.tenantShortName || "BurstaBugün";
+    if (!tenantData) {
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])("/unauthorized");
+    }
+    const activeTenantName = tenantData.tenantShortName || "BurstaBugün";
     const userRole = tenantData?.userRole || "applicant"; // default
     const isForceChange = tenantData?.forcePasswordChange;
     if (isForceChange) {
@@ -385,7 +391,7 @@ async function DashboardLayout({ children }) {
                     forcePasswordChange: !!isForceChange
                 }, void 0, false, {
                     fileName: "[project]/app/dashboard/layout.tsx",
-                    lineNumber: 44,
+                    lineNumber: 48,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -398,12 +404,12 @@ async function DashboardLayout({ children }) {
                                 children: "Bursta Bugün"
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                lineNumber: 48,
+                                lineNumber: 52,
                                 columnNumber: 25
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/dashboard/layout.tsx",
-                            lineNumber: 46,
+                            lineNumber: 50,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -411,19 +417,19 @@ async function DashboardLayout({ children }) {
                             children: children
                         }, void 0, false, {
                             fileName: "[project]/app/dashboard/layout.tsx",
-                            lineNumber: 52,
+                            lineNumber: 56,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/dashboard/layout.tsx",
-                    lineNumber: 45,
+                    lineNumber: 49,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/dashboard/layout.tsx",
-            lineNumber: 43,
+            lineNumber: 47,
             columnNumber: 13
         }, this);
     }
@@ -438,7 +444,7 @@ async function DashboardLayout({ children }) {
                 pendingContracts: pendingContracts
             }, void 0, false, {
                 fileName: "[project]/app/dashboard/layout.tsx",
-                lineNumber: 67,
+                lineNumber: 71,
                 columnNumber: 36
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("style", {
@@ -459,7 +465,7 @@ async function DashboardLayout({ children }) {
                 }
             }, void 0, false, {
                 fileName: "[project]/app/dashboard/layout.tsx",
-                lineNumber: 68,
+                lineNumber: 72,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -469,7 +475,7 @@ async function DashboardLayout({ children }) {
                         forcePasswordChange: false
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/layout.tsx",
-                        lineNumber: 83,
+                        lineNumber: 87,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("aside", {
@@ -480,7 +486,7 @@ async function DashboardLayout({ children }) {
                                 children: tenantData?.userName
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                lineNumber: 87,
+                                lineNumber: 91,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
@@ -495,12 +501,12 @@ async function DashboardLayout({ children }) {
                                             label: "Ana Sayfa"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/layout.tsx",
-                                            lineNumber: 93,
+                                            lineNumber: 97,
                                             columnNumber: 29
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                        lineNumber: 92,
+                                        lineNumber: 96,
                                         columnNumber: 25
                                     }, this),
                                     (userRole === 'applicant' || userRole === 'admin') && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$collapsible$2d$nav$2d$section$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CollapsibleNavSection"], {
@@ -513,7 +519,7 @@ async function DashboardLayout({ children }) {
                                                 label: "Burs Başvurusu Yap"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 99,
+                                                lineNumber: 103,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(NavItem, {
@@ -522,7 +528,7 @@ async function DashboardLayout({ children }) {
                                                 label: "Başvurularım"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 100,
+                                                lineNumber: 104,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(NavItem, {
@@ -531,13 +537,13 @@ async function DashboardLayout({ children }) {
                                                 label: "Davetler / Onaylar"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 101,
+                                                lineNumber: 105,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                        lineNumber: 98,
+                                        lineNumber: 102,
                                         columnNumber: 29
                                     }, this),
                                     (userRole === 'sponsor' || userRole === 'admin') && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$collapsible$2d$nav$2d$section$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CollapsibleNavSection"], {
@@ -550,7 +556,7 @@ async function DashboardLayout({ children }) {
                                                 label: "Fonlarım / Desteklerim"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 108,
+                                                lineNumber: 112,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(NavItem, {
@@ -559,7 +565,7 @@ async function DashboardLayout({ children }) {
                                                 label: "Davetler / Onaylar"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 109,
+                                                lineNumber: 113,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(NavItem, {
@@ -568,13 +574,13 @@ async function DashboardLayout({ children }) {
                                                 label: "Bursiyer Havuzu"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 110,
+                                                lineNumber: 114,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                        lineNumber: 107,
+                                        lineNumber: 111,
                                         columnNumber: 29
                                     }, this),
                                     userRole === 'contributor' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$collapsible$2d$nav$2d$section$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CollapsibleNavSection"], {
@@ -586,12 +592,12 @@ async function DashboardLayout({ children }) {
                                             label: "Destek Olduğum Fonlar"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/layout.tsx",
-                                            lineNumber: 117,
+                                            lineNumber: 121,
                                             columnNumber: 33
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                        lineNumber: 116,
+                                        lineNumber: 120,
                                         columnNumber: 29
                                     }, this),
                                     (userRole === 'reference' || userRole === 'admin') && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$collapsible$2d$nav$2d$section$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CollapsibleNavSection"], {
@@ -603,12 +609,12 @@ async function DashboardLayout({ children }) {
                                             label: "Referans Onayları"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/layout.tsx",
-                                            lineNumber: 124,
+                                            lineNumber: 128,
                                             columnNumber: 33
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                        lineNumber: 123,
+                                        lineNumber: 127,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$collapsible$2d$nav$2d$section$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CollapsibleNavSection"], {
@@ -620,12 +626,12 @@ async function DashboardLayout({ children }) {
                                             label: "Ayarlar"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/layout.tsx",
-                                            lineNumber: 130,
+                                            lineNumber: 134,
                                             columnNumber: 29
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                        lineNumber: 129,
+                                        lineNumber: 133,
                                         columnNumber: 25
                                     }, this),
                                     (userRole === 'admin' || tenantData?.isSuperAdmin) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$collapsible$2d$nav$2d$section$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CollapsibleNavSection"], {
@@ -638,7 +644,7 @@ async function DashboardLayout({ children }) {
                                                 label: "Ödeme Sayfası"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 136,
+                                                lineNumber: 140,
                                                 columnNumber: 33
                                             }, this),
                                             tenantData?.isSuperAdmin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(NavItem, {
@@ -647,7 +653,7 @@ async function DashboardLayout({ children }) {
                                                 label: "Vakıflar (Tenants)"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 138,
+                                                lineNumber: 142,
                                                 columnNumber: 37
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(NavItem, {
@@ -656,7 +662,7 @@ async function DashboardLayout({ children }) {
                                                 label: "Başvuru Tasarımcısı"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 140,
+                                                lineNumber: 144,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(NavItem, {
@@ -665,7 +671,7 @@ async function DashboardLayout({ children }) {
                                                 label: "Sözleşmeler"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 141,
+                                                lineNumber: 145,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(NavItem, {
@@ -674,37 +680,37 @@ async function DashboardLayout({ children }) {
                                                 label: "Parametreler"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 142,
+                                                lineNumber: 146,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                        lineNumber: 135,
+                                        lineNumber: 139,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                lineNumber: 90,
+                                lineNumber: 94,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "p-4 border-t border-white/10",
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$sign$2d$out$2d$button$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["SignOutButton"], {}, void 0, false, {
                                     fileName: "[project]/app/dashboard/layout.tsx",
-                                    lineNumber: 148,
+                                    lineNumber: 152,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                lineNumber: 147,
+                                lineNumber: 151,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/layout.tsx",
-                        lineNumber: 86,
+                        lineNumber: 90,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -724,7 +730,7 @@ async function DashboardLayout({ children }) {
                                                 children: activeTenantName
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 160,
+                                                lineNumber: 164,
                                                 columnNumber: 29
                                             }, this),
                                             tenantData && tenantData.isSuperAdmin && tenantData.availableTenants.length > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -738,18 +744,18 @@ async function DashboardLayout({ children }) {
                                                     availableTenants: tenantData.availableTenants
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/layout.tsx",
-                                                    lineNumber: 164,
+                                                    lineNumber: 168,
                                                     columnNumber: 37
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 163,
+                                                lineNumber: 167,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                        lineNumber: 159,
+                                        lineNumber: 163,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -763,7 +769,7 @@ async function DashboardLayout({ children }) {
                                                         userId: tenantData.userId
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                                        lineNumber: 181,
+                                                        lineNumber: 185,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -773,7 +779,7 @@ async function DashboardLayout({ children }) {
                                                                 className: "absolute inset-0 bg-gradient-to-tr from-blue-600 to-indigo-400 opacity-90"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                                lineNumber: 185,
+                                                                lineNumber: 189,
                                                                 columnNumber: 41
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -781,13 +787,13 @@ async function DashboardLayout({ children }) {
                                                                 children: tenantData.userName?.split(' ').map((n)=>n[0]).join('').substring(0, 2).toUpperCase() || 'AB'
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                                lineNumber: 186,
+                                                                lineNumber: 190,
                                                                 columnNumber: 41
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                                        lineNumber: 184,
+                                                        lineNumber: 188,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -799,18 +805,18 @@ async function DashboardLayout({ children }) {
                                                             className: "object-cover"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/dashboard/layout.tsx",
-                                                            lineNumber: 193,
+                                                            lineNumber: 197,
                                                             columnNumber: 41
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                                        lineNumber: 192,
+                                                        lineNumber: 196,
                                                         columnNumber: 37
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 179,
+                                                lineNumber: 183,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -819,24 +825,24 @@ async function DashboardLayout({ children }) {
                                                     className: "w-6 h-6 text-white"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/layout.tsx",
-                                                    lineNumber: 200,
+                                                    lineNumber: 204,
                                                     columnNumber: 33
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                                lineNumber: 199,
+                                                lineNumber: 203,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/layout.tsx",
-                                        lineNumber: 177,
+                                        lineNumber: 181,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                lineNumber: 154,
+                                lineNumber: 158,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -844,19 +850,19 @@ async function DashboardLayout({ children }) {
                                 children: children
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/layout.tsx",
-                                lineNumber: 206,
+                                lineNumber: 210,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/layout.tsx",
-                        lineNumber: 153,
+                        lineNumber: 157,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/layout.tsx",
-                lineNumber: 82,
+                lineNumber: 86,
                 columnNumber: 13
             }, this)
         ]
@@ -874,14 +880,14 @@ function NavItem({ href, icon: Icon, label, badge }) {
                         className: "w-5 h-5 opacity-80"
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/layout.tsx",
-                        lineNumber: 231,
+                        lineNumber: 235,
                         columnNumber: 17
                     }, this),
                     label
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/layout.tsx",
-                lineNumber: 230,
+                lineNumber: 234,
                 columnNumber: 13
             }, this),
             badge && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -889,13 +895,13 @@ function NavItem({ href, icon: Icon, label, badge }) {
                 children: badge
             }, void 0, false, {
                 fileName: "[project]/app/dashboard/layout.tsx",
-                lineNumber: 235,
+                lineNumber: 239,
                 columnNumber: 17
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/dashboard/layout.tsx",
-        lineNumber: 226,
+        lineNumber: 230,
         columnNumber: 9
     }, this);
 }

@@ -24,6 +24,7 @@ import { auth } from "@/auth";
 import Image from "next/image";
 import { CollapsibleNavSection } from "@/components/ui/collapsible-nav-section";
 import { NotificationBell } from "@/components/notification-bell";
+import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
     children,
@@ -33,7 +34,10 @@ export default async function DashboardLayout({
     const session = await auth();
 
     const tenantData = await getCurrentTenant();
-    const activeTenantName = tenantData?.tenantShortName || "BurstaBugün";
+    if (!tenantData) {
+        redirect("/unauthorized");
+    }
+    const activeTenantName = tenantData.tenantShortName || "BurstaBugün";
     const userRole = tenantData?.userRole || "applicant"; // default
 
     const isForceChange = tenantData?.forcePasswordChange;
