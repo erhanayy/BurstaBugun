@@ -4,6 +4,8 @@ import { SelectionButton } from "./selection-button";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Users, FileText, CheckCircle2, AlertTriangle } from "lucide-react";
+import { maskFullName } from "@/lib/utils";
+import { getCurrentTenant } from "@/lib/data/tenant";
 import Link from "next/link";
 import { FundSelector } from "./fund-selector";
 
@@ -24,6 +26,10 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
 
     // Dynamic System Param Limit
     const maxLimitStr = await getSystemParameter("MAX_MONTHLY_LIMIT", "5000");
+    const maskNamesStr = await getSystemParameter("MASK_STUDENT_NAMES", "false");
+    
+    const tenantData = await getCurrentTenant();
+    const shouldMask = maskNamesStr === "true" && tenantData?.userRole !== 'admin';
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -77,7 +83,7 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
                                                 {isSelected ? (app.fund?.title || 'Seçildi') : 'Aday Havuzda'}
                                             </span>
                                             <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                                                {app.user?.fullName}
+                                                {shouldMask ? maskFullName(app.user?.fullName) : app.user?.fullName}
                                                 {isSelected && (
                                                     <CheckCircle2 className="ml-2 w-5 h-5 text-green-500" />
                                                 )}

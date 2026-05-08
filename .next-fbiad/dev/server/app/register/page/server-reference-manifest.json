@@ -1,0 +1,35 @@
+{
+  "node": {
+    "40e2659373bc5199dec64b6c5b585400bee96c4414": {
+      "workers": {
+        "app/register/page": {
+          "moduleId": "[project]/.next-internal/server/app/register/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions/auth-register.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "processRegistration",
+          "filename": "lib/actions/auth-register.ts"
+        }
+      },
+      "layer": {
+        "app/register/page": "action-browser"
+      },
+      "exportedName": "processRegistration",
+      "filename": "lib/actions/auth-register.ts"
+    },
+    "60e96946012c8f88a555e8a34cf11b6c3413d6ffd1": {
+      "workers": {
+        "app/register/page": {
+          "moduleId": "[project]/.next-internal/server/app/register/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions/auth-register.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "verifyEmailOTP",
+          "filename": "lib/actions/auth-register.ts"
+        }
+      },
+      "layer": {
+        "app/register/page": "action-browser"
+      },
+      "exportedName": "verifyEmailOTP",
+      "filename": "lib/actions/auth-register.ts"
+    }
+  },
+  "edge": {}
+}

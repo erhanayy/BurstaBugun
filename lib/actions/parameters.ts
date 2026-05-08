@@ -2,13 +2,19 @@
 
 import { db } from "@/lib/db";
 import { systemParameters } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getCurrentTenant } from "@/lib/data/tenant";
 
 export async function getSystemParameter(key: string, defaultValue: string = "") {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) return defaultValue;
+
     const res = await db.query.systemParameters.findFirst({
-        where: eq(systemParameters.key, key)
+        where: and(
+            eq(systemParameters.key, key),
+            eq(systemParameters.tenantId, tenantData.tenantId)
+        )
     });
     return res ? res.value : defaultValue;
 }
@@ -20,7 +26,10 @@ export async function setSystemParameter(key: string, value: string, description
     }
 
     const existing = await db.query.systemParameters.findFirst({
-        where: eq(systemParameters.key, key)
+        where: and(
+            eq(systemParameters.key, key),
+            eq(systemParameters.tenantId, tenantData.tenantId)
+        )
     });
 
     if (existing) {
@@ -29,6 +38,7 @@ export async function setSystemParameter(key: string, value: string, description
             .where(eq(systemParameters.id, existing.id));
     } else {
         await db.insert(systemParameters).values({
+            tenantId: tenantData.tenantId,
             key,
             value,
             description: description || ""
@@ -46,6 +56,7 @@ export async function getAllSystemParameters() {
     }
 
     return await db.query.systemParameters.findMany({
+        where: eq(systemParameters.tenantId, tenantData.tenantId),
         orderBy: (p, { asc }) => [asc(p.key)]
     });
 }

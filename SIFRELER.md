@@ -84,3 +84,24 @@ Böylece testlerinizi hiçbir engele takılmadan "sanki e-posta gelmiş gibi" bu
 - Rol: applicant
 - İlk Şifre: Burs2593!
 - Doğrulama (OTP) Kodu: 413362
+
+[08.05.2026 19:35:37] YENİ KAYIT:
+- Ad Soyad: Admin FBİAD
+- Email: admin@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs4016!
+- Doğrulama (OTP) Kodu: 907055
+
+[08.05.2026 19:38:55] YENİ KAYIT:
+- Ad Soyad: Damla Birbudak
+- Email: damlabirbudak@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs9591!
+- Doğrulama (OTP) Kodu: 282676
+
+[08.05.2026 19:40:45] YENİ KAYIT:
+- Ad Soyad: Güven Gülesce
+- Email: guvengulesce@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs5382!
+- Doğrulama (OTP) Kodu: 716315

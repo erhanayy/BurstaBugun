@@ -1,0 +1,18 @@
+{
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/upload/route": "app/api/upload/route.js",
+  "/dashboard/admin/parameters/page": "app/dashboard/admin/parameters/page.js",
+  "/dashboard/applications/page": "app/dashboard/applications/page.js",
+  "/dashboard/change-password/page": "app/dashboard/change-password/page.js",
+  "/dashboard/funds/[id]/page": "app/dashboard/funds/[id]/page.js",
+  "/dashboard/funds/[id]/payment/page": "app/dashboard/funds/[id]/payment/page.js",
+  "/dashboard/funds/new/page": "app/dashboard/funds/new/page.js",
+  "/dashboard/funds/page": "app/dashboard/funds/page.js",
+  "/dashboard/home/page": "app/dashboard/home/page.js",
+  "/dashboard/invitations/page": "app/dashboard/invitations/page.js",
+  "/dashboard/payments/history/page": "app/dashboard/payments/history/page.js",
+  "/dashboard/payments/upcoming/page": "app/dashboard/payments/upcoming/page.js",
+  "/dashboard/pool/page": "app/dashboard/pool/page.js",
+  "/login/page": "app/login/page.js",
+  "/register/page": "app/register/page.js"
+}

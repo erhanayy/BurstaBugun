@@ -7,6 +7,8 @@ import { ArrowLeft, Wallet, Calendar, CheckCircle2, AlertCircle } from "lucide-r
 import Link from "next/link";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import { getSystemParameter } from "@/lib/actions/parameters";
+import { maskFullName } from "@/lib/utils";
 
 export default async function StudentPaymentsPage({ params }: { params: { id: string, applicationId: string } }) {
     const tenantData = await getCurrentTenant();
@@ -33,13 +35,17 @@ export default async function StudentPaymentsPage({ params }: { params: { id: st
 
     if (!fund || !application) return redirect("/dashboard/funds");
 
+    const maskNamesStr = await getSystemParameter("MASK_STUDENT_NAMES", "false");
+    const shouldMask = maskNamesStr === "true" && tenantData.userRole !== 'admin';
+    const studentName = shouldMask ? maskFullName(application.user?.fullName) : application.user?.fullName;
+
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">Ödeme Geçmişi</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1 flex flex-col sm:flex-row gap-1">
-                        <strong>{application.user?.fullName}</strong> adlı öğrenciye <strong>{fund.title}</strong> üzerinden yapılan ödemeler.
+                        <strong>{studentName}</strong> adlı öğrenciye <strong>{fund.title}</strong> üzerinden yapılan ödemeler.
                     </p>
                 </div>
                 <Link href={`/dashboard/funds/${fund.id}/students`} className="inline-flex items-center px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">

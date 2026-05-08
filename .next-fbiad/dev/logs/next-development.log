@@ -1,0 +1,37 @@
+[00:00:00.685] Server  LOG     
+[00:00:00.685] Server  LOG       We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+[00:00:00.685] Server  LOG       The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+[00:00:00.685] Server  LOG       	- include was updated to add '.next-fbiad/types/**/*.ts'
+[00:00:00.685] Server  LOG       	- include was updated to add '.next-fbiad/dev/types/**/*.ts'
+[00:00:00.685] Server  LOG     
+[00:00:00.926] Server  LOG     ✓ Ready in 778ms
+[00:01:13.329] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:13.439] Browser WARN    Image with src "/bursiyer-login.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:02:39.592] Server  LOG     ✓ Compiled in 1118ms
+[00:03:38.439] Browser WARN    Image with src "/bursiyer-menu.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:04:46.945] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:47.053] Browser WARN    Image with src "/bursiyer-login.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:05:57.817] Server  LOG     ✓ Compiled in 1176ms
+[00:06:35.404] Browser WARN    Image with src "/bursiyer-menu.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:07:15.481] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:07:15.589] Browser WARN    Image with src "/bursiyer-login.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:08:30.602] Browser WARN    Image with src "/bursiyer-menu.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:08:56.273] Browser WARN    Select is changing from uncontrolled to controlled. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.
+[00:09:28.241] Browser WARN    Select is changing from uncontrolled to controlled. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.
+[00:11:42.748] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:11:42.857] Browser WARN    Image with src "/bursiyer-login.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:11:51.834] Browser WARN    Image with src "/bursiyer-menu.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:15:15.223] Server  LOG     ✓ Compiled in 3.2s
+[00:16:11.967] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:16:12.086] Browser WARN    Image with src "/bursiyer-login.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:16:23.050] Browser WARN    Image with src "/bursiyer-menu.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:17:58.936] Server  ERROR   ⨯ Error: Bu fon tamamen dolmuştur! Belirlenen kapasite (10 kişi) aşılmış olduğu için havuza yeni kişi seçemezsiniz.
+[00:18:18.864] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:18:18.973] Browser WARN    Image with src "/bursiyer-login.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:18:26.962] Browser WARN    Image with src "/bursiyer-menu.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:18:49.778] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:18:49.911] Browser WARN    Image with src "/bursiyer-menu.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:20:51.102] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:20:51.214] Browser WARN    Image with src "/bursiyer-login.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:22:07.343] Server  LOG     ✓ Compiled in 2.7s

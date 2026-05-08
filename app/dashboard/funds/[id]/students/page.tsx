@@ -7,6 +7,8 @@ import { Users, FileText, CheckCircle2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import { getSystemParameter } from "@/lib/actions/parameters";
+import { maskFullName } from "@/lib/utils";
 
 export default async function FundStudentsPage({ params }: { params: { id: string } }) {
     const tenantData = await getCurrentTenant();
@@ -34,6 +36,9 @@ export default async function FundStudentsPage({ params }: { params: { id: strin
         },
         orderBy: (applications, { desc }) => [desc(applications.createdAt)],
     });
+
+    const maskNamesStr = await getSystemParameter("MASK_STUDENT_NAMES", "false");
+    const shouldMask = maskNamesStr === "true" && tenantData.userRole !== 'admin';
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -88,7 +93,7 @@ export default async function FundStudentsPage({ params }: { params: { id: strin
                                                 {fund.title}
                                             </span>
                                             <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                                                {app.user?.fullName}
+                                                {shouldMask ? maskFullName(app.user?.fullName) : app.user?.fullName}
                                                 <CheckCircle2 className="ml-2 w-5 h-5 text-emerald-500" />
                                             </h3>
                                         </div>

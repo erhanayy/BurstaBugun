@@ -20,12 +20,12 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
   - Sınır aşılıyorsa hata fırlatılır. Aşılmıyorsa onaya izin verilir.
 - **Arayüz Etkileri:** Bursiyer havuzundaki liste görünümünde öğrenci hali hazırda para alıyorsa `AlertTriangle` komponenti ile amber renkli bir uyarı ve kalan tutar limiti panel üzerinden Sporsor'a gösterilir.
 
-## 3. Sistem Parametreleri (Admin Ekranı)
-- **Açıklama:** Hardcoded (Koda gömülü) kısıtlamaların terk edilerek tamamen Admin paneline taşınması.
+## 3. Sistem Parametreleri ve İzolasyon (Admin Ekranı)
+- **Açıklama:** Hardcoded (Koda gömülü) kısıtlamaların terk edilerek tamamen Admin paneline taşınması ve Multi-Tenant mimarisine (Her vakfın kendi kısıtlarını belirlemesi) entegrasyonu.
 - **Mantık:**
-  - `system_parameters` isimli yeni PostgreSQL tablosu.
-  - "Sistem Yönetimi" menüsünün altında `/dashboard/admin/parameters` ekranında bu kısıt değişiklikleri anlık olarak yapılabilir. Değişiklik kaydedildiği anda yeni sınırlar yürürlüğe girer. Restarta gerek yoktur.
-
+  - `system_parameters` tablosunda parametreler global değil, **tenantId** bazlı (Composite Unique Index: tenantId + key) tutulur.
+  - "Sistem Yönetimi" menüsünün altında `/dashboard/admin/parameters` ekranında bu kısıt değişiklikleri (Örn: `MAX_MONTHLY_LIMIT`, `MASK_STUDENT_NAMES`) anlık olarak yapılabilir.
+  - **MASK_STUDENT_NAMES (İsim Maskeleme):** Aktif edildiğinde Bursveren/Sponsor/Kurum yetkisindeki kullanıcılar "Bursiyer Havuzu" ve "Fona Dahil Öğrenciler" listesinde öğrenci isimlerini gizlilik gereği (Örn: `A.Y.` veya `F.E.A.`) formatında baş harfleriyle görürler. Admin yetkisindekiler ve öğrencinin kendisi veriyi her zaman açık formatta görebilir. Restarta gerek yoktur.
 ## 4. Kullanıcı Deneyimi Header Logoları
 - **Açıklama:** Sisteme giriş yapıldığında Top-Right Header (Sağ üst) köşesinin profesyonel Dashboard stiline oturtulması.
 - **Mantık:** 
@@ -38,3 +38,12 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
 - **Mantık:** 
   - Admin (Sistem Yönetimi -> Sözleşmeler) her bir metni yazar ve "Yayınla" der. Versiyon artar.
   - Kullanıcı login olduğunda Layout bazında `ContractEnforcer` devreye girer. Onaylanmamış sürüm varsa ana ekrana değil zorunlu onay popupına düşer. Onayladıkça `userAgreements` onayı işaretlenir.
+
+## 6. Multi-Tenant ve White-Label Mimarisi (Tek Kod Tabanı)
+- **Açıklama:** BurstaBugün kod tabanının kopyalanmasına (branch) gerek kalmadan, tek bir sistem üzerinden sonsuz sayıda bağımsız kuruma (Örn: FBİAD Vakfı) özel hizmet verilebilmesi altyapısı.
+- **Mantık:** 
+  - `NEXT_PUBLIC_TENANT_ID` ortam değişkeni kullanılarak sistem tamamen tek bir vakfın verilerine kilitlenebilir (Strict Mode).
+  - Değişken verildiğinde `getPublicTenantInfo` ve `getCurrentTenant` fonksiyonları çerezlere bakmaksızın doğrudan hedef Tenant'ı aktif eder. Login ekranı, logolar, renkler (`primaryColor`) tamamen bu vakfın veritabanı ayarlarından çekilir.
+  - Eğer kullanıcı bu vakfın üyesi değilse sisteme girişi otomatik olarak reddedilir (Tam İzolasyon).
+  - SuperAdmin (`isApplicationAdmin: true`) sisteme girdiğinde tüm kurumları yönetebilir ve Header'daki "Tenant Switcher" ikonu ile vakıflar arası gezinti yapabilir. Ancak `NEXT_PUBLIC_TENANT_ID` verilmiş "Strict Mode" çalışıyorsa, SuperAdmin bile olsa Tenant Switcher gizlenerek sunucunun bütünlüğü korunur.
+  - Yeni kayıtlar (`/register`), eğer Strict Mode aktifse otomatik olarak varsayılan kurum yerine, kilitli olan Tenant'a kaydedilir.

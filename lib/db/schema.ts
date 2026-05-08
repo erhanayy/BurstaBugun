@@ -10,6 +10,8 @@ export const tenants = pgTable('tenants', {
     longName: text('long_name').notNull(),
     logoUrl: text('logo_url'),
     websiteUrl: text('website_url'),
+    primaryColor: text('primary_color').default('#2563EB'), // Default blue
+    features: jsonb('features').default({}), // Feature flags like { hasCustomForm: true }
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -265,11 +267,14 @@ export const pushSubscriptions = pgTable('push_subscriptions', {
 
 export const systemParameters = pgTable('system_parameters', {
     id: uuid('id').defaultRandom().primaryKey(),
-    key: varchar('key', { length: 255 }).notNull().unique(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    key: varchar('key', { length: 255 }).notNull(),
     value: text('value').notNull(),
     description: text('description'),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (t) => ({
+    unq: unique().on(t.tenantId, t.key),
+}));
 
 // --- Relations ---
 

@@ -6,6 +6,7 @@ import {
     FileText,
     Users,
     Building,
+    Building2,
     CheckSquare,
     Landmark,
     LogOut,
@@ -71,7 +72,7 @@ export default async function DashboardLayout({
                     --screen-text: #1F2937;
                     --bg-color: #F9FAFB;
                     --header-bg: #1E3A5F;
-                    --nav-bg: #2563EB;
+                    --nav-bg: ${tenantData?.primaryColor || '#2563EB'};
                 }
                 .dark {
                     --bg-color: #18181b;
@@ -129,13 +130,16 @@ export default async function DashboardLayout({
                             <NavItem href="/dashboard/settings" icon={Settings} label="Ayarlar" />
                         </CollapsibleNavSection>
 
-                        {/* Admin Menüsü (Sadece Admin) */}
-                        {userRole === 'admin' && (
-                            <CollapsibleNavSection title="Sistem Yönetimi" storageKey="admin">
+                        {/* Sistem Yönetimi (Super Admin veya Admin) */}
+                        {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                            <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
-                                <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı (Builder)" />
-                                <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşme / Metinler" />
-                                <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Sistem Parametreleri" />
+                                {tenantData?.isSuperAdmin && (
+                                    <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />
+                                )}
+                                <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
+                                <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
+                                <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
                             </CollapsibleNavSection>
                         )}
 
@@ -151,15 +155,12 @@ export default async function DashboardLayout({
                         className="min-h-14 lg:h-14 border-b border-gray-200/20 dark:border-zinc-800 bg-[var(--header-bg)] text-white flex items-center justify-between px-4 lg:px-6 flex-shrink-0"
                         style={{ paddingTop: 'env(safe-area-inset-top)' }}
                     >
-                        {/* Left: Logo Name */}
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <span className="font-semibold">{activeTenantName}</span>
-                        </div>
-
-                        {/* Right: tools layout */}
-                        <div className="flex items-center gap-3">
-                            {tenantData && (
-                                <div className="hidden lg:flex items-center gap-4">
+                        {/* Left: Logo Name + Switcher */}
+                        <div className="flex items-center gap-2 overflow-visible">
+                            <span className="font-semibold whitespace-nowrap">{activeTenantName}</span>
+                            
+                            {tenantData && tenantData.isSuperAdmin && tenantData.availableTenants.length > 1 && (
+                                <div className="ml-1 z-50">
                                     <TenantSwitcher
                                         currentTenant={{
                                             id: tenantData.tenantId,
@@ -168,9 +169,14 @@ export default async function DashboardLayout({
                                         }}
                                         availableTenants={tenantData.availableTenants}
                                     />
+                                </div>
+                            )}
+                        </div>
 
-                                    <div className="h-6 w-px bg-white/20 mx-1"></div>
-
+                        {/* Right: tools layout */}
+                        <div className="flex items-center gap-3">
+                            {tenantData && (
+                                <div className="hidden lg:flex items-center gap-4">
                                     {/* 1. Bildirim Logosu */}
                                     <NotificationBell tenantId={tenantData.tenantId} userId={tenantData.userId} />
 
@@ -184,7 +190,7 @@ export default async function DashboardLayout({
 
                                     {/* 3. Uygulama Logosu */}
                                     <div className="w-9 h-9 bg-white rounded-full shadow-md border border-white/10 flex items-center justify-center relative overflow-hidden">
-                                        <Image src="/bursiyer-menu.jpeg" alt="BurstaBugün Logo" fill className="object-cover" />
+                                        <Image src={tenantData.logoUrl || "/bursiyer-menu.jpeg"} alt={tenantData.tenantName} fill className="object-cover" />
                                     </div>
                                 </div>
                             )}

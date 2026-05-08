@@ -1,0 +1,230 @@
+{
+  "node": {
+    "00eddb97164ab25bf86b0259e5b5d5ed8385052ad6": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getCurrentTenant",
+          "filename": "lib/data/tenant.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "rsc"
+      },
+      "exportedName": "getCurrentTenant",
+      "filename": "lib/data/tenant.ts"
+    },
+    "00f14b2652a6a15b221e52c5ed2de81c4b9557784d": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getPublicTenantInfo",
+          "filename": "lib/data/tenant.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "rsc"
+      },
+      "exportedName": "getPublicTenantInfo",
+      "filename": "lib/data/tenant.ts"
+    },
+    "009fe6adc5d7649ac8a02f2e9a13d622e0510e6848": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getAdminContracts",
+          "filename": "lib/actions/agreements.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "rsc"
+      },
+      "exportedName": "getAdminContracts",
+      "filename": "lib/actions/agreements.ts"
+    },
+    "4009ae4cf1a65c5b233c61fd9eb76ff3278533d645": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getMissingContracts",
+          "filename": "lib/actions/agreements.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "rsc"
+      },
+      "exportedName": "getMissingContracts",
+      "filename": "lib/actions/agreements.ts"
+    },
+    "409fa90b03cb734752c1e550126f21c868080a7f95": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "createContractVersion",
+          "filename": "lib/actions/agreements.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "rsc"
+      },
+      "exportedName": "createContractVersion",
+      "filename": "lib/actions/agreements.ts"
+    },
+    "40bf207081324db68762c02168c02a1394dcd3d67c": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getSignedContracts",
+          "filename": "lib/actions/agreements.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "rsc"
+      },
+      "exportedName": "getSignedContracts",
+      "filename": "lib/actions/agreements.ts"
+    },
+    "60d9e83d263cb8db8c8c1037a027b60588bc6a09bb": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "signContract",
+          "filename": "lib/actions/agreements.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "action-browser"
+      },
+      "exportedName": "signContract",
+      "filename": "lib/actions/agreements.ts"
+    },
+    "40ae5b4664256002376426b8c2a4c09ed964448bd7": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "switchTenant",
+          "filename": "lib/actions/tenant.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "action-browser"
+      },
+      "exportedName": "switchTenant",
+      "filename": "lib/actions/tenant.ts"
+    },
+    "709f8330aff7a508586a31bc07742da017e28e0cce": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getNotifications",
+          "filename": "lib/actions/notification.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "action-browser"
+      },
+      "exportedName": "getNotifications",
+      "filename": "lib/actions/notification.ts"
+    },
+    "6098d1cb9d8031cd3bbd17f0c9511b8483e09dbf6a": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getUnreadNotificationCount",
+          "filename": "lib/actions/notification.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "action-browser"
+      },
+      "exportedName": "getUnreadNotificationCount",
+      "filename": "lib/actions/notification.ts"
+    },
+    "400f958ce06154367a0d7c633f93b5827fbd2e9f76": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "markNotificationAsRead",
+          "filename": "lib/actions/notification.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "action-browser"
+      },
+      "exportedName": "markNotificationAsRead",
+      "filename": "lib/actions/notification.ts"
+    },
+    "608185399ed6796b6339c6e66880bd2610c1a2d2da": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "markAllNotificationsAsRead",
+          "filename": "lib/actions/notification.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "action-browser"
+      },
+      "exportedName": "markAllNotificationsAsRead",
+      "filename": "lib/actions/notification.ts"
+    },
+    "004648608e9b53958356e3cd4462231a53df7e4431": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getAllSystemParameters",
+          "filename": "lib/actions/parameters.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "rsc"
+      },
+      "exportedName": "getAllSystemParameters",
+      "filename": "lib/actions/parameters.ts"
+    },
+    "60ed6389bc97b98038b214e46677ed192ca4207696": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getSystemParameter",
+          "filename": "lib/actions/parameters.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "rsc"
+      },
+      "exportedName": "getSystemParameter",
+      "filename": "lib/actions/parameters.ts"
+    },
+    "70b5ad07a7ba5e791291473511fd3c19fb03800999": {
+      "workers": {
+        "app/dashboard/admin/parameters/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/parameters/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/agreements.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/actions/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/lib/actions/notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/lib/actions/parameters.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "setSystemParameter",
+          "filename": "lib/actions/parameters.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/parameters/page": "action-browser"
+      },
+      "exportedName": "setSystemParameter",
+      "filename": "lib/actions/parameters.ts"
+    }
+  },
+  "edge": {}
+}

@@ -29,6 +29,9 @@ export default async function ParametersPage() {
     if (!paramMap.has("MAX_MONTHLY_LIMIT")) {
         paramMap.set("MAX_MONTHLY_LIMIT", "5000");
     }
+    if (!paramMap.has("MASK_STUDENT_NAMES")) {
+        paramMap.set("MASK_STUDENT_NAMES", "false");
+    }
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -45,6 +48,7 @@ export default async function ParametersPage() {
             <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm p-6 overflow-hidden">
                 <ParametersForm
                     initialMaxLimit={paramMap.get("MAX_MONTHLY_LIMIT")}
+                    initialMaskNames={paramMap.get("MASK_STUDENT_NAMES")}
                 />
             </div>
         </div>

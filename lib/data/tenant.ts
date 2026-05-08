@@ -11,7 +11,8 @@ export async function getCurrentTenant() {
     if (!session?.user?.id) return null;
 
     const cookieStore = await cookies();
-    const tenantIdFromCookie = cookieStore.get('dernekte_tenant_id')?.value;
+    const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+    const tenantIdFromCookie = envTenantId || cookieStore.get('dernekte_tenant_id')?.value;
 
     if (session.user.isApplicationAdmin) {
         // Fetch all tenants for super admins
@@ -19,7 +20,13 @@ export async function getCurrentTenant() {
         if (allTenants.length === 0) return null;
 
         let selectedTenant = allTenants[0];
-        if (tenantIdFromCookie) {
+        
+        // Strict Mode Check
+        if (envTenantId) {
+            const found = allTenants.find(t => t.id === envTenantId);
+            if (!found) return null; // Server configured for unknown tenant
+            selectedTenant = found;
+        } else if (tenantIdFromCookie) {
             const found = allTenants.find(t => t.id === tenantIdFromCookie);
             if (found) selectedTenant = found;
         }
@@ -33,10 +40,12 @@ export async function getCurrentTenant() {
             tenantShortName: selectedTenant.shortName,
             logoUrl: selectedTenant.logoUrl,
             websiteUrl: selectedTenant.websiteUrl,
+            primaryColor: selectedTenant.primaryColor,
             userRole: 'admin',
             userName: currentUser?.fullName || session.user.name || "Uygulama Yöneticisi",
-            availableTenants: allTenants,
+            availableTenants: envTenantId ? [selectedTenant] : allTenants, // Lock if Strict Mode
             forcePasswordChange: currentUser?.forcePasswordChange ?? false,
+            isSuperAdmin: true,
         };
     }
 
@@ -60,14 +69,20 @@ export async function getCurrentTenant() {
 
     let activeMembership = null;
 
-    if (tenantIdFromCookie) {
+    if (envTenantId) {
+        // Strict Mode Check
+        activeMembership = memberships.find(m => m.tenant.id === envTenantId);
+        if (!activeMembership) return null; // User is not a member of the forced tenant
+    } else if (tenantIdFromCookie) {
         activeMembership = memberships.find(m => m.tenant.id === tenantIdFromCookie);
     }
 
     // Fallback: If no cookie or cookie is invalid (user not member of that tenant), use the first one
-    if (!activeMembership) {
+    if (!activeMembership && !envTenantId) {
         activeMembership = memberships[0];
     }
+
+    if (!activeMembership) return null;
 
     return {
         tenantId: activeMembership.tenant.id,
@@ -76,9 +91,34 @@ export async function getCurrentTenant() {
         tenantShortName: activeMembership.tenant.shortName,
         logoUrl: activeMembership.tenant.logoUrl,
         websiteUrl: activeMembership.tenant.websiteUrl,
+        primaryColor: activeMembership.tenant.primaryColor,
         userRole: activeMembership.role,
         userName: activeMembership.user.fullName || session.user.name || "Kullanıcı",
-        availableTenants: memberships.map(m => m.tenant),
+        availableTenants: envTenantId ? [activeMembership.tenant] : memberships.map(m => m.tenant),
         forcePasswordChange: activeMembership.user.forcePasswordChange,
+        isSuperAdmin: false,
+    };
+}
+
+export async function getPublicTenantInfo() {
+    const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+    
+    if (envTenantId) {
+        const [tenant] = await db.select().from(tenants).where(eq(tenants.id, envTenantId));
+        if (tenant) {
+            return {
+                tenantName: tenant.longName,
+                tenantShortName: tenant.shortName,
+                logoUrl: tenant.logoUrl,
+                primaryColor: tenant.primaryColor
+            };
+        }
+    }
+    
+    return {
+        tenantName: "Bursta Bugün",
+        tenantShortName: "BurstaBugün",
+        logoUrl: "/bursiyer-login.jpeg",
+        primaryColor: "#2563EB"
     };
 }

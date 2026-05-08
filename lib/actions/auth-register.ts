@@ -42,17 +42,29 @@ export async function processRegistration(data: any) {
     const hashedPassword = await bcrypt.hash(firstPassword, 10);
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit
 
-    // Create or find Global Tenant
-    let globalTenant = await db.query.tenants.findFirst({
-        where: eq(tenants.shortName, "BurstaBugün")
-    });
+    // Create or find Tenant
+    const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+    let targetTenant;
 
-    if (!globalTenant) {
-        const [newTenant] = await db.insert(tenants).values({
-            shortName: "BurstaBugün",
-            longName: "BurstaBugün Platformu",
-        }).returning();
-        globalTenant = newTenant;
+    if (envTenantId) {
+        targetTenant = await db.query.tenants.findFirst({
+            where: eq(tenants.id, envTenantId)
+        });
+    }
+
+    if (!targetTenant) {
+        // Fallback to Global Tenant
+        targetTenant = await db.query.tenants.findFirst({
+            where: eq(tenants.shortName, "BurstaBugün")
+        });
+
+        if (!targetTenant) {
+            const [newTenant] = await db.insert(tenants).values({
+                shortName: "BurstaBugün",
+                longName: "BurstaBugün Platformu",
+            }).returning();
+            targetTenant = newTenant;
+        }
     }
 
     // Insert User
@@ -68,7 +80,7 @@ export async function processRegistration(data: any) {
 
     // Link user to tenant
     await db.insert(tenantUsers).values({
-        tenantId: globalTenant.id,
+        tenantId: targetTenant.id,
         userId: newUser.id,
         role: role,
         status: 'active'

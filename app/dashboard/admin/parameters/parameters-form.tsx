@@ -5,8 +5,9 @@ import { setSystemParameter } from "@/lib/actions/parameters";
 import { Loader2, Save, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export function ParametersForm({ initialMaxLimit }: { initialMaxLimit: string }) {
+export function ParametersForm({ initialMaxLimit, initialMaskNames }: { initialMaxLimit: string, initialMaskNames?: string }) {
     const [maxLimit, setMaxLimit] = useState(initialMaxLimit);
+    const [maskNames, setMaskNames] = useState(initialMaskNames === "true");
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
     const router = useRouter();
@@ -18,6 +19,7 @@ export function ParametersForm({ initialMaxLimit }: { initialMaxLimit: string })
 
         try {
             await setSystemParameter("MAX_MONTHLY_LIMIT", maxLimit, "Öğrenci Başına Maksimum Aylık Kazanç Limiti (TL)");
+            await setSystemParameter("MASK_STUDENT_NAMES", maskNames ? "true" : "false", "Bursiyer İsimlerini Maskeli Yaz (True/False)");
             setMessage({ text: "Parametreler başarıyla güncellendi.", type: "success" });
             router.refresh();
         } catch (error: any) {
@@ -57,11 +59,22 @@ export function ParametersForm({ initialMaxLimit }: { initialMaxLimit: string })
                     </div>
                 </div>
 
-                {/* Gelecekte eklenecek diğer parametreler için boşluk */}
-                <div className="space-y-2 opacity-50 pointer-events-none">
-                    <label className="text-sm font-semibold text-gray-900 dark:text-white">Gelecek Parametre Eklenecek</label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Yeni parametre tipleri buraya eklenecektir.</p>
-                    <input disabled type="text" className="w-full px-4 py-2 border border-dashed border-gray-300 bg-transparent rounded-lg" value="Rezerve" />
+                <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        Bursiyer İsimlerini Maskeli Yaz
+                        <div className="relative inline-flex items-center cursor-pointer ml-auto">
+                            <input 
+                                type="checkbox" 
+                                className="sr-only peer" 
+                                checked={maskNames}
+                                onChange={(e) => setMaskNames(e.target.checked)}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </div>
+                    </label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                        Aktif edildiğinde Bursiyer havuzundaki ve Fon detayındaki öğrenci isimleri gizlilik amacıyla sadece baş harfleriyle (Örn: A.Y.) gösterilir. Adminler ve öğrencinin kendisi bu ayardan etkilenmez.
+                    </p>
                 </div>
             </div>
 

@@ -12,6 +12,18 @@ export async function getSponsorFunds() {
     const tenantData = await getCurrentTenant();
     if (!tenantData) return [];
 
+    if (tenantData.userRole === 'admin' || tenantData.isSuperAdmin) {
+        return await db.query.funds.findMany({
+            where: eq(funds.tenantId, tenantData.tenantId),
+            with: {
+                contributors: true,
+                selections: { where: eq(fundSelections.isActive, true) },
+                invitations: true
+            },
+            orderBy: (funds, { desc }) => [desc(funds.createdAt)],
+        });
+    }
+
     const ownedFunds = await db.query.funds.findMany({
         where: eq(funds.ownerId, tenantData.userId),
         with: {
@@ -50,10 +62,10 @@ export async function getApplicationPool() {
     const tenantData = await getCurrentTenant();
     if (!tenantData) return [];
 
-    const myFunds = await getSponsorFunds();
-    if (myFunds.length === 0) return [];
-
-    const fundIds = myFunds.map(f => f.id);
+    if (tenantData.userRole !== 'admin' && !tenantData.isSuperAdmin) {
+        const myFunds = await getSponsorFunds();
+        if (myFunds.length === 0) return [];
+    }
 
     return await db.query.applications.findMany({
         where: and(

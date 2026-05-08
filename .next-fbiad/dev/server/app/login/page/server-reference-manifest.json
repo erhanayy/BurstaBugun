@@ -1,0 +1,50 @@
+{
+  "node": {
+    "00eddb97164ab25bf86b0259e5b5d5ed8385052ad6": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": "[project]/.next-internal/server/app/login/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getCurrentTenant",
+          "filename": "lib/data/tenant.ts"
+        }
+      },
+      "layer": {
+        "app/login/page": "rsc"
+      },
+      "exportedName": "getCurrentTenant",
+      "filename": "lib/data/tenant.ts"
+    },
+    "00f14b2652a6a15b221e52c5ed2de81c4b9557784d": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": "[project]/.next-internal/server/app/login/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "getPublicTenantInfo",
+          "filename": "lib/data/tenant.ts"
+        }
+      },
+      "layer": {
+        "app/login/page": "rsc"
+      },
+      "exportedName": "getPublicTenantInfo",
+      "filename": "lib/data/tenant.ts"
+    },
+    "60275bc85c0d5ea00d505b759d7eebf8154805fea7": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": "[project]/.next-internal/server/app/login/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/data/tenant.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/lib/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "authenticate",
+          "filename": "lib/actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/login/page": "action-browser"
+      },
+      "exportedName": "authenticate",
+      "filename": "lib/actions/auth.ts"
+    }
+  },
+  "edge": {}
+}
