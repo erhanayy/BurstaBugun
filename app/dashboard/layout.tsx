@@ -138,6 +138,7 @@ export default async function DashboardLayout({
                         {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
+                                <NavItem href="/dashboard/admin/donations" icon={Landmark} label="Web Bağış" />
                                 {tenantData?.isSuperAdmin && (
                                     <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />
                                 )}

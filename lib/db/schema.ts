@@ -276,6 +276,38 @@ export const systemParameters = pgTable('system_parameters', {
     unq: unique().on(t.tenantId, t.key),
 }));
 
+// --- External API & Public Donations ---
+
+export const tenantApiTokens = pgTable('tenant_api_tokens', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    token: text('token').notNull().unique(),
+    description: text('description'),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({
+    tokenIdx: index('tenant_api_tokens_token_idx').on(t.token),
+}));
+
+export const donationStatusEnum = pgEnum('donation_status', ['completed', 'failed', 'refunded']);
+
+export const donations = pgTable('donations', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    amount: integer('amount').notNull(),
+    donorName: text('donor_name'),
+    donorTc: text('donor_tc'),
+    donorEmail: text('donor_email'),
+    donorPhone: text('donor_phone'),
+    isAnonymous: boolean('is_anonymous').default(false).notNull(),
+    isFbiadMember: boolean('is_fbiad_member').default(false).notNull(),
+    wantsMembershipInfo: boolean('wants_membership_info').default(false).notNull(),
+    bankTransactionId: text('bank_transaction_id'),
+    bankCode: text('bank_code'),
+    status: donationStatusEnum('status').default('completed').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // --- Relations ---
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -449,5 +481,19 @@ export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one })
     user: one(users, {
         fields: [pushSubscriptions.userId],
         references: [users.id],
+    }),
+}));
+
+export const tenantApiTokensRelations = relations(tenantApiTokens, ({ one }) => ({
+    tenant: one(tenants, {
+        fields: [tenantApiTokens.tenantId],
+        references: [tenants.id],
+    }),
+}));
+
+export const donationsRelations = relations(donations, ({ one }) => ({
+    tenant: one(tenants, {
+        fields: [donations.tenantId],
+        references: [tenants.id],
     }),
 }));
