@@ -5,7 +5,12 @@ import { DollarSign, Wallet, Users, CreditCard, Plus, UserPlus, Calendar } from 
 import { format, differenceInMonths } from "date-fns";
 import { tr } from "date-fns/locale";
 
+import { getCurrentTenant } from "@/lib/data/tenant";
+
 export default async function SponsorFundsPage() {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) return null;
+
     const funds = await getSponsorFunds();
 
     return (
@@ -115,19 +120,26 @@ export default async function SponsorFundsPage() {
                             </div>
 
                             <div className="p-4 border-t border-gray-100 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/80 flex items-center justify-between">
-                                <Link
-                                    href={`/dashboard/funds/${fund.id}/payment`}
-                                    className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    title="Ödeme detaylarını ve taksitleri görüntüle"
-                                >
-                                    <CreditCard className="w-4 h-4 mr-1.5" />
-                                    Ödeme Detaylarını Gör
-                                </Link>
+                                {((fund as any).selections?.length || 0) === 0 ? (
+                                    <div className="flex items-center text-sm font-medium text-gray-400 dark:text-zinc-600 cursor-not-allowed" title="Ödeme yapılabilmesi için önce havuzdan öğrenci seçimi yapılmalıdır">
+                                        <CreditCard className="w-4 h-4 mr-1.5 opacity-50" />
+                                        Önce Öğrenci Seçin
+                                    </div>
+                                ) : (
+                                        <Link
+                                            href={`/dashboard/funds/${fund.id}/${fund.ownerId === tenantData.userId ? 'overview' : 'payment'}`}
+                                            className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                            title="Ödeme detaylarını ve genel durumu görüntüle"
+                                        >
+                                            <CreditCard className="w-4 h-4 mr-1.5" />
+                                            {fund.ownerId === tenantData.userId ? 'Genel Durum / Ödemeler' : 'Ödeme Detaylarını Gör'}
+                                        </Link>
+                                )}
 
                                 <div className="flex items-center gap-2">
                                     <Link
                                         href={`/dashboard/funds/${fund.id}/students`}
-                                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full transition-colors"
+                                        className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-full transition-colors"
                                         title="Bursiyerlerim / Seçilen Öğrenciler"
                                     >
                                         <Users className="w-5 h-5" />

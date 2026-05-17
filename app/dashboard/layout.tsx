@@ -11,7 +11,8 @@ import {
     Landmark,
     LogOut,
     Menu,
-    Wallet
+    Wallet,
+    Workflow
 } from "lucide-react";
 
 import { getCurrentTenant } from "@/lib/data/tenant";
@@ -109,6 +110,7 @@ export default async function DashboardLayout({
                         {/* Bursveren Sponsor Menüsü */}
                         {(userRole === 'sponsor' || userRole === 'admin') && (
                             <CollapsibleNavSection title="Burs Fonları" storageKey="sponsor">
+                                <NavItem href="/dashboard/funds/flow" icon={Workflow} label="Fon Akışı" />
                                 <NavItem href="/dashboard/funds" icon={Landmark} label="Fonlarım / Desteklerim" />
                                 <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
                                 <NavItem href="/dashboard/pool" icon={Users} label="Bursiyer Havuzu" />
@@ -139,6 +141,7 @@ export default async function DashboardLayout({
                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                 <NavItem href="/dashboard/admin/donations" icon={Landmark} label="Web Bağış" />
+                                <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
                                 {tenantData?.isSuperAdmin && (
                                     <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />
                                 )}

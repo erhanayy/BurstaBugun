@@ -226,6 +226,7 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
         }
     }
 
+    /* ÖDEME ÖNCESİ BİLDİRİM GİTMESİN DİYE İPTAL EDİLDİ
     if (appObj) {
         await createNotification(
             tenantData.tenantId,
@@ -235,6 +236,7 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
             `Başvurunuz onaylandı ve bir burs fonuna atandınız. Gelecek aylar için ödeme takviminiz oluşturuldu.`
         );
     }
+    */
 
     revalidatePath("/dashboard/pool");
     revalidatePath("/dashboard/applications");

@@ -11,15 +11,21 @@ import { getCurrentTenant } from "../data/tenant";
 import { revalidatePath } from "next/cache";
 import { sendEmail, EMAIL_CODES } from "../email";
 
+import { cookies } from "next/headers";
+
 export async function authenticate(
     prevState: string | undefined,
     formData: FormData,
 ) {
     try {
         const identifier = formData.get('identifier') as string;
+        
+        const cookieStore = await cookies();
+        const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+        const tenantId = envTenantId || cookieStore.get('dernekte_tenant_id')?.value || '';
 
         // 1. Sign In (No Redirect)
-        await signIn('credentials', { ...Object.fromEntries(formData), redirect: false });
+        await signIn('credentials', { ...Object.fromEntries(formData), tenantId, redirect: false });
 
         redirect('/dashboard/home');
 
@@ -109,11 +115,19 @@ export async function forgotPassword(prevState: any, formData: FormData) {
         return { message: "Lütfen e-posta adresinizi ve telefonunuzu girin.", success: false };
     }
 
-    // 1. Find user by exact match of email AND phone (stripped format happens via component)
+    const cookieStore = await cookies();
+    const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+    const tenantId = envTenantId || cookieStore.get('dernekte_tenant_id')?.value || '';
+
+    // 1. Find user by exact match of email AND phone AND tenantId (or null for super admins)
     const user = await db.query.users.findFirst({
-        where: (users, { eq, and }) => and(
+        where: (users, { eq, and, or, isNull }) => and(
             eq(users.email, emailInput),
-            eq(users.phoneNumber, phoneInput)
+            eq(users.phoneNumber, phoneInput),
+            tenantId ? or(
+                eq(users.tenantId, tenantId),
+                isNull(users.tenantId)
+            ) : undefined
         )
     });
 

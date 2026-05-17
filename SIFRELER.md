@@ -105,3 +105,17 @@ Böylece testlerinizi hiçbir engele takılmadan "sanki e-posta gelmiş gibi" bu
 - Rol: sponsor
 - İlk Şifre: Burs5382!
 - Doğrulama (OTP) Kodu: 716315
+
+[17.05.2026 11:39:53] YENİ KAYIT:
+- Ad Soyad: Erhan Ayyıldız
+- Email: erhanayyildiz@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs3427!
+- Doğrulama (OTP) Kodu: 239272
+
+[17.05.2026 12:17:03] YENİ KAYIT:
+- Ad Soyad: Hakan Ayyıldız
+- Email: hakanayyildiz@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs1020!
+- Doğrulama (OTP) Kodu: 854221

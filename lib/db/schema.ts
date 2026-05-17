@@ -19,7 +19,8 @@ export const tenants = pgTable('tenants', {
 // Users (Kullanıcılar)
 export const users = pgTable('users', {
     id: uuid('id').defaultRandom().primaryKey(),
-    phoneNumber: text('phone_number').notNull().unique(),
+    tenantId: uuid('tenant_id').references(() => tenants.id), // Nullable for Super Admins
+    phoneNumber: text('phone_number').notNull(),
     fullName: text('full_name').notNull(),
     email: text('email'),
     password: text('password'),
@@ -31,7 +32,9 @@ export const users = pgTable('users', {
     isActive: boolean('is_active').default(true).notNull(),
     isApplicationAdmin: boolean('is_application_admin').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (t) => ({
+    phoneTenantUnq: unique().on(t.phoneNumber, t.tenantId),
+}));
 
 export const tenantUserRoleEnum = pgEnum('tenant_user_role', ['admin', 'sponsor', 'contributor', 'reference', 'applicant']);
 
@@ -166,6 +169,7 @@ export const fundSelections = pgTable('fund_selections', {
     id: uuid('id').defaultRandom().primaryKey(),
     fundId: uuid('fund_id').references(() => funds.id).notNull(),
     applicationId: uuid('application_id').references(() => applications.id).notNull(),
+    sponsorId: uuid('sponsor_id').references(() => users.id), // Hangi kullanıcının bu öğrenciyi üstlendiği
     amount: integer('amount').notNull(),
     paymentType: text('payment_type', { enum: ['one_time', 'monthly'] }).notNull(),
     isActive: boolean('is_active').default(true).notNull(),
@@ -409,6 +413,10 @@ export const fundSelectionsRelations = relations(fundSelections, ({ one }) => ({
     application: one(applications, {
         fields: [fundSelections.applicationId],
         references: [applications.id],
+    }),
+    sponsor: one(users, {
+        fields: [fundSelections.sponsorId],
+        references: [users.id],
     }),
 }));
 

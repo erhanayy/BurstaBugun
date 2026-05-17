@@ -7,6 +7,8 @@ import Link from "next/link";
 import { Calendar, Wallet, CheckCircle, Clock, XCircle } from "lucide-react";
 import Image from "next/image";
 import { InvitationActions } from "./invitation-actions";
+import { maskFullName } from "@/lib/utils";
+import { getSystemParameter } from "@/lib/actions/parameters";
 
 export default async function PendingInvitationsPage() {
     const tenantData = await getCurrentTenant();
@@ -18,22 +20,43 @@ export default async function PendingInvitationsPage() {
 
     if (!currentUser) redirect("/login");
 
+    const maskNamesStr = await getSystemParameter("MASK_STUDENT_NAMES", "false");
+    const shouldMask = maskNamesStr === "true" && tenantData?.userRole !== 'admin';
+
     const invitations = await db.query.fundInvitations.findMany({
-        where: or(
-            eq(fundInvitations.inviteeId, currentUser.id),
-            eq(fundInvitations.inviteeEmail, currentUser.email || "")
+        where: and(
+            or(
+                eq(fundInvitations.inviteeId, currentUser.id),
+                eq(fundInvitations.inviteeEmail, currentUser.email || "")
+            ),
+            eq(fundInvitations.status, 'pending')
         ),
         with: {
             fund: {
-                with: { contributors: true }
+                with: { 
+                    contributors: true,
+                    selections: {
+                        with: {
+                            application: {
+                                with: { user: true }
+                            }
+                        }
+                    }
+                }
             },
             inviter: true
         },
         orderBy: (invitations, { desc }) => [desc(invitations.createdAt)]
     });
+    
+    console.log("Current User:", currentUser.email, currentUser.id);
+    console.log("Found Invitations:", invitations.map(i => ({ id: i.id, fundTitle: i.fund?.title, status: i.status })));
 
     const refInvitations = currentUser.email ? await db.query.references.findMany({
-        where: eq(references.email, currentUser.email),
+        where: and(
+            eq(references.email, currentUser.email),
+            eq(references.status, 'pending')
+        ),
         with: {
             application: {
                 with: { form: true, user: true }
@@ -136,6 +159,28 @@ export default async function PendingInvitationsPage() {
                                                 Fon Rolü: <strong className="text-gray-900 dark:text-gray-100">{inv.role === 'bursiyer' ? 'Öğrenci' : 'Sponsor Destekçi'}</strong>
                                             </span>
                                         </div>
+
+                                        {/* Seçilen Öğrencileri Göster */}
+                                        {inv.fund?.selections && inv.fund.selections.length > 0 ? (
+                                            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
+                                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Fona Seçilen Öğrenciler</p>
+                                                <div className="flex flex-col gap-2">
+                                                    {inv.fund.selections.map((sel: any) => (
+                                                        <div key={sel.id} className="text-sm bg-blue-50 dark:bg-blue-900/10 text-blue-800 dark:text-blue-300 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-800/30 flex items-center gap-2">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                                            <span className="font-medium line-clamp-1">{shouldMask ? maskFullName(sel.application?.user?.fullName) : (sel.application?.user?.fullName || "Bilinmeyen Öğrenci")}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
+                                                <div className="text-sm bg-amber-50 dark:bg-amber-900/10 text-amber-800 dark:text-amber-300 px-3 py-2 rounded-lg border border-amber-100 dark:border-amber-800/30 flex items-center gap-2">
+                                                    <Clock className="w-4 h-4 shrink-0" />
+                                                    <span className="text-xs font-medium">Fon Sahibinin Öğrenci Seçmesi Bekleniyor</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -159,6 +204,7 @@ export default async function PendingInvitationsPage() {
                                                     fund={fund}
                                                     currentTotal={currentTotal}
                                                     targetCount={targetCount}
+                                                    hasSelections={inv.fund?.selections && inv.fund.selections.length > 0}
                                                 />
                                             </div>
                                         </>

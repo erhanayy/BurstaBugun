@@ -97,3 +97,155 @@
 [01:29:00.175] Browser ERROR   unhandledRejection: Error: No link element found for chunk /_next/static/chunks/%5Broot-of-the-server%5D__36b083e1._.css
 [01:29:00.283] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 [01:30:34.728] Browser WARN    Image with src "/fbiad-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[96:23:18.252] Server  LOG     ✓ Compiled in 1992ms
+[100:17:13.453] Server  LOG     ✓ Compiled in 286ms
+[100:19:43.244] Server  LOG     ✓ Compiled in 225ms
+[100:19:43.268] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./node_modules/next/dist/client/image-component.js changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[100:19:43.398] Server  LOG     ✓ Compiled in 0ms
+[100:19:43.962] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[101:17:15.652] Server  LOG     ✓ Compiled in 132ms
+[101:20:23.473] Server  LOG     ✓ Compiled in 2.2s
+[101:20:42.282] Server  LOG     ✓ Compiled in 5.1s
+[207:37:01.368] Server  LOG     ✓ Compiled in 3.2s
+[207:38:06.441] Server  ERROR   ⨯ ./lib/actions/payment-session.ts:4:1
+Module not found: Can't resolve '@/lib/tenant/config'
+  2 |
+  3 | import { SignJWT } from 'jose';
+> 4 | import { getTenantConfig } from '@/lib/tenant/config';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | // Payloads passed to FBIADVakfiWeb
+  7 | export type PaymentSessionPayload = {
+
+Import map: aliased to relative './lib/tenant/config' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[207:38:06.441] Server  ERROR   ⨯ ./lib/actions/payment-session.ts:4:1
+Module not found: Can't resolve '@/lib/tenant/config'
+  2 |
+  3 | import { SignJWT } from 'jose';
+> 4 | import { getTenantConfig } from '@/lib/tenant/config';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | // Payloads passed to FBIADVakfiWeb
+  7 | export type PaymentSessionPayload = {
+
+Import map: aliased to relative './lib/tenant/config' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[207:47:34.075] Server  ERROR   ⨯ ./lib/actions/payment-session.ts:4:1
+Module not found: Can't resolve '@/lib/tenant/config'
+  2 |
+  3 | import { SignJWT } from 'jose';
+> 4 | import { getTenantConfig } from '@/lib/tenant/config';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { db } from '@/lib/db';
+  6 | import { payments, funds } from '@/lib/db/schema';
+  7 | import { eq, asc, and } from 'drizzle-orm';
+
+Import map: aliased to relative './lib/tenant/config' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[207:47:34.076] Server  ERROR   ⨯ ./lib/actions/payment-session.ts:4:1
+Module not found: Can't resolve '@/lib/tenant/config'
+  2 |
+  3 | import { SignJWT } from 'jose';
+> 4 | import { getTenantConfig } from '@/lib/tenant/config';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { db } from '@/lib/db';
+  6 | import { payments, funds } from '@/lib/db/schema';
+  7 | import { eq, asc, and } from 'drizzle-orm';
+
+Import map: aliased to relative './lib/tenant/config' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[207:47:50.124] Server  ERROR   ⨯ ./lib/actions/payment-session.ts:4:1
+Module not found: Can't resolve '@/lib/tenant/config'
+  2 |
+  3 | import { SignJWT } from 'jose';
+> 4 | import { getTenantConfig } from '@/lib/tenant/config';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { db } from '@/lib/db';
+  6 | import { payments, funds } from '@/lib/db/schema';
+  7 | import { eq, asc, and } from 'drizzle-orm';
+
+Import map: aliased to relative './lib/tenant/config' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[207:47:50.126] Server  ERROR   ⨯ ./lib/actions/payment-session.ts:4:1
+Module not found: Can't resolve '@/lib/tenant/config'
+  2 |
+  3 | import { SignJWT } from 'jose';
+> 4 | import { getTenantConfig } from '@/lib/tenant/config';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { db } from '@/lib/db';
+  6 | import { payments, funds } from '@/lib/db/schema';
+  7 | import { eq, asc, and } from 'drizzle-orm';
+
+Import map: aliased to relative './lib/tenant/config' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[207:52:29.896] Server  LOG     ✓ Compiled in 156ms
+[207:59:45.648] Server  LOG     ✓ Compiled in 753ms
+[208:27:42.240] Server  LOG     ✓ Compiled in 197ms
+[208:27:59.008] Server  LOG     ✓ Compiled in 305ms
+[208:28:09.294] Server  LOG     ✓ Compiled in 558ms
+[208:28:20.399] Server  LOG     ✓ Compiled in 403ms
+[208:28:33.698] Server  LOG     ✓ Compiled in 181ms
+[208:32:25.780] Server  LOG     ✓ Compiled in 258ms
+[209:04:53.915] Server  LOG     ✓ Compiled in 190ms
+[209:05:03.283] Server  LOG     ✓ Compiled in 767ms
+[212:30:57.462] Server  LOG     ✓ Compiled in 1883ms
+[213:05:48.828] Server  LOG     ✓ Compiled in 923ms
+[213:06:00.483] Server  LOG     ✓ Compiled in 340ms
+[213:06:16.798] Server  LOG     ✓ Compiled in 245ms
+[213:06:34.240] Server  LOG     ✓ Compiled in 162ms
+[213:06:43.144] Server  LOG     ✓ Compiled in 214ms
+[213:07:40.559] Server  LOG     ✓ Compiled in 199ms
+[213:08:16.511] Server  LOG     ✓ Compiled in 337ms
+[213:12:37.823] Server  LOG     ✓ Compiled in 216ms
+[213:12:46.952] Server  LOG     ✓ Compiled in 187ms
+[213:16:43.549] Server  LOG     ✓ Compiled in 315ms
+[213:21:14.876] Server  LOG     ✓ Compiled in 263ms
+[213:26:00.072] Server  LOG     ✓ Compiled in 6.8s
+[213:30:52.791] Server  LOG     ✓ Compiled in 246ms
+[213:45:59.456] Server  LOG     ✓ Compiled in 343ms
+[213:51:55.608] Server  LOG     ✓ Compiled in 249ms
+[214:21:05.695] Server  LOG     ✓ Compiled in 206ms
+[214:24:41.685] Server  LOG     ✓ Compiled in 307ms
+[214:28:08.464] Server  LOG     ✓ Compiled in 227ms
+[214:32:54.734] Server  LOG     ✓ Compiled in 1051ms
+[214:33:08.184] Server  LOG     ✓ Compiled in 167ms
+[216:47:59.881] Server  LOG     ✓ Compiled in 293ms
+[216:49:49.254] Server  LOG     ✓ Compiled in 216ms
+[216:57:38.910] Server  LOG     ✓ Compiled in 361ms
+[216:57:50.011] Server  LOG     ✓ Compiled in 269ms
+[217:15:33.701] Server  LOG     ✓ Compiled in 366ms
+[217:15:43.816] Server  LOG     ✓ Compiled in 246ms
+[217:23:18.277] Server  LOG     ✓ Compiled in 342ms
+[217:24:50.141] Server  LOG     ✓ Compiled in 344ms
+[217:25:02.348] Server  LOG     ✓ Compiled in 419ms
+[217:25:13.319] Server  LOG     ✓ Compiled in 152ms
+[217:29:28.341] Server  LOG     ✓ Compiled in 241ms
+[217:33:19.689] Server  LOG     ✓ Compiled in 275ms
+[217:33:31.549] Server  LOG     ✓ Compiled in 169ms
+[217:34:09.141] Server  LOG     ✓ Compiled in 165ms
+[217:37:23.472] Server  LOG     ✓ Compiled in 431ms

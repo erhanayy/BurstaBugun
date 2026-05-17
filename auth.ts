@@ -4,7 +4,7 @@ import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
 import { db } from './lib/db';
 import { users } from './lib/db/schema';
-import { eq, or } from 'drizzle-orm';
+import { eq, or, and, isNull } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
 async function getUser(identifier: string) {
@@ -25,12 +25,29 @@ const nextAuthResult = NextAuth({
         Credentials({
             async authorize(credentials) {
                 const parsedCredentials = z
-                    .object({ identifier: z.string(), password: z.string().min(4) })
+                    .object({ identifier: z.string(), password: z.string().min(4), tenantId: z.string().optional() })
                     .safeParse(credentials);
 
                 if (parsedCredentials.success) {
-                    const { identifier, password } = parsedCredentials.data;
-                    const user = await getUser(identifier);
+                    const { identifier, password, tenantId } = parsedCredentials.data;
+                    
+                    let userQuery = db.select().from(users).where(eq(users.email, identifier));
+                    
+                    if (tenantId) {
+                        userQuery = userQuery.where(
+                            and(
+                                eq(users.email, identifier),
+                                or(
+                                    eq(users.tenantId, tenantId),
+                                    isNull(users.tenantId) // allow super admins
+                                )
+                            )
+                        );
+                    }
+                    
+                    const userResult = await userQuery.limit(1);
+                    const user = userResult[0];
+
                     if (!user) return null;
                     if (!user.password) return null; // No password set
 

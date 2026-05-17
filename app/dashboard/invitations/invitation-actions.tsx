@@ -8,7 +8,7 @@ import { respondToInvitation } from "@/lib/actions/invitations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-export function InvitationActions({ invitationId, fundId, fund, currentTotal, targetCount }: { invitationId: string, fundId: string, fund?: any, currentTotal?: number, targetCount?: number }) {
+export function InvitationActions({ invitationId, fundId, fund, currentTotal, targetCount, hasSelections }: { invitationId: string, fundId: string, fund?: any, currentTotal?: number, targetCount?: number, hasSelections?: boolean }) {
     const [isPending, startTransition] = useTransition();
     const [studentCount, setStudentCount] = useState<number | "">(1);
     const router = useRouter();
@@ -22,6 +22,11 @@ export function InvitationActions({ invitationId, fundId, fund, currentTotal, ta
     const handleResponse = (status: "accepted" | "rejected") => {
         if (status === "accepted" && (typeof studentCount !== "number" || studentCount < 1)) {
             toast.error("Öğrenci sayısı en az 1 olmalıdır.");
+            return;
+        }
+
+        if (status === "accepted" && !hasSelections) {
+            toast.error("Fon kurucusunun önce öğrenci seçmesi gerekmektedir.");
             return;
         }
 
@@ -131,11 +136,12 @@ export function InvitationActions({ invitationId, fundId, fund, currentTotal, ta
 
                 <button
                     onClick={() => handleResponse("accepted")}
-                    disabled={isPending}
+                    disabled={isPending || !hasSelections}
+                    title={!hasSelections ? "Onay verebilmek için fon sahibinin öğrenci seçmesi bekleniyor." : "Kabul et ve ödeme adımına geç"}
                     className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50"
                 >
                     {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-                    Kabul Et
+                    Ödeme
                 </button>
                 <button
                     onClick={() => handleResponse("rejected")}

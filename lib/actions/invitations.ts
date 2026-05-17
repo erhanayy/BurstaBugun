@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { fundInvitations, users, fundContributors } from "@/lib/db/schema";
+import { fundInvitations, users, fundContributors, fundSelections } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -37,6 +37,7 @@ export async function sendFundInvitation(data: {
     // TODO: Send Email using your email provider here
 
     revalidatePath(`/dashboard/funds/${data.fundId}`);
+    revalidatePath(`/dashboard/invitations`);
 
     return { success: true };
 }
@@ -66,27 +67,73 @@ export async function respondToInvitation(invitationId: string, status: "accepte
             )
         });
 
-        const currentTotal = contributors.reduce((sum, c) => sum + (c.studentCount || 1), 0);
-        const targetCount = inv.fund.targetStudentCount || 0;
+        const ext = contributors.find(c => c.userId === tenantData.userId);
+        
+        let currentTotal = contributors.reduce((sum, c) => sum + (c.studentCount || 1), 0);
+        if (ext) {
+            currentTotal -= (ext.studentCount || 1);
+        }
 
-        if (currentTotal + studentCount > targetCount) {
-            const available = targetCount - currentTotal;
-            if (available <= 0) {
-                throw new Error("Bu fonun kapasitesi dolmuştur.");
-            } else {
-                throw new Error(`Bu fonda sadece ${available} kişilik açık kontenjan kalmıştır.`);
+        const targetCount = inv.fund.targetStudentCount;
+
+        if (targetCount !== null && targetCount !== undefined && targetCount > 0) {
+            if (currentTotal + studentCount > targetCount) {
+                const available = targetCount - currentTotal;
+                if (available <= 0) {
+                    throw new Error("Bu fonun kapasitesi dolmuştur.");
+                } else {
+                    throw new Error(`Bu fonda sadece ${available} kişilik açık kontenjan kalmıştır.`);
+                }
             }
         }
 
-        const ext = contributors.find(c => c.userId === tenantData.userId);
-
-        if (!ext) {
+        if (ext) {
+            await db.update(fundContributors)
+                .set({ studentCount: studentCount })
+                .where(eq(fundContributors.id, ext.id));
+        } else {
             await db.insert(fundContributors).values({
                 fundId: inv.fundId,
                 userId: tenantData.userId,
                 amount: inv.fund.monthlyLimit || 0,
                 studentCount: studentCount
             });
+        }
+
+        // Assign students to this sponsor permanently
+        const userSelections = await db.query.fundSelections.findMany({
+            where: (fs, { and, eq }) => and(
+                eq(fs.fundId, inv.fundId),
+                eq(fs.sponsorId, tenantData.userId)
+            ),
+            orderBy: (fs, { asc }) => [asc(fs.createdAt)]
+        });
+
+        const currentAssignedCount = userSelections.length;
+        const diff = studentCount - currentAssignedCount;
+
+        if (diff > 0) {
+            const availableSelections = await db.query.fundSelections.findMany({
+                where: (fs, { and, eq, isNull }) => and(
+                    eq(fs.fundId, inv.fundId),
+                    isNull(fs.sponsorId)
+                ),
+                orderBy: (fs, { asc }) => [asc(fs.createdAt)],
+                limit: diff
+            });
+
+            for (const sel of availableSelections) {
+                await db.update(fundSelections)
+                    .set({ sponsorId: tenantData.userId })
+                    .where(eq(fundSelections.id, sel.id));
+            }
+        } else if (diff < 0) {
+            const toUnassign = userSelections.slice(0, Math.abs(diff));
+            for (const sel of toUnassign) {
+                await db.update(fundSelections)
+                    .set({ sponsorId: null })
+                    .where(eq(fundSelections.id, sel.id));
+            }
         }
     }
 

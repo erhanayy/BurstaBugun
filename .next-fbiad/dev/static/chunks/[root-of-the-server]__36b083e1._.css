@@ -250,6 +250,7 @@
     --color-purple-400: #c07eff;
     --color-purple-600: #9810fa;
     --color-purple-700: #8200da;
+    --color-purple-800: #6e11b0;
     --color-purple-900: #59168b;
     --color-fuchsia-50: #fdf4ff;
     --color-fuchsia-100: #fae8ff;
@@ -429,6 +430,7 @@
       --color-purple-400: lab(63.6946% 47.6127 -59.2066);
       --color-purple-600: lab(43.0295% 75.21 -86.5669);
       --color-purple-700: lab(36.1758% 69.8525 -80.0381);
+      --color-purple-800: lab(30.6017% 56.7637 -64.4751);
       --color-purple-900: lab(24.9401% 45.2703 -51.2728);
       --color-fuchsia-50: lab(97.1083% 4.46233 -4.09334);
       --color-fuchsia-100: lab(93.9419% 9.57647 -9.08735);
@@ -1619,6 +1621,10 @@
     flex: 1;
   }
 
+  .flex-\[2\] {
+    flex: 2;
+  }
+
   .flex-shrink {
     flex-shrink: 1;
   }
@@ -2330,6 +2336,10 @@
 
   .border-primary {
     border-color: var(--primary);
+  }
+
+  .border-purple-200 {
+    border-color: var(--color-purple-200);
   }
 
   .border-red-100 {
@@ -4005,6 +4015,10 @@
     key:  4ng;
   }
 
+  .\[key\:\#\f 4ng\] {
+    key: #  4ng;
+  }
+
   .\[key\:\#-\14 \] {
     key: #- ;
   }
@@ -4049,6 +4063,10 @@
     key: C  ;
   }
 
+  .\[key\:Ci\14 \] {
+    key: Ci ;
+  }
+
   .\[key\:F\1f 4ng\] {
     key: F 4ng;
   }
@@ -4063,6 +4081,10 @@
 
   .\[key\:J\7 4ng\] {
     key: J 4ng;
+  }
+
+  .\[key\:K\7 4ng\] {
+    key: K 4ng;
   }
 
   .\[key\:Kd4ng\] {
@@ -4093,6 +4115,10 @@
     key: b& 4ng;
   }
 
+  .\[key\:c\1c 4ng\] {
+    key: c 4ng;
+  }
+
   .\[key\:i\1a 4ng\] {
     key: i 4ng;
   }
@@ -4119,6 +4145,10 @@
 
   .\[key\:p\+\14 \] {
     key: p +  ;
+  }
+
+  .\[key\:rV\14 \] {
+    key: rV ;
   }
 
   .\[key\:rg\14 \] {
@@ -4237,6 +4267,14 @@
     key: � * 4ng;
   }
 
+  .\[key\:�\+\14 \] {
+    key: � +  ;
+  }
+
+  .\[key\:�\+4ng\] {
+    key: �4ng;
+  }
+
   .\[key\:�\,\14 \] {
     key: �,  ;
   }
@@ -4295,6 +4333,10 @@
 
   .\[key\:�p4ng\] {
     key: �p4ng;
+  }
+
+  .\[key\:��\14 \] {
+    key: �� ;
   }
 
   .\[key\:��4ng\] {
@@ -5952,6 +5994,10 @@
     .dark\:border-orange-900\/30:is(.dark *) {
       border-color: color-mix(in oklab, var(--color-orange-900) 30%, transparent);
     }
+  }
+
+  .dark\:border-purple-800:is(.dark *) {
+    border-color: var(--color-purple-800);
   }
 
   .dark\:border-red-800:is(.dark *) {

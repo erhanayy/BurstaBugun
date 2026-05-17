@@ -1,11 +1,13 @@
 import { db } from "@/lib/db";
-import { funds, payments } from "@/lib/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { funds, payments, fundContributors, fundSelections } from "@/lib/db/schema";
+import { eq, asc, and } from "drizzle-orm";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { redirect } from "next/navigation";
 import { CreditCard, Calendar, CheckCircle2, Clock, Users } from "lucide-react";
 import { tr } from "date-fns/locale";
 import { format } from "date-fns";
+import { auth } from "@/auth";
+import AppPaymentButton from "./app-payment-button";
 
 export default async function FundPaymentPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -16,9 +18,19 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
 
     const fund = await db.query.funds.findFirst({
         where: eq(funds.id, fundId),
+        with: {
+            selections: {
+                where: eq(fundSelections.isActive, true)
+            },
+            invitations: {
+                where: (invitations, { eq }) => eq(invitations.inviteeId, tenantData.userId)
+            }
+        }
     });
 
     if (!fund) redirect("/dashboard");
+
+    const isPendingInvite = fund.invitations?.some(inv => inv.status === 'pending');
 
     // Fetch payments assigned to this schedule
     const fundPayments = await db.query.payments.findMany({
@@ -33,12 +45,61 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
         orderBy: [asc(payments.paymentDate)]
     });
 
-    const isFullyPaid = fundPayments.length > 0 && fundPayments.every(p => p.status === 'completed');
-    const totalPayments = fundPayments.length;
-    const paidPayments = fundPayments.filter(p => p.status === 'completed').length;
+    // Determine the user's specific payment share
+    const contributors = await db.query.fundContributors.findMany({
+        where: eq(fundContributors.fundId, fundId)
+    });
+    
+    const selectionsCount = fund.selections?.length || 0;
+    const othersCount = contributors.reduce((acc, c) => acc + (c.studentCount || 1), 0);
+    const ownerRemaining = Math.max(0, selectionsCount - othersCount);
+
+    // Check if user is a contributor
+    const isContributor = contributors.some(c => c.userId === tenantData.userId);
+    const isOwner = fund.ownerId === tenantData.userId;
+
+    // Use fund.selections for STABLE order of students
+    const stableSelections = [...(fund.selections || [])].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    
+    // Explicitly assigned students ONLY (for everyone, including owner)
+    let myAppIds: string[] = stableSelections
+        .filter(s => s.sponsorId === tenantData.userId)
+        .map(s => s.applicationId);
+
+    const displayedPayments = fundPayments.filter(p => myAppIds.includes(p.applicationId));
+
+    const isFullyPaid = displayedPayments.length > 0 && displayedPayments.every(p => p.status === 'completed');
+    const totalPayments = displayedPayments.length;
+    const paidPayments = displayedPayments.filter(p => p.status === 'completed').length;
+    
+    // Total amount remaining and logic
+    const session = await auth();
+    const adSoyad = session?.user?.name || "Bilinmeyen Kullanıcı";
+    const totalAmount = displayedPayments.reduce((acc, p) => acc + (p.amount || 0), 0);
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pt-6">
+            {isPendingInvite && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm">
+                    <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                            <Clock className="h-5 w-5 text-amber-500" />
+                        </div>
+                        <div className="ml-3">
+                            <h3 className="text-sm font-bold text-amber-800 dark:text-amber-200">Davetiniz Onay Bekliyor</h3>
+                            <div className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                                <p>Bu fona katılımcı olarak davet edildiniz. Ödeme detaylarını görebilmek ve işleme devam edebilmek için öncelikle davetinizi onaylamanız gerekmektedir.</p>
+                            </div>
+                            <div className="mt-3">
+                                <a href="/dashboard/invitations" className="text-sm font-bold text-amber-800 dark:text-amber-200 hover:text-amber-600 dark:hover:text-amber-100 bg-amber-100 dark:bg-amber-800/40 px-3 py-1.5 rounded-md transition-colors">
+                                    Davetlerime Git
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center gap-4 mb-8">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/40 rounded-xl text-blue-600 dark:text-blue-400">
                     <CreditCard className="w-8 h-8" />
@@ -67,18 +128,31 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
                 </div>
             </div>
 
+            {/* In-App Payment Action */}
+            {totalPayments > paidPayments && (
+                <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">Kalan Tüm Taksitleri Öde</h3>
+                        <p className="text-blue-700 dark:text-blue-300 text-sm mt-1">Gelecek aylara ait tüm taksit tutarlarınızı (toplam {totalAmount.toLocaleString('tr-TR')} ₺) kredi kartınızdan tek seferde provizyon olarak çekebilir ve ödeme planını kapatabilirsiniz.</p>
+                    </div>
+                    <div className="flex-shrink-0 w-full md:w-auto">
+                        <AppPaymentButton fundId={fundId} />
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 shadow-sm">
                 <div className="p-4 md:p-6 bg-gray-50 dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center">
                     <h3 className="font-bold text-gray-900 dark:text-white">Ödeme Emirleri</h3>
                 </div>
 
                 <div className="divide-y divide-gray-100 dark:divide-zinc-800">
-                    {fundPayments.length === 0 ? (
+                    {displayedPayments.length === 0 ? (
                         <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                             Henüz bu fon için oluşturulmuş bir ödeme planı (taksit) bulunmuyor. <br /> Fon havuzundan bursiyer seçtiğinizde taksitler otomatik oluşacaktır.
                         </div>
                     ) : (
-                        fundPayments.map((payment, i) => (
+                        displayedPayments.map((payment, i) => (
                             <div key={payment.id} className={`p-4 md:p-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between hover:bg-gray-50/50 dark:hover:bg-zinc-800/20 transition-colors ${payment.status === 'completed' ? 'opacity-80' : ''}`}>
 
                                 <div className="flex items-center gap-4 flex-1">

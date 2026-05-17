@@ -18,14 +18,40 @@ export default async function FundDetailsPage({ params }: { params: Promise<{ id
             contributors: {
                 with: { user: true }
             },
-            invitations: true
+            invitations: true,
+            selections: true
         }
     });
 
     if (!fund) notFound();
 
+    const targetStudentCount = fund.targetStudentCount || 1;
+    const currentStudentCount = fund.selections.length;
+    const missingStudentCount = targetStudentCount - currentStudentCount;
+
     return (
         <div className="max-w-6xl mx-auto space-y-6">
+            {missingStudentCount > 0 && tenantData?.userId === fund.ownerId && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm">
+                    <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                            <Clock className="h-5 w-5 text-amber-500" />
+                        </div>
+                        <div className="ml-3">
+                            <h3 className="text-sm font-bold text-amber-800 dark:text-amber-200">Havuzdan Öğrenci Seçimi Eksik</h3>
+                            <div className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                                <p>Fon kapasiteniz <strong>{targetStudentCount}</strong> kişi ancak henüz <strong>{missingStudentCount}</strong> öğrenci eksik. Davetlilerinizin ödeme yapabilmesi ve fona katılabilmesi için lütfen <strong>Bursiyer Havuzu</strong>'ndan öğrenci seçiminizi tamamlayın.</p>
+                            </div>
+                            <div className="mt-3">
+                                <Link href="/dashboard/pool" className="text-sm font-bold text-amber-800 dark:text-amber-200 hover:text-amber-600 dark:hover:text-amber-100 bg-amber-100 dark:bg-amber-800/40 px-3 py-1.5 rounded-md transition-colors">
+                                    Havuza Git
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
                 <Link href="/dashboard/funds" className="inline-flex items-center text-sm font-medium px-4 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors shadow-sm">
                     <ArrowLeft className="w-4 h-4 mr-2" /> Fonlara Dön

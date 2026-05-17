@@ -26,22 +26,6 @@ export async function processRegistration(data: any) {
         throw new Error("Lütfen zorunlu alanları doldurunuz.");
     }
 
-    // Check existing
-    const existingEmail = await db.query.users.findFirst({
-        where: eq(users.email, email)
-    });
-    if (existingEmail) throw new Error("Bu e-posta adresi sistemde zaten kayıtlı.");
-
-    const existingPhone = await db.query.users.findFirst({
-        where: eq(users.phoneNumber, phoneNumber)
-    });
-    if (existingPhone) throw new Error("Bu telefon numarası sistemde zaten kayıtlı.");
-
-    // Generate Pass & OTP
-    const firstPassword = "Burs" + Math.floor(1000 + Math.random() * 9000) + "!";
-    const hashedPassword = await bcrypt.hash(firstPassword, 10);
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit
-
     // Create or find Tenant
     const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
     let targetTenant;
@@ -67,8 +51,31 @@ export async function processRegistration(data: any) {
         }
     }
 
+    // Check existing based on tenant isolation
+    const existingEmail = await db.query.users.findFirst({
+        where: (users, { and, eq }) => and(
+            eq(users.email, email),
+            eq(users.tenantId, targetTenant.id)
+        )
+    });
+    if (existingEmail) throw new Error("Bu e-posta adresi bu platformda zaten kayıtlı.");
+
+    const existingPhone = await db.query.users.findFirst({
+        where: (users, { and, eq }) => and(
+            eq(users.phoneNumber, phoneNumber),
+            eq(users.tenantId, targetTenant.id)
+        )
+    });
+    if (existingPhone) throw new Error("Bu telefon numarası bu platformda zaten kayıtlı.");
+
+    // Generate Pass & OTP
+    const firstPassword = "Burs" + Math.floor(1000 + Math.random() * 9000) + "!";
+    const hashedPassword = await bcrypt.hash(firstPassword, 10);
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit
+
     // Insert User
     const [newUser] = await db.insert(users).values({
+        tenantId: targetTenant.id,
         fullName,
         email,
         phoneNumber,

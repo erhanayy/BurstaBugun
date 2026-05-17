@@ -13,7 +13,7 @@
 
 ### 2. FBİAD Vakfı Özel Mobil Uygulama ve Web Entegrasyonu
 - [ ] **Mobil Arayüz:** FBİAD Vakfı Mobil uygulaması için ekran tasarımlarının ve entegrasyonlarının yapılması.
-- [ ] **Web Sitesi:** FBİAD Vakfı için tanıtım ve bilgilendirme amaçlı özel internet sitesi (Landing Page) hazırlanması.
+- [x] **Web Sitesi:** FBİAD Vakfı için tanıtım ve bilgilendirme amaçlı özel internet sitesi (Landing Page) hazırlanması.
 
 ### 3. Ödeme ve Finansal Altyapı
 - [ ] **Sanal POS Entegrasyonu:** Anlaşmalı banka/kurum üzerinden Kredi Kartı çekim ekranının (Sanal POS) geliştirilmesi.
