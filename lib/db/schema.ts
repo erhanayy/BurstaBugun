@@ -60,6 +60,25 @@ export const parameters = pgTable('parameters', {
     dataStr: text('data_str'),
 });
 
+// Tenant Seasons (Dönemler - parameters_tenant_seasons)
+export const parametersTenantSeasons = pgTable('parameters_tenant_seasons', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    period: text('period').notNull(), // Örn: 2026-2027
+    isActive: boolean('is_active').default(true).notNull(),
+    appStartDate: timestamp('app_start_date'),
+    appEndDate: timestamp('app_end_date'),
+    fundStartDate: timestamp('fund_start_date'),
+    fundEndDate: timestamp('fund_end_date'),
+    defaultFundAmount: integer('default_fund_amount'),
+    defaultFundDuration: integer('default_fund_duration'),
+    defaultFundStartDate: timestamp('default_fund_start_date'),
+    defaultFundEndDate: timestamp('default_fund_end_date'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({
+    tenantPeriodUnq: unique().on(t.tenantId, t.period),
+}));
+
 // Email Log
 export const emailLogs = pgTable('email_log', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -140,6 +159,7 @@ export const applications = pgTable('applications', {
     userId: uuid('user_id').references(() => users.id).notNull(),
     fundId: uuid('fund_id').references(() => funds.id).notNull(),
     formId: uuid('form_id').references(() => applicationForms.id), // Hangi forma göre dolduruldu // Optional for backward comp
+    period: text('period'), // Öğrencinin seçtiği dönem
     status: applicationStatusEnum('status').default('draft').notNull(),
     answersJson: text('answers_json'), // EAV alternatifi olarak Json string
     isActive: boolean('is_active').default(true).notNull(),

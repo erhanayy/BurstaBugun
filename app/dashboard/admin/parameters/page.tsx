@@ -2,7 +2,11 @@ import { getCurrentTenant } from "@/lib/data/tenant";
 import { RedirectToLogin } from "@/components/redirect-to-login";
 import { getAllSystemParameters, getSystemParameter } from "@/lib/actions/parameters";
 import { ParametersForm } from "./parameters-form";
+import { SeasonsManager } from "./seasons-manager";
 import { Settings2 } from "lucide-react";
+import { db } from "@/lib/db";
+import { eq, like } from "drizzle-orm";
+import { parametersTenantSeasons, parameters } from "@/lib/db/schema";
 
 export const metadata = {
     title: "Sistem Parametreleri | BurstaBugün",
@@ -33,6 +37,17 @@ export default async function ParametersPage() {
         paramMap.set("MASK_STUDENT_NAMES", "false");
     }
 
+    const seasons = await db.query.parametersTenantSeasons.findMany({
+        where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+        orderBy: (s, { desc }) => [desc(s.createdAt)]
+    });
+
+    // Global dönem listesini parameters tablosundan çek (code = SEASON_... olanlar)
+    const globalSeasonsData = await db.query.parameters.findMany({
+        where: like(parameters.code, 'SEASON_%'),
+    });
+    const globalPeriods = globalSeasonsData.map(p => p.dataStr).filter(Boolean) as string[];
+
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             <div>
@@ -50,6 +65,10 @@ export default async function ParametersPage() {
                     initialMaxLimit={paramMap.get("MAX_MONTHLY_LIMIT")}
                     initialMaskNames={paramMap.get("MASK_STUDENT_NAMES")}
                 />
+            </div>
+
+            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm p-6 overflow-hidden mt-8">
+                <SeasonsManager seasons={seasons} globalPeriods={globalPeriods} />
             </div>
         </div>
     );

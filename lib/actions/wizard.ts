@@ -17,6 +17,7 @@ export async function saveDraftApplication(data: {
     userId: string;
     formId: string;
     answersJson: string;
+    period?: string;
 }) {
     try {
         if (data.draftId) {
@@ -33,8 +34,9 @@ export async function saveDraftApplication(data: {
                 userId: data.userId,
                 formId: data.formId,
                 fundId: poolFund.id,
+                period: data.period,
+                status: 'draft',
                 answersJson: data.answersJson,
-                status: "draft"
             }).returning({ id: applications.id });
             return { success: true, draftId: inserted[0].id };
         }
@@ -49,11 +51,15 @@ export async function submitWizardApplication(data: {
     userId: string;
     formId: string;
     answersJson: string;
+    period?: string;
 }) {
     try {
         if (data.draftId) {
             await db.update(applications)
-                .set({ answersJson: data.answersJson, status: "waiting_reference" })
+                .set({
+                    answersJson: data.answersJson,
+                    status: 'waiting_reference'
+                })
                 .where(eq(applications.id, data.draftId));
         } else {
             const poolFund = await getPoolFund(data.tenantId);
@@ -64,8 +70,9 @@ export async function submitWizardApplication(data: {
                 userId: data.userId,
                 formId: data.formId,
                 fundId: poolFund.id,
+                period: data.period,
+                status: 'waiting_reference',
                 answersJson: data.answersJson,
-                status: "waiting_reference"
             });
         }
         return { success: true };

@@ -10,7 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Copy } from "lucide-react";
 
-export default function WizardClient({ form, tenantId, userId, existingAnswers = {}, existingDraftId = null, previousAnswers = null }: { form: any; tenantId: string; userId: string; existingAnswers?: any; existingDraftId?: string | null; previousAnswers?: any }) {
+interface WizardClientProps {
+    form: any;
+    tenantId: string;
+    userId: string;
+    existingAnswers?: any;
+    existingDraftId?: string | null;
+    previousAnswers?: any;
+    period: string;
+}
+
+export default function WizardClient({ form, tenantId, userId, existingAnswers = {}, existingDraftId = null, previousAnswers = null, period }: WizardClientProps) {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, any>>(existingAnswers || {});
     const [draftId, setDraftId] = useState<string | null>(existingDraftId);
@@ -81,6 +91,7 @@ export default function WizardClient({ form, tenantId, userId, existingAnswers =
             userId,
             formId: form.id,
             answersJson: JSON.stringify(answers),
+            period
         });
 
         if (res.success) {
@@ -109,6 +120,7 @@ export default function WizardClient({ form, tenantId, userId, existingAnswers =
             userId,
             formId: form.id,
             answersJson: JSON.stringify(answers),
+            period
         });
 
         if (res.success) {

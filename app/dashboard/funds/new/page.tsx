@@ -1,8 +1,20 @@
 import { FundForm } from "./fund-form";
 import Link from "next/link";
 import { ArrowLeft, Landmark } from "lucide-react";
+import { getSystemParameter } from "@/lib/actions/parameters";
+import { getCurrentTenant } from "@/lib/data/tenant";
+import { db } from "@/lib/db";
+import { parametersTenantSeasons } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
-export default function NewFundPage() {
+export default async function NewFundPage() {
+    const tenantData = await getCurrentTenant();
+    const isAdmin = tenantData?.userRole === 'admin';
+    
+    const seasons = await db.query.parametersTenantSeasons.findMany({
+        where: eq(parametersTenantSeasons.tenantId, tenantData!.tenantId),
+        orderBy: (s, { desc }) => [desc(s.createdAt)]
+    });
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="mb-8">
@@ -27,7 +39,7 @@ export default function NewFundPage() {
             </div>
 
             <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm p-6 md:p-8">
-                <FundForm />
+                <FundForm seasons={seasons} isAdmin={isAdmin} />
             </div>
         </div>
     );

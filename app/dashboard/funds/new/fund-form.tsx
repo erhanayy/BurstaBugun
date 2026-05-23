@@ -42,9 +42,25 @@ const fundSchema = z.object({
     photoUrl: z.string().optional(),
 });
 
-export function FundForm() {
+type Season = {
+    id: string;
+    period: string;
+    isActive: boolean;
+    appStartDate: Date | null;
+    appEndDate: Date | null;
+    fundStartDate: Date | null;
+    fundEndDate: Date | null;
+    defaultFundAmount: number | null;
+    defaultFundDuration: number | null;
+};
+
+export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: boolean }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
+    const [seasonError, setSeasonError] = useState("");
+    
+    // Aktif sezonları filtreleyelim
+    const activeSeasons = seasons?.filter(s => s.isActive) || [];
 
     const form = useForm<any>({
         resolver: zodResolver(fundSchema),
@@ -61,6 +77,36 @@ export function FundForm() {
             targetStudentCount: 1,
         },
     });
+
+    const period = form.watch("period");
+    
+    useEffect(() => {
+        if (!period || period === "none") {
+            setSeasonError("");
+            return;
+        }
+        
+        const selectedSeason = activeSeasons.find(s => s.id === period);
+        if (selectedSeason) {
+            // Check dates
+            const now = new Date();
+            if (selectedSeason.fundStartDate && selectedSeason.fundEndDate) {
+                const sDate = new Date(selectedSeason.fundStartDate);
+                const eDate = new Date(selectedSeason.fundEndDate);
+                if (now < sDate || now > eDate) {
+                    setSeasonError("Seçilen sezon için fon oluşturma süresi dolmuştur veya henüz başlamamıştır.");
+                } else {
+                    setSeasonError("");
+                }
+            } else {
+                setSeasonError("");
+            }
+
+            // Set defaults if available and user is not admin (or even if admin, set defaults)
+            if (selectedSeason.defaultFundAmount) form.setValue("monthlyLimit", selectedSeason.defaultFundAmount);
+            if (selectedSeason.defaultFundDuration) form.setValue("durationMonths", selectedSeason.defaultFundDuration.toString());
+        }
+    }, [period, activeSeasons, form]);
 
     const startDate = form.watch("startDate");
     const durationMonths = form.watch("durationMonths");
@@ -103,7 +149,13 @@ export function FundForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+
+                {seasonError && (
+                    <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 text-sm font-medium">
+                        {seasonError}
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
@@ -129,16 +181,17 @@ export function FundForm() {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Fon Dönemi *</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value || undefined} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
-                                        <SelectTrigger className="pl-4">
-                                            <SelectValue placeholder="Dönem seçiniz" />
+                                        <SelectTrigger className="h-12 bg-gray-50 border-gray-200 focus:ring-blue-500 focus:border-blue-500">
+                                            <SelectValue placeholder="Bir eğitim dönemi seçiniz" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="2024-2025">2024-2025 Güz/Bahar</SelectItem>
-                                        <SelectItem value="2025-2026">2025-2026 Güz/Bahar</SelectItem>
-                                        <SelectItem value="2026-2027">2026-2027 Güz/Bahar</SelectItem>
+                                        <SelectItem value="none">Sezon Bağımsız / Özel</SelectItem>
+                                        {activeSeasons.map(s => (
+                                            <SelectItem key={s.id} value={s.id}>{s.period}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -155,7 +208,14 @@ export function FundForm() {
                                 <FormControl>
                                     <div className="relative">
                                         <TurkishLira className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                        <Input type="number" placeholder="1500" className="pl-10" {...field} value={field.value ?? ""} />
+                                        <Input 
+                                            type="number" 
+                                            placeholder="1500" 
+                                            className="h-12 bg-gray-50 border-gray-200 focus:ring-blue-500 focus:border-blue-500 pl-10" 
+                                            readOnly={!isAdmin && period !== "none" && activeSeasons.find(s => s.id === period)?.defaultFundAmount != null}
+                                            {...field} 
+                                            value={field.value ?? ""} 
+                                        />
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -171,7 +231,7 @@ export function FundForm() {
                                 <FormLabel>Ödeme Şekli *</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value || undefined} defaultValue={field.value}>
                                     <FormControl>
-                                        <SelectTrigger className="pl-4">
+                                        <SelectTrigger className="pl-4 h-12">
                                             <SelectValue placeholder="Ödeme şekli seçiniz" />
                                         </SelectTrigger>
                                     </FormControl>
@@ -180,9 +240,6 @@ export function FundForm() {
                                         <SelectItem value="monthly">Aylık Kredi Kartı Provizyonu (Taksit Taksit)</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p className="text-xs text-gray-500 mt-1 pl-1">
-                                    Bu seçenek, fon oluşturulduktan sonra katılımcıların ne şekilde ödeme yapacaklarını belirler.
-                                </p>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -197,7 +254,7 @@ export function FundForm() {
                                 <FormControl>
                                     <div className="relative">
                                         <Users className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                        <Input type="number" placeholder="Örn: 2" className="pl-10" {...field} value={field.value ?? ""} />
+                                        <Input type="number" placeholder="Örn: 2" className="pl-10 h-12" {...field} value={field.value ?? ""} />
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -214,7 +271,12 @@ export function FundForm() {
                                 <FormControl>
                                     <div className="relative">
                                         <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                        <Input type="date" className="pl-10" {...field} value={field.value ?? ""} />
+                                        <Input 
+                                            type="date" 
+                                            className="pl-10 h-12 bg-gray-50 border-gray-200"
+                                            {...field} 
+                                            value={field.value ?? ""} 
+                                        />
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -228,18 +290,14 @@ export function FundForm() {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Fon Süresi (Ay) *</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value || undefined} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger className="pl-4">
-                                            <SelectValue placeholder="Süre seçiniz" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                                            <SelectItem key={month} value={month.toString()}>{month} Ay</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        className="h-12 bg-gray-50 border-gray-200 focus:ring-blue-500 focus:border-blue-500"
+                                        {...field}
+                                        readOnly={!isAdmin && period !== "none" && activeSeasons.find(s => s.id === period)?.defaultFundDuration != null}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -254,7 +312,7 @@ export function FundForm() {
                                 <FormControl>
                                     <div className="relative">
                                         <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                        <Input type="date" className="pl-10 bg-gray-50 dark:bg-zinc-800 text-gray-500 cursor-not-allowed focus-visible:ring-0" readOnly tabIndex={-1} {...field} value={field.value ?? ""} />
+                                        <Input type="date" className="pl-10 h-12 bg-gray-50 cursor-not-allowed" readOnly tabIndex={-1} {...field} value={field.value ?? ""} />
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -274,7 +332,7 @@ export function FundForm() {
                                         <Input
                                             type="file"
                                             accept="image/*"
-                                            className="pl-10 pt-1.5"
+                                            className="pl-10 pt-2.5 h-12"
                                             {...fieldProps}
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0];
@@ -343,7 +401,7 @@ export function FundForm() {
                     <Button type="button" variant="outline" onClick={() => router.back()}>
                         İptal
                     </Button>
-                    <Button type="submit" disabled={isPending} className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors min-w-[200px]">
+                    <Button type="submit" disabled={isPending || !!seasonError} className="h-12 px-8 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 transition-all rounded-xl">
                         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
                         Fonu Oluştur ve Sisteme Ekle
                     </Button>
