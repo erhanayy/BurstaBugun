@@ -26,7 +26,7 @@ export function FundSelector({ funds, currentFundId }: { funds: any[], currentFu
 
                     return (
                         <option key={f.id} value={f.id} disabled={isFull}>
-                            {f.title} - {isFull ? `Dolu (${filled}/${capacity})` : (capacity === Infinity ? `Kapasite: ${filled} / Sınırsız` : `Kapasite: ${filled} / ${capacity}`)}
+                            {f.title} ({f.periodName}) - {isFull ? `Dolu (${filled}/${capacity})` : (capacity === Infinity ? `Kapasite: ${filled} / Sınırsız` : `Kapasite: ${filled} / ${capacity}`)}
                         </option>
                     );
                 })}

@@ -142,3 +142,69 @@ export async function respondToInvitation(invitationId: string, status: "accepte
 
     return { success: true };
 }
+
+export async function cancelFundSelectionAndResetInvitation(fundId: string) {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) throw new Error("Oturum bulunamadı");
+
+    // Check if any payments are already completed for this user in this fund
+    const userSelections = await db.query.fundSelections.findMany({
+        where: (fs, { and, eq }) => and(
+            eq(fs.fundId, fundId),
+            eq(fs.sponsorId, tenantData.userId)
+        )
+    });
+
+    if (userSelections.length === 0) {
+        throw new Error("İptal edilecek bir seçim bulunamadı.");
+    }
+
+    const appIds = userSelections.map(s => s.applicationId);
+
+    const completedPayments = await db.query.payments.findFirst({
+        where: (p, { and, eq, inArray }) => and(
+            eq(p.fundId, fundId),
+            inArray(p.applicationId, appIds),
+            eq(p.status, "completed")
+        )
+    });
+
+    if (completedPayments) {
+        throw new Error("Ödemesi başlamış veya tamamlanmış seçimler iptal edilemez. Lütfen yönetici ile iletişime geçin.");
+    }
+
+    // 1. Release the locked students back to the pool
+    for (const sel of userSelections) {
+        await db.update(fundSelections)
+            .set({ sponsorId: null })
+            .where(eq(fundSelections.id, sel.id));
+    }
+
+    // 2. Remove from contributors
+    await db.delete(fundContributors)
+        .where(and(
+            eq(fundContributors.fundId, fundId),
+            eq(fundContributors.userId, tenantData.userId)
+        ));
+
+    // 3. Reset the invitation status back to pending
+    const invitation = await db.query.fundInvitations.findFirst({
+        where: (inv, { and, eq }) => and(
+            eq(inv.fundId, fundId),
+            eq(inv.inviteeId, tenantData.userId),
+            eq(inv.status, "accepted")
+        )
+    });
+
+    if (invitation) {
+        await db.update(fundInvitations)
+            .set({ status: "pending", updatedAt: new Date() })
+            .where(eq(fundInvitations.id, invitation.id));
+    }
+
+    revalidatePath("/dashboard/invitations");
+    revalidatePath(`/dashboard/funds/${fundId}/payment`);
+    revalidatePath("/dashboard/funds");
+
+    return { success: true };
+}

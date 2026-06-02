@@ -4,10 +4,26 @@ import { useState } from "react";
 import { setSystemParameter } from "@/lib/actions/parameters";
 import { Loader2, Save, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
-export function ParametersForm({ initialMaxLimit, initialMaskNames }: { initialMaxLimit: string, initialMaskNames?: string }) {
+type ParametersFormProps = {
+    initialMaxLimit: string;
+    initialMaskNames?: string;
+};
+
+export function ParametersForm({ 
+    initialMaxLimit, 
+    initialMaskNames,
+}: ParametersFormProps) {
     const [maxLimit, setMaxLimit] = useState(initialMaxLimit);
     const [maskNames, setMaskNames] = useState(initialMaskNames === "true");
+
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
     const router = useRouter();
@@ -20,6 +36,7 @@ export function ParametersForm({ initialMaxLimit, initialMaskNames }: { initialM
         try {
             await setSystemParameter("MAX_MONTHLY_LIMIT", maxLimit, "Öğrenci Başına Maksimum Aylık Kazanç Limiti (TL)");
             await setSystemParameter("MASK_STUDENT_NAMES", maskNames ? "true" : "false", "Bursiyer İsimlerini Maskeli Yaz (True/False)");
+            
             setMessage({ text: "Parametreler başarıyla güncellendi.", type: "success" });
             router.refresh();
         } catch (error: any) {
@@ -77,6 +94,8 @@ export function ParametersForm({ initialMaxLimit, initialMaskNames }: { initialM
                     </p>
                 </div>
             </div>
+
+
 
             <div className="pt-6 border-t border-gray-200 dark:border-zinc-800 flex justify-end">
                 <button

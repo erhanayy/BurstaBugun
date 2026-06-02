@@ -6,23 +6,30 @@ import { tr } from "date-fns/locale";
 import { Users, FileText, CheckCircle2, AlertTriangle } from "lucide-react";
 import { maskFullName } from "@/lib/utils";
 import { getCurrentTenant } from "@/lib/data/tenant";
+import { db } from "@/lib/db";
+import { parametersTenantSeasons } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { FundSelector } from "./fund-selector";
 
 export default async function PoolPage({ searchParams }: { searchParams: Promise<{ fundId?: string }> }) {
-    const poolData = await getApplicationPool();
     const myFunds = await getSponsorFunds();
-
-    const eligibleFunds = myFunds.filter(f => {
-        if (!f.invitations || f.invitations.length === 0) return true;
-        return f.invitations.every((inv: any) => inv.status === 'accepted');
-    });
+    const eligibleFunds = myFunds;
 
     const parsedParams = await searchParams;
-    const specificFundId = parsedParams?.fundId || (eligibleFunds.length === 1 ? eligibleFunds[0].id : "");
+    const specificFundId = parsedParams?.fundId || (eligibleFunds.length > 0 ? eligibleFunds[0].id : "");
+
+    const selectedFund = eligibleFunds.find(f => f.id === specificFundId);
+    const fundPeriod = selectedFund?.period || null;
+
+    const poolData = await getApplicationPool(fundPeriod);
 
     const userIds = Array.from(new Set(poolData.map((a: any) => a.userId)));
     const allocationStats = await getStudentsAllocationsStats(userIds);
+
+    const capacity = selectedFund?.targetStudentCount !== null ? selectedFund?.targetStudentCount : Infinity;
+    const filled = selectedFund?.selections?.length || 0;
+    const isFundFull = capacity !== Infinity && filled >= capacity;
 
     // Dynamic System Param Limit
     const maxLimitStr = await getSystemParameter("MAX_MONTHLY_LIMIT", "5000");
@@ -30,6 +37,22 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
     
     const tenantData = await getCurrentTenant();
     const shouldMask = maskNamesStr === "true" && tenantData?.userRole !== 'admin';
+
+    // Fetch seasons to map period ID to period name
+    let seasons: any[] = [];
+    if (tenantData) {
+        seasons = await db.query.parametersTenantSeasons.findMany({
+            where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+        });
+    }
+    
+    const seasonMap = new Map();
+    seasons.forEach(s => seasonMap.set(s.id, s.period));
+
+    const eligibleFundsWithPeriodName = eligibleFunds.map(f => ({
+        ...f,
+        periodName: f.period && f.period !== "none" ? seasonMap.get(f.period) || f.period : 'Dönemsiz'
+    }));
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -42,12 +65,8 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
                 </div>
             </div>
 
-            {eligibleFunds.length > 0 ? (
-                <FundSelector funds={eligibleFunds} currentFundId={specificFundId} />
-            ) : myFunds.length > 0 ? (
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-xl text-amber-800 dark:text-amber-300 text-sm mb-6">
-                    <strong>Bilgi: </strong> Sahibi olduğunuz veya katıldığınız fonlara gönderilen davetlerden henüz onaylanmamış olanlar bulunmaktadır. Havuzdan bursiyer seçebilmek için <strong>tüm katılımcıların davetleri kabul etmesi</strong> gerekmektedir.
-                </div>
+            {eligibleFundsWithPeriodName.length > 0 ? (
+                <FundSelector funds={eligibleFundsWithPeriodName} currentFundId={specificFundId} />
             ) : null}
 
             {poolData.length === 0 ? (
@@ -89,7 +108,7 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
                                                 )}
                                             </h3>
                                         </div>
-                                        <div className="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-tight">
+                                        <div suppressHydrationWarning className="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-tight">
                                             {format(new Date(app.createdAt), "d MMMM yyyy", { locale: tr })}
                                         </div>
                                     </div>
@@ -148,7 +167,7 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
                                 </div>
 
                                 <div className="bg-gray-50 dark:bg-zinc-800/50 p-6 flex flex-col justify-center items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 dark:border-zinc-800 md:w-64">
-                                    <SelectionButton applicationId={app.id} fundId={specificFundId || app.fundId || ""} defaultSelected={isSelected} />
+                                    <SelectionButton applicationId={app.id} fundId={specificFundId || app.fundId || ""} defaultSelected={isSelected} disabled={isFundFull} />
                                     <Link href={`/dashboard/applications/${app.id}`} className="mt-3 text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline flex items-center">
                                         <FileText className="w-4 h-4 mr-1" />
                                         Tüm Detayları Gör

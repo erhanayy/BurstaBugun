@@ -58,7 +58,7 @@ export async function getSponsorFunds() {
     });
 }
 
-export async function getApplicationPool() {
+export async function getApplicationPool(fundPeriod?: string | null) {
     const tenantData = await getCurrentTenant();
     if (!tenantData) return [];
 
@@ -67,11 +67,17 @@ export async function getApplicationPool() {
         if (myFunds.length === 0) return [];
     }
 
+    const conditions = [
+        eq(applications.tenantId, tenantData.tenantId),
+        eq(applications.status, 'in_pool')
+    ];
+
+    if (fundPeriod && fundPeriod !== "none") {
+        conditions.push(eq(applications.period, fundPeriod));
+    }
+
     return await db.query.applications.findMany({
-        where: and(
-            eq(applications.tenantId, tenantData.tenantId),
-            eq(applications.status, 'in_pool')
-        ),
+        where: and(...conditions),
         with: {
             fund: true,
             user: true,

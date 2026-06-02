@@ -8,6 +8,7 @@ import { tr } from "date-fns/locale";
 import { format } from "date-fns";
 import { auth } from "@/auth";
 import AppPaymentButton from "./app-payment-button";
+import { IncreaseSponsorshipButton } from "./increase-sponsorship-button";
 
 export default async function FundPaymentPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -72,6 +73,9 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
     const totalPayments = displayedPayments.length;
     const paidPayments = displayedPayments.filter(p => p.status === 'completed').length;
     
+    // Count unassigned selections
+    const unassignedCount = fund.selections?.filter(s => s.sponsorId === null).length || 0;
+    
     // Total amount remaining and logic
     const session = await auth();
     const adSoyad = session?.user?.name || "Bilinmeyen Kullanıcı";
@@ -130,10 +134,16 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
 
             {/* In-App Payment Action */}
             {totalPayments > paidPayments && (
-                <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div>
+                <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50 flex flex-col items-center justify-between gap-4 md:flex-row">
+                    <div className="flex-1">
                         <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">Kalan Tüm Taksitleri Öde</h3>
-                        <p className="text-blue-700 dark:text-blue-300 text-sm mt-1">Gelecek aylara ait tüm taksit tutarlarınızı (toplam {totalAmount.toLocaleString('tr-TR')} ₺) kredi kartınızdan tek seferde provizyon olarak çekebilir ve ödeme planını kapatabilirsiniz.</p>
+                        <p className="text-blue-700 dark:text-blue-300 text-sm mt-1 mb-3">Gelecek aylara ait tüm taksit tutarlarınızı (toplam {totalAmount.toLocaleString('tr-TR')} ₺) kredi kartınızdan tek seferde provizyon olarak çekebilir ve ödeme planını kapatabilirsiniz.</p>
+                        
+                        {unassignedCount > 0 && (
+                            <div className="pt-2 border-t border-blue-200/50 dark:border-blue-800/30">
+                                <IncreaseSponsorshipButton fundId={fundId} unassignedCount={unassignedCount} />
+                            </div>
+                        )}
                     </div>
                     <div className="flex-shrink-0 w-full md:w-auto">
                         <AppPaymentButton fundId={fundId} />
@@ -171,7 +181,7 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
                                             )}
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />
+                                            <span suppressHydrationWarning className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />
                                                 {payment.paymentDate ? format(new Date(payment.paymentDate), "MMMM yyyy", { locale: tr }) : "Bilinmeyen Tarih"}
                                             </span>
                                             <span className="text-gray-300 dark:text-zinc-700">•</span>

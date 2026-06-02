@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { applications, funds } from "@/lib/db/schema";
+import { applications, funds, fundContributors } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -21,7 +21,7 @@ export async function getMyApplications() {
     const tenantData = await getCurrentTenant();
     if (!tenantData) return [];
 
-    return await db.query.applications.findMany({
+    const apps = await db.query.applications.findMany({
         where: and(
             eq(applications.tenantId, tenantData.tenantId),
             eq(applications.userId, tenantData.userId)
@@ -34,6 +34,27 @@ export async function getMyApplications() {
         },
         orderBy: (applications, { desc }) => [desc(applications.createdAt)],
     });
+
+    for (const app of apps) {
+        if (app.fundId) {
+            const contributors = await db.query.fundContributors.findMany({
+                where: eq(fundContributors.fundId, app.fundId)
+            });
+            let isFundConfirmed = true;
+            if (contributors.length > 0) {
+                isFundConfirmed = contributors.every(c => c.isPaid);
+            } else {
+                isFundConfirmed = false;
+            }
+
+            if ((app.status === 'selected' || app.status === 'active') && !isFundConfirmed) {
+                app.status = 'in_pool';
+                app.fund = null; // Hide fund info from student
+            }
+        }
+    }
+
+    return apps;
 }
 
 export async function submitApplication(data: any) {

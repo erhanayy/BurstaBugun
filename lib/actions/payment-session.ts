@@ -130,7 +130,7 @@ export async function createPaymentSession(fundId: string) {
       .sign(secret);
     
     // The web app URL should be mapped. Hardcoding for fbiad tenant for now
-    const webAppUrl = 'http://localhost:3000'; 
+    const webAppUrl = 'http://localhost:3005'; 
     const paymentUrl = `${webAppUrl}/app-payment?token=${token}`;
     
     return { success: true, url: paymentUrl };

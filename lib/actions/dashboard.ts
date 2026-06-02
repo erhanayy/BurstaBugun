@@ -195,14 +195,34 @@ export async function getApplicantDashboardData(period: string | null) {
         if (r.status === 'approved') approvedRefs++;
     });
 
+    let isFundConfirmed = true;
+    if (myApp.fundId) {
+        const contributors = await db.query.fundContributors.findMany({
+            where: eq(fundContributors.fundId, myApp.fundId)
+        });
+        
+        if (contributors.length > 0) {
+            isFundConfirmed = contributors.every(c => c.isPaid);
+        } else {
+            isFundConfirmed = false; // Henüz hiç katılımcı yoksa veya ödeme kaydı yoksa onaylanmamış sayılır
+        }
+    }
+
+    // Yorumlanan yeni kurala göre: Eğer fon henüz tamamen onaylanmadıysa/ödenmediyse
+    // Öğrenciye status'ü 'in_pool' (Havuzda) gibi gösterip fon adını gizleyeceğiz.
+    const displayStatus = (myApp.status === 'selected' || myApp.status === 'active') && !isFundConfirmed 
+        ? 'in_pool' 
+        : myApp.status;
+
     return {
-        status: myApp.status,
-        fundTitle: myApp.fund?.title,
+        status: displayStatus,
+        fundTitle: isFundConfirmed ? myApp.fund?.title : undefined,
         totalReceived,
         totalPending,
         nextPaymentDate,
         approvedRefs,
         totalRefs,
+        isFundConfirmed // Frontend'in bilmesi gerekirse diye
     };
 }
 

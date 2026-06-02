@@ -7,7 +7,7 @@ import { selectBursiyer } from "@/lib/actions/sponsor";
 import { Check, Loader2 } from "lucide-react";
 import ConfirmationModal from "@/components/ui/confirmation-modal";
 
-export function SelectionButton({ applicationId, fundId, defaultSelected = false }: { applicationId: string; fundId: string; defaultSelected?: boolean }) {
+export function SelectionButton({ applicationId, fundId, defaultSelected = false, disabled = false }: { applicationId: string; fundId: string; defaultSelected?: boolean; disabled?: boolean; }) {
     const [isPending, startTransition] = useTransition();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -40,7 +40,7 @@ export function SelectionButton({ applicationId, fundId, defaultSelected = false
                     }
                     setIsModalOpen(true);
                 }}
-                disabled={isPending}
+                disabled={isPending || disabled}
                 className="w-full sm:w-auto"
             >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

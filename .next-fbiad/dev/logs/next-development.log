@@ -249,3 +249,91 @@ https://nextjs.org/docs/messages/module-not-found
 [217:33:31.549] Server  LOG     ✓ Compiled in 169ms
 [217:34:09.141] Server  LOG     ✓ Compiled in 165ms
 [217:37:23.472] Server  LOG     ✓ Compiled in 431ms
+[280:49:23.317] Server  LOG     ✓ Compiled in 1459ms
+[281:26:53.777] Server  LOG     ✓ Compiled in 418ms
+[281:35:59.092] Server  LOG     ✓ Compiled in 4.3s
+[282:00:15.343] Server  LOG     ✓ Compiled in 409ms
+[282:00:53.062] Server  LOG     ✓ Compiled in 435ms
+[282:33:12.804] Server  ERROR   ⨯ ./app/dashboard/funds/[id]/payment/page.tsx:11:1
+Module not found: Can't resolve './cancel-selection-button'
+   9 | import { auth } from "@/auth";
+  10 | import AppPaymentButton from "./app-payment-button";
+> 11 | import { CancelSelectionButton } from "./cancel-selection-button";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | export default async function FundPaymentPage(props: { params: Promise<{ id: string }> }) {
+  14 |     const params = await props.params;
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[282:33:12.813] Server  ERROR   ⨯ ./app/dashboard/funds/[id]/payment/page.tsx:11:1
+Module not found: Can't resolve './cancel-selection-button'
+   9 | import { auth } from "@/auth";
+  10 | import AppPaymentButton from "./app-payment-button";
+> 11 | import { CancelSelectionButton } from "./cancel-selection-button";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | export default async function FundPaymentPage(props: { params: Promise<{ id: string }> }) {
+  14 |     const params = await props.params;
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[282:33:25.400] Server  ERROR   ⨯ ./app/dashboard/funds/[id]/payment/page.tsx:11:1
+Module not found: Can't resolve './increase-sponsorship-button'
+   9 | import { auth } from "@/auth";
+  10 | import AppPaymentButton from "./app-payment-button";
+> 11 | import { IncreaseSponsorshipButton } from "./increase-sponsorship-button";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | export default async function FundPaymentPage(props: { params: Promise<{ id: string }> }) {
+  14 |     const params = await props.params;
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[282:33:25.402] Server  ERROR   ⨯ ./app/dashboard/funds/[id]/payment/page.tsx:11:1
+Module not found: Can't resolve './increase-sponsorship-button'
+   9 | import { auth } from "@/auth";
+  10 | import AppPaymentButton from "./app-payment-button";
+> 11 | import { IncreaseSponsorshipButton } from "./increase-sponsorship-button";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | export default async function FundPaymentPage(props: { params: Promise<{ id: string }> }) {
+  14 |     const params = await props.params;
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[282:34:09.634] Server  LOG     ✓ Compiled in 6.8s
+[361:24:38.299] Server  LOG     ✓ Compiled in 465ms
+[361:26:29.052] Server  LOG     ✓ Compiled in 503ms
+[361:27:22.334] Server  LOG     ✓ Compiled in 867ms
+[361:27:43.102] Server  LOG     ✓ Compiled in 198ms
+[361:43:03.386] Server  LOG     ✓ Compiled in 1367ms
+[361:45:18.733] Server  LOG     ✓ Compiled in 173ms
+[361:46:07.611] Server  LOG     ✓ Compiled in 428ms
+[361:46:48.371] Server  LOG     ✓ Compiled in 170ms
+[361:47:01.803] Server  LOG     ✓ Compiled in 201ms
+[361:47:09.051] Server  LOG     ✓ Compiled in 169ms
+[361:48:40.082] Server  LOG     ✓ Compiled in 222ms
+[361:53:15.618] Server  LOG     ✓ Compiled in 179ms
+[361:56:15.318] Server  LOG     ✓ Compiled in 227ms
+[361:58:17.740] Server  LOG     ✓ Compiled in 545ms
+[361:58:31.467] Server  LOG     ✓ Compiled in 7.5s
+[362:01:12.476] Server  LOG     ✓ Compiled in 483ms
+[362:05:42.350] Server  LOG     ✓ Compiled in 234ms
+[362:08:59.908] Server  LOG     ✓ Compiled in 353ms
+[362:14:13.868] Server  LOG     ✓ Compiled in 248ms
+[362:14:38.260] Server  LOG     ✓ Compiled in 187ms
+[362:23:11.023] Server  LOG     ✓ Compiled in 279ms
+[362:27:28.079] Server  LOG     ✓ Compiled in 477ms

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useEffect } from "react";
+import { useTransition, useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -60,7 +60,7 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
     const [seasonError, setSeasonError] = useState("");
     
     // Aktif sezonları filtreleyelim
-    const activeSeasons = seasons?.filter(s => s.isActive) || [];
+    const activeSeasons = useMemo(() => seasons?.filter(s => s.isActive) || [], [seasons]);
 
     const form = useForm<any>({
         resolver: zodResolver(fundSchema),

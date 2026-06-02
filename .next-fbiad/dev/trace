@@ -69,3 +69,5 @@
 [{"name":"compile-path","duration":7615,"timestamp":3348399002455,"id":3530,"tags":{"trigger":"proxy"},"startTime":1779006809341,"traceId":"3c1ce32d12c243bf"}]
 [{"name":"compile-path","duration":4970,"timestamp":3352297886444,"id":3531,"tags":{"trigger":"proxy"},"startTime":1779010708264,"traceId":"3c1ce32d12c243bf"}]
 [{"name":"compile-path","duration":3580,"timestamp":3382837831816,"id":3532,"tags":{"trigger":"proxy"},"startTime":1779041248232,"traceId":"3c1ce32d12c243bf"}]
+[{"name":"compile-path","duration":2733,"timestamp":3610505911149,"id":3533,"tags":{"trigger":"proxy"},"startTime":1779268915490,"traceId":"3c1ce32d12c243bf"}]
+[{"name":"compile-path","duration":32141,"timestamp":3613315582561,"id":3534,"tags":{"trigger":"proxy"},"startTime":1779271725171,"traceId":"3c1ce32d12c243bf"}]

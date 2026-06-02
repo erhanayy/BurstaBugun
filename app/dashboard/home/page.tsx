@@ -178,7 +178,7 @@ export default async function DashboardHome({ searchParams }: { searchParams: Pr
                                 {applicantData.status === 'draft' && "Taslak (Başvuru Tamamlanmadı)"}
                                 {applicantData.status === 'waiting_reference' && "Referans Onayları Bekleniyor"}
                             </h3>
-                            {applicantData.fundTitle && applicantData.status !== 'in_pool' && (
+                            {applicantData.fundTitle && (applicantData.status === 'selected' || applicantData.status === 'active') && (
                                 <p className="text-fuchsia-600 dark:text-fuchsia-500 font-medium text-sm mt-1 flex items-center">
                                     <CheckCircle2 className="w-4 h-4 mr-1" />
                                     Burs veren fon: <strong>{applicantData.fundTitle}</strong>

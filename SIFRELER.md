@@ -119,3 +119,80 @@ Böylece testlerinizi hiçbir engele takılmadan "sanki e-posta gelmiş gibi" bu
 - Rol: sponsor
 - İlk Şifre: Burs1020!
 - Doğrulama (OTP) Kodu: 854221
+
+[20.05.2026 13:17:48] YENİ KAYIT:
+- Ad Soyad: Bursveren 1
+- Email: bursveren1@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs5157!
+- Doğrulama (OTP) Kodu: 439365
+
+[20.05.2026 13:22:08] YENİ KAYIT:
+- Ad Soyad: Bursveren3
+- Email: bursveren3@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs4170!
+- Doğrulama (OTP) Kodu: 759486
+
+[20.05.2026 14:13:48] YENİ KAYIT:
+- Ad Soyad: Busrveren2
+- Email: bursveren2@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs1534!
+- Doğrulama (OTP) Kodu: 920956
+
+[20.05.2026 18:37:48] YENİ KAYIT:
+- Ad Soyad: Bursiyer1
+- Email: bursiyer1@fbiad.com
+- Rol: applicant
+- İlk Şifre: Burs9747!
+- Doğrulama (OTP) Kodu: 154756
+
+[20.05.2026 18:51:07] YENİ KAYIT:
+- Ad Soyad: Muhtar1
+- Email: muhtar1@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs9564!
+- Doğrulama (OTP) Kodu: 620158
+
+[20.05.2026 19:02:42] YENİ KAYIT:
+- Ad Soyad: Bursiyer2
+- Email: bursiyer2@fbiad.com
+- Rol: applicant
+- İlk Şifre: Burs3821!
+- Doğrulama (OTP) Kodu: 817986
+
+[23.05.2026 21:22:56] YENİ KAYIT:
+- Ad Soyad: Öğrenci 5
+- Email: ogrenci5@fbiad.com
+- Rol: applicant
+- İlk Şifre: Burs9750!
+- Doğrulama (OTP) Kodu: 956968
+
+[02.06.2026 18:09:36] YENİ KAYIT:
+- Ad Soyad: Yiğit Ayyıldız
+- Email: yigitayyildiz@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs8497!
+- Doğrulama (OTP) Kodu: 845394
+
+[02.06.2026 18:24:57] YENİ KAYIT:
+- Ad Soyad: FBİAD Öğrenci 1
+- Email: fbiadogrenci1@fbiad.com
+- Rol: applicant
+- İlk Şifre: Burs2476!
+- Doğrulama (OTP) Kodu: 921981
+
+[02.06.2026 18:29:06] YENİ KAYIT:
+- Ad Soyad: Muhtar
+- Email: muhtar@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs6947!
+- Doğrulama (OTP) Kodu: 202774
+
+[02.06.2026 18:35:51] YENİ KAYIT:
+- Ad Soyad: Hoca
+- Email: hoca@fbiad.com
+- Rol: sponsor
+- İlk Şifre: Burs7061!
+- Doğrulama (OTP) Kodu: 306754

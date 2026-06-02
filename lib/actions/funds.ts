@@ -1,10 +1,10 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { funds, fundInvitations, users } from "@/lib/db/schema";
+import { funds, fundInvitations, users, fundContributors, fundSelections } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export async function createFund(data: {
     title: string;
@@ -60,4 +60,61 @@ export async function createFund(data: {
         success: true,
         fundId: newFund.id
     };
+}
+
+export async function increaseFundSponsorship(fundId: string, additionalCount: number) {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) throw new Error("Oturum bulunamadı");
+
+    if (additionalCount <= 0) {
+        throw new Error("Geçerli bir sayı giriniz.");
+    }
+
+    const availableSelections = await db.query.fundSelections.findMany({
+        where: (fs, { and, eq, isNull }) => and(
+            eq(fs.fundId, fundId),
+            isNull(fs.sponsorId),
+            eq(fs.isActive, true)
+        ),
+        orderBy: (fs, { asc }) => [asc(fs.createdAt)],
+        limit: additionalCount
+    });
+
+    if (availableSelections.length < additionalCount) {
+        throw new Error(`Sadece ${availableSelections.length} adet boşta öğrenci bulunmaktadır.`);
+    }
+
+    // 1. Assign students
+    for (const sel of availableSelections) {
+        await db.update(fundSelections)
+            .set({ sponsorId: tenantData.userId })
+            .where(eq(fundSelections.id, sel.id));
+    }
+
+    // 2. Update contributor count
+    const existingContributor = await db.query.fundContributors.findFirst({
+        where: (fc, { and, eq }) => and(
+            eq(fc.fundId, fundId),
+            eq(fc.userId, tenantData.userId)
+        )
+    });
+
+    if (existingContributor) {
+        await db.update(fundContributors)
+            .set({ studentCount: (existingContributor.studentCount || 0) + additionalCount })
+            .where(eq(fundContributors.id, existingContributor.id));
+    } else {
+        const fund = await db.query.funds.findFirst({ where: eq(funds.id, fundId) });
+        await db.insert(fundContributors).values({
+            fundId,
+            userId: tenantData.userId,
+            amount: fund?.monthlyLimit || 0,
+            studentCount: additionalCount
+        });
+    }
+
+    revalidatePath(`/dashboard/funds/${fundId}/payment`);
+    revalidatePath(`/dashboard/funds`);
+    
+    return { success: true };
 }
