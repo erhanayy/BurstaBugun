@@ -2,6 +2,8 @@ import { getAdminContracts } from "@/lib/actions/agreements";
 import { CopyPlus, CheckCircle2, XCircle } from "lucide-react";
 import { CreateContractForm } from "./create-form";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminAgreementsPage() {
     const contractsList = await getAdminContracts();
 

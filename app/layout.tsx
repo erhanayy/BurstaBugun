@@ -6,6 +6,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 import { getPublicTenantInfo } from "@/lib/data/tenant";
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const tenantInfo = await getPublicTenantInfo();
   

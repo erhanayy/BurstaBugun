@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { fundInvitations, users, fundContributors, fundSelections } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function sendFundInvitation(data: {

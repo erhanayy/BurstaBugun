@@ -23,8 +23,7 @@ export async function POST(request: Request) {
       await db.update(payments)
         .set({ 
           status: 'completed',
-          notes: transactionId ? `Web Sanal POS ile ödendi. İşlem No: ${transactionId}` : 'Web üzerinden ödendi',
-          updatedAt: new Date()
+          notes: transactionId ? `Web Sanal POS ile ödendi. İşlem No: ${transactionId}` : 'Web üzerinden ödendi'
         })
         .where(
           and(
@@ -38,8 +37,7 @@ export async function POST(request: Request) {
       await db.update(payments)
         .set({ 
           status: 'completed',
-          notes: transactionId ? `Web Sanal POS ile (Tüm Kalan) ödendi. İşlem No: ${transactionId}` : 'Web üzerinden (Tüm Kalan) ödendi',
-          updatedAt: new Date()
+          notes: transactionId ? `Web Sanal POS ile (Tüm Kalan) ödendi. İşlem No: ${transactionId}` : 'Web üzerinden (Tüm Kalan) ödendi'
         })
         .where(
           and(

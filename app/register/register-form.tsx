@@ -63,7 +63,9 @@ export function RegisterForm({ primaryColor }: RegisterFormProps = {}) {
                 if (result.success) {
                     setUserId(result.userId);
                     setStep(2);
-                    toast.success("Doğrulama kodu e-posta adresinize gönderildi!"); // Simulated via SIFRELER.md
+                    toast.success("Doğrulama kodu e-posta adresinize gönderildi! (Gereksiz/Spam kutunuzu kontrol etmeyi unutmayın)", { duration: 6000 }); // Added spam warning and increased duration
+                } else if (result.error) {
+                    toast.error(result.error);
                 }
             } catch (error: any) {
                 toast.error(error.message || "Kayıt işlemi sırasında bir hata oluştu.");

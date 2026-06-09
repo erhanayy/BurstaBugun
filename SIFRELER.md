@@ -6,6 +6,13 @@ Uygulama üzerinden kayıt olan kullanıcıların şifreleri, sisteme giriş kod
 Böylece testlerinizi hiçbir engele takılmadan "sanki e-posta gelmiş gibi" bu dosyadan ilgili kodları kopyalayarak gerçekleştirebilirsiniz.
 
 ---
+### 🛠 Veritabanı (SQL) Konumu Bilgisi
+Kayıtlarınızı ve veritabanlarınızı manuel kontrol etmek isterseniz:
+- **Google Cloud Projesi:** `My first Project`
+- **Cloud SQL Instance:** `Dernek-db-v2`
+- **Mevcut Veritabanları:** `bursta-bugun`, `dernekte-bugun`, `sirkette-bugun`
+- **Canlı (Production) IP Adresi:** `34.38.207.47`
+---
 *Yeni üretilen kayıtlar ve şifreler bunun altına otomatik olarak eklenecektir...*
 
 [18.04.2026 16:58:01] YENİ KAYIT:
@@ -196,3 +203,13 @@ Böylece testlerinizi hiçbir engele takılmadan "sanki e-posta gelmiş gibi" bu
 - Rol: sponsor
 - İlk Şifre: Burs7061!
 - Doğrulama (OTP) Kodu: 306754
+
+---
+### 📝 09.06.2026 Canlı Ortam (Production) Güncellemeleri
+- **Kurumsal İmaj & CSS:** Cloud Run'da Tailwind CSS'in v4 versiyonunun `@source` yapılandırması ayarlanarak canlı ortamda CSS yüklenmemesi sorunu çözüldü.
+- **Güvenlik / Auth:** NextAuth'un Google Cloud arkasında çalışabilmesi için `AUTH_TRUST_HOST=true` ayarı yapıldı.
+- **E-posta ve DNS:** fbiadvakfi.org alan adı Google Cloud'da yönlendirildi. noreply@fbiadvakfi.org için Resend API entegre edildi.
+- **Database IP Sorunu:** `.env.production` içerisindeki hatalı IP adresi güncellenerek "Sonsuz Giriş" hatası ve "Veritabanı Zaman Aşımı" çözüldü.
+- **Statik Önbellek İptali:** `app/login/page.tsx` sayfalarına `export const dynamic = 'force-dynamic'` eklenerek Next.js'in Tenant logolarını önbelleklemesi engellendi.
+- **BCC Sistemi:** Sistemden giden tüm e-postaların arka planda `erhanayyildiz@gmail.com` adresine BCC (gizli karbon kopya) olarak da düşmesi sağlandı.
+- **Dinamik Mail Şablonu:** E-posta içeriklerindeki statik "BurstaBugün" metinleri, kullanıcının kayıt olduğu vakfın adına (Örn: FBİAD Vakfı) göre dinamik olarak değişecek şekilde güncellendi.

@@ -59,7 +59,7 @@ export async function createTenant(data: { shortName: string, longName: string, 
     // Link user to new tenant
     await db.insert(tenantUsers).values({
         tenantId: newTenant.id,
-        userId: superAdmin.id,
+        userId: superAdmin!.id,
         role: 'admin',
         isActive: true,
     });

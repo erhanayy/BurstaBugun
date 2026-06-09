@@ -1,6 +1,8 @@
 import { getPublicTenantInfo } from "@/lib/data/tenant";
 import { LoginForm } from "./login-form";
 
+export const dynamic = 'force-dynamic';
+
 export default async function LoginPage() {
     const tenantInfo = await getPublicTenantInfo();
     

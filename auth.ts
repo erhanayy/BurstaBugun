@@ -31,21 +31,17 @@ const nextAuthResult = NextAuth({
                 if (parsedCredentials.success) {
                     const { identifier, password, tenantId } = parsedCredentials.data;
                     
-                    let userQuery = db.select().from(users).where(eq(users.email, identifier));
-                    
-                    if (tenantId) {
-                        userQuery = userQuery.where(
-                            and(
-                                eq(users.email, identifier),
-                                or(
-                                    eq(users.tenantId, tenantId),
-                                    isNull(users.tenantId) // allow super admins
-                                )
+                    const whereClause = tenantId 
+                        ? and(
+                            eq(users.email, identifier),
+                            or(
+                                eq(users.tenantId, tenantId),
+                                isNull(users.tenantId) // allow super admins
                             )
-                        );
-                    }
+                        )
+                        : eq(users.email, identifier);
                     
-                    const userResult = await userQuery.limit(1);
+                    const userResult = await db.select().from(users).where(whereClause).limit(1);
                     const user = userResult[0];
 
                     if (!user) return null;

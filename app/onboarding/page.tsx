@@ -20,7 +20,15 @@ export default function OnboardingPage() {
 
                 {/* Form */}
                 <div className="mt-8 bg-white dark:bg-zinc-800/50 py-8 px-4 shadow-xl ring-1 ring-gray-900/5 sm:rounded-xl sm:px-10 backdrop-blur-sm border border-gray-100 dark:border-zinc-700">
-                    <form action={createTenant} className="space-y-6">
+                    <form action={async (formData) => {
+                        "use server";
+                        await createTenant({
+                            shortName: formData.get("shortName") as string,
+                            longName: formData.get("longName") as string,
+                            primaryColor: "#2563EB",
+                            websiteUrl: ""
+                        });
+                    }} className="space-y-6">
                         <div>
                             <label
                                 htmlFor="shortName"

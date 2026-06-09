@@ -49,7 +49,7 @@ export async function getMyApplications() {
 
             if ((app.status === 'selected' || app.status === 'active') && !isFundConfirmed) {
                 app.status = 'in_pool';
-                app.fund = null; // Hide fund info from student
+                (app as any).fund = null; // Hide fund info from student
             }
         }
     }
