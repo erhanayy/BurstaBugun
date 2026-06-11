@@ -209,9 +209,15 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
 
         for (let i = 0; i < finalDuration; i++) {
             const currentPayDate = new Date(fundObj.startDate);
-            // 18 Nisan start -> Mayis kart çekimi -> Haziran 1 odeme (Start month + 2, day 1)
-            currentPayDate.setMonth(currentPayDate.getMonth() + i + 2);
-            currentPayDate.setDate(1);
+            
+            if (i === 0) {
+                // İlk taksit: hemen fon başlangıç günü
+                // Tarihi değiştirmiyoruz, fundObj.startDate kalıyor.
+            } else {
+                // 2. ve sonraki taksitler: takip eden ayların ilk günü
+                currentPayDate.setMonth(currentPayDate.getMonth() + i);
+                currentPayDate.setDate(1);
+            }
 
             const pMonth = currentPayDate.getMonth() + 1;
             const pYear = currentPayDate.getFullYear();
