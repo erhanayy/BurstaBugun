@@ -105,9 +105,9 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
             // Set defaults if available and user is not admin (or even if admin, set defaults)
             if (selectedSeason.defaultFundAmount) form.setValue("monthlyLimit", selectedSeason.defaultFundAmount);
             if (selectedSeason.defaultFundDuration) form.setValue("durationMonths", selectedSeason.defaultFundDuration.toString());
-            if (selectedSeason.defaultFundStartDate) {
+            if (selectedSeason.fundStartDate) {
                 const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-                const localISOTime = (new Date(new Date(selectedSeason.defaultFundStartDate).getTime() - tzOffset)).toISOString().split("T")[0];
+                const localISOTime = (new Date(new Date(selectedSeason.fundStartDate).getTime() - tzOffset)).toISOString().split("T")[0];
                 form.setValue("startDate", localISOTime);
             }
         }
@@ -279,7 +279,7 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                                         <Input 
                                             type="date" 
                                             className="pl-10 h-12 bg-gray-50 border-gray-200"
-                                            readOnly={period !== "none" && activeSeasons.find(s => s.id === period)?.defaultFundStartDate != null}
+                                            readOnly={period !== "none" && activeSeasons.find(s => s.id === period)?.fundStartDate != null}
                                             {...field} 
                                             value={field.value ?? ""} 
                                         />
