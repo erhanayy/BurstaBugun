@@ -6,6 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/actions/notification";
+import { sendEmail, EMAIL_CODES } from "@/lib/email";
 
 export async function addReference(applicationId: string, email: string, fullName: string, title: "muhtar" | "teacher" | "other") {
     const tenantData = await getCurrentTenant();
@@ -16,7 +17,8 @@ export async function addReference(applicationId: string, email: string, fullNam
         where: and(
             eq(applications.id, applicationId),
             eq(applications.userId, tenantData.userId)
-        )
+        ),
+        with: { user: true }
     });
 
     if (!app) throw new Error("Başvuru bulunamadı veya yetkiniz yok.");
@@ -53,8 +55,29 @@ export async function addReference(applicationId: string, email: string, fullNam
         status: "pending"
     });
 
-    // TODO: Gerçek e-posta servisi entegrasyonu (Resend, SendGrid vs. ile)
-    console.log(`[EMAIL DISPATCH] To: ${email}, Subject: Referans İsteği (Mocked)`);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://burs.fbiadvakfi.org";
+    const studentName = app?.user ? `${app.user.firstName} ${app.user.lastName}` : "Bir öğrenci";
+
+    await sendEmail({
+        code: EMAIL_CODES.DAVET,
+        sentTo: email.trim().toLowerCase(),
+        subject: "FBİAD Vakfı - Burs Başvurusu Referans Onayı",
+        screen: "reference_request",
+        body: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+                <h2 style="color: #1a365d; text-align: center;">FBİAD Vakfı Burs Platformu</h2>
+                <p>Sayın <strong>${fullName.trim()}</strong>,</p>
+                <p><strong>${studentName}</strong> isimli öğrencimiz, vakfımıza yaptığı burs başvurusunda sizi referans olarak göstermiştir.</p>
+                <p>Öğrencimizin başvurusunu değerlendirmemize yardımcı olmak için sisteme giriş yaparak referans formunu doldurmanızı rica ederiz.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${appUrl}" style="background-color: #1a365d; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Sisteme Giriş Yap</a>
+                </div>
+                <p style="font-size: 12px; color: #777; text-align: center; margin-top: 30px;">
+                    Eğer bu e-postayı yanlışlıkla aldığınızı düşünüyorsanız, lütfen dikkate almayınız.
+                </p>
+            </div>
+        `
+    });
 
     revalidatePath(`/dashboard/applications/${applicationId}/references`);
     return { success: true };
@@ -183,7 +206,8 @@ export async function resendReferenceRequest(referenceId: string, applicationId:
         where: and(
             eq(applications.id, applicationId),
             eq(applications.userId, tenantData.userId)
-        )
+        ),
+        with: { user: true }
     });
 
     if (!app) throw new Error("Yetkiniz yok.");
@@ -199,7 +223,26 @@ export async function resendReferenceRequest(referenceId: string, applicationId:
         .set({ status: "pending", comment: null })
         .where(eq(references.id, referenceId));
 
-    console.log(`[EMAIL DISPATCH] To: ${ref.email}, Subject: Referans Hatırlatması / Yeniden Değerlendirme İsteği`);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://burs.fbiadvakfi.org";
+    const studentName = app?.user ? `${app.user.firstName} ${app.user.lastName}` : "Bir öğrenci";
+
+    await sendEmail({
+        code: EMAIL_CODES.DAVET,
+        sentTo: ref.email,
+        subject: "FBİAD Vakfı - Referans Hatırlatması",
+        screen: "reference_request_resend",
+        body: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+                <h2 style="color: #1a365d; text-align: center;">FBİAD Vakfı Burs Platformu</h2>
+                <p>Sayın <strong>${ref.fullName}</strong>,</p>
+                <p><strong>${studentName}</strong> isimli öğrencimiz için daha önceden gönderilmiş olan referans isteği için size bir hatırlatma gönderiyoruz.</p>
+                <p>Lütfen vakit ayırıp sisteme giriş yaparak değerlendirmenizi tamamlayınız.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${appUrl}" style="background-color: #1a365d; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Sisteme Giriş Yap</a>
+                </div>
+            </div>
+        `
+    });
 
     revalidatePath(`/dashboard/applications/${applicationId}/references`);
     return { success: true };
