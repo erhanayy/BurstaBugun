@@ -105,8 +105,21 @@ export async function createPaymentSession(fundId: string) {
       status: p.status || 'pending'
     }));
 
+    const isProdEnv = process.env.NODE_ENV === 'production';
+    const appDomain = isProdEnv ? 'https://burs.fbiadvakfi.org' : 'http://localhost:3000';
+    
     const headersList = await headers();
-    const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Prefer origin if it's there and valid, otherwise fallback to environment domain
+    let origin = headersList.get('origin');
+    if (!origin || origin === 'null') {
+        origin = process.env.NEXT_PUBLIC_APP_URL || appDomain;
+    }
+    
+    // Safety check: if in production, force the production domain if origin is somehow localhost
+    if (isProdEnv && origin.includes('localhost')) {
+        origin = appDomain;
+    }
+    
     const returnUrl = `${origin}/dashboard/funds/${fundId}/payment`;
 
     const payload: PaymentSessionPayload = {
@@ -132,8 +145,8 @@ export async function createPaymentSession(fundId: string) {
     
     // The web app URL should be mapped. For production, we use the public URL.
     // If we are on localhost, we can fallback to localhost:3005 for local testing.
-    const isLocal = origin.includes('localhost');
-    const webAppUrl = isLocal ? 'http://localhost:3005' : 'https://fbiadvakfi.org';
+    const isProd = process.env.NODE_ENV === 'production';
+    const webAppUrl = isProd ? 'https://fbiadvakfi.org' : 'http://localhost:3005';
     const paymentUrl = `${webAppUrl}/app-payment?token=${token}`;
     
     return { success: true, url: paymentUrl };
