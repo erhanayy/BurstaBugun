@@ -16,9 +16,9 @@ export type PaymentPlanItem = {
 
 import { headers } from 'next/headers';
 
-// Payloads passed to FBIADVakfiWeb
 export type PaymentSessionPayload = {
   fundId: string;
+  userId?: string;
   adSoyad: string;
   tekilTutar: number;
   toplamTutar: number;
@@ -111,6 +111,7 @@ export async function createPaymentSession(fundId: string) {
 
     const payload: PaymentSessionPayload = {
       fundId,
+      userId: tenantData.userId,
       adSoyad,
       tekilTutar,
       toplamTutar,
