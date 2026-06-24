@@ -130,8 +130,10 @@ export async function createPaymentSession(fundId: string) {
       .setExpirationTime('15m')
       .sign(secret);
     
-    // The web app URL should be mapped. Hardcoding for fbiad tenant for now
-    const webAppUrl = 'http://localhost:3005'; 
+    // The web app URL should be mapped. For production, we use the public URL.
+    // If we are on localhost, we can fallback to localhost:3005 for local testing.
+    const isLocal = origin.includes('localhost');
+    const webAppUrl = isLocal ? 'http://localhost:3005' : 'https://fbiadvakfi.org';
     const paymentUrl = `${webAppUrl}/app-payment?token=${token}`;
     
     return { success: true, url: paymentUrl };
