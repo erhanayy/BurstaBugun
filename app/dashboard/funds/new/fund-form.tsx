@@ -6,7 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Calendar, TurkishLira, Image as ImageIcon, AlignLeft, Info, Users } from "lucide-react";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
+import { Loader2, Plus, Calendar, Image as ImageIcon, AlignLeft, Info, Users, CreditCard, Clock } from "lucide-react";
 
 import {
     Form,
@@ -35,7 +37,7 @@ const fundSchema = z.object({
     period: z.string().min(1, "Lütfen bir eğitim/fon dönemi seçiniz."),
     startDate: z.string().min(1, "Lütfen başlama tarihini seçiniz."),
     endDate: z.string().min(1, "Lütfen bitiş tarihini seçiniz."),
-    durationMonths: z.string().min(1, "Lütfen süreyi seçiniz."),
+    durationMonths: z.coerce.number().min(1, "Lütfen süreyi giriniz."),
     targetStudentCount: z.coerce.number().min(1, "Lütfen hedef kapasite giriniz.").default(1),
     monthlyLimit: z.coerce.number().min(0).optional().default(0),
     paymentMethod: z.string().min(1, "Ödeme şekli seçiniz.").default('monthly'),
@@ -50,6 +52,12 @@ type Season = {
     appEndDate: Date | null;
     fundStartDate: Date | null;
     fundEndDate: Date | null;
+    sponsorPaymentStartDate: Date | null;
+    sponsorPaymentEndDate: Date | null;
+    studentPaymentStartDate: Date | null;
+    studentPaymentEndDate: Date | null;
+    seasonStartDate: Date | null;
+    seasonEndDate: Date | null;
     defaultFundAmount: number | null;
     defaultFundDuration: number | null;
 };
@@ -73,12 +81,13 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
             photoUrl: "",
             startDate: "",
             endDate: "",
-            durationMonths: "",
+            durationMonths: 1,
             targetStudentCount: 1,
         },
     });
 
     const period = form.watch("period");
+    const selectedSeason = useMemo(() => activeSeasons.find(s => s.id === period), [period, activeSeasons]);
     
     useEffect(() => {
         if (!period || period === "none") {
@@ -86,9 +95,8 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
             return;
         }
         
-        const selectedSeason = activeSeasons.find(s => s.id === period);
         if (selectedSeason) {
-            // Check dates
+            // Check dates for fund creation
             const now = new Date();
             if (selectedSeason.fundStartDate && selectedSeason.fundEndDate) {
                 const sDate = new Date(selectedSeason.fundStartDate);
@@ -102,30 +110,33 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                 setSeasonError("");
             }
 
-            // Set defaults if available and user is not admin (or even if admin, set defaults)
-            if (selectedSeason.defaultFundAmount) form.setValue("monthlyLimit", selectedSeason.defaultFundAmount);
-            if (selectedSeason.defaultFundDuration) form.setValue("durationMonths", selectedSeason.defaultFundDuration.toString());
-            if (selectedSeason.fundStartDate) {
+            // Set defaults and calculate dates based on the season
+            if (selectedSeason.defaultFundAmount) {
+                form.setValue("monthlyLimit", selectedSeason.defaultFundAmount);
+            }
+            if (selectedSeason.defaultFundDuration) {
+                form.setValue("durationMonths", selectedSeason.defaultFundDuration);
+            }
+            
+            // Set Sponsor Payment Dates (Credit Card Charge Dates)
+            if (selectedSeason.sponsorPaymentStartDate) {
                 const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-                const localISOTime = (new Date(new Date(selectedSeason.fundStartDate).getTime() - tzOffset)).toISOString().split("T")[0];
-                form.setValue("startDate", localISOTime);
+                const localStart = (new Date(new Date(selectedSeason.sponsorPaymentStartDate).getTime() - tzOffset)).toISOString().split("T")[0];
+                form.setValue("startDate", localStart);
+            } else if (selectedSeason.fundStartDate) {
+                // Fallback to fund start date if sponsor payment is missing
+                const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+                const localStart = (new Date(new Date(selectedSeason.fundStartDate).getTime() - tzOffset)).toISOString().split("T")[0];
+                form.setValue("startDate", localStart);
+            }
+
+            if (selectedSeason.sponsorPaymentEndDate) {
+                const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+                const localEnd = (new Date(new Date(selectedSeason.sponsorPaymentEndDate).getTime() - tzOffset)).toISOString().split("T")[0];
+                form.setValue("endDate", localEnd);
             }
         }
-    }, [period, activeSeasons, form]);
-
-    const startDate = form.watch("startDate");
-    const durationMonths = form.watch("durationMonths");
-
-    useEffect(() => {
-        if (startDate && durationMonths) {
-            const date = new Date(startDate);
-            const months = parseInt(durationMonths);
-            if (!isNaN(months)) {
-                date.setMonth(date.getMonth() + months);
-                form.setValue("endDate", date.toISOString().split("T")[0]);
-            }
-        }
-    }, [startDate, durationMonths, form]);
+    }, [period, selectedSeason, form]);
 
     function onSubmit(values: z.infer<typeof fundSchema>) {
         startTransition(async () => {
@@ -134,8 +145,8 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                     ...values,
                     startDate: new Date(values.startDate),
                     endDate: new Date(values.endDate),
-                    durationMonths: parseInt(values.durationMonths),
-                    targetStudentCount: values.targetStudentCount,
+                    durationMonths: Number(values.durationMonths),
+                    targetStudentCount: Number(values.targetStudentCount),
                     paymentMethod: values.paymentMethod,
                 };
 
@@ -144,7 +155,7 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                 if (result.success) {
                     toast.success("Fon başarıyla oluşturuldu!");
                     router.push(`/dashboard/funds`);
-                    router.refresh(); // Go back to cards and refresh
+                    router.refresh();
                 }
             } catch (error: any) {
                 toast.error(error.message || "Fon oluşturulurken bir hata meydana geldi.");
@@ -152,17 +163,24 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
         });
     }
 
+    const formatDate = (date: Date | null) => {
+        if (!date) return "-";
+        return format(new Date(date), "dd.MM.yyyy");
+    };
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
                 {seasonError && (
-                    <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 text-sm font-medium">
+                    <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 text-sm font-medium flex items-center gap-2">
+                        <Info className="w-5 h-5 flex-shrink-0" />
                         {seasonError}
                     </div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* FON ADI */}
                     <FormField
                         control={form.control}
                         name="title"
@@ -172,7 +190,7 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                                 <FormControl>
                                     <div className="relative">
                                         <Info className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                        <Input placeholder="Örn: 2025 Yılı Gelişim Burs Paketi" className="pl-10" {...field} value={field.value ?? ""} />
+                                        <Input placeholder="Örn: 2025 Yılı Gelişim Burs Paketi" className="pl-10 h-12" {...field} value={field.value ?? ""} />
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -180,11 +198,12 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                         )}
                     />
 
+                    {/* FON DÖNEMİ */}
                     <FormField
                         control={form.control}
                         name="period"
                         render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="col-span-1 md:col-span-2">
                                 <FormLabel>Fon Dönemi *</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
@@ -204,23 +223,55 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                         )}
                     />
 
+                    {/* DÖNEM BİLGİLERİ GÖSTERİMİ (READ-ONLY) */}
+                    {selectedSeason && (
+                        <div className="col-span-1 md:col-span-2 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/40 p-5 rounded-2xl space-y-4">
+                            <h3 className="text-sm font-bold text-blue-900 dark:text-blue-300 flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                Seçilen Dönem Özeti ({selectedSeason.period})
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Genel Dönem</span>
+                                    <span className="font-medium text-gray-800 dark:text-gray-200">{formatDate(selectedSeason.seasonStartDate)} - {formatDate(selectedSeason.seasonEndDate)}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Öğrenci Başvurusu</span>
+                                    <span className="font-medium text-gray-800 dark:text-gray-200">{formatDate(selectedSeason.appStartDate)} - {formatDate(selectedSeason.appEndDate)}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Fon Yaratma (Açık)</span>
+                                    <span className="font-medium text-gray-800 dark:text-gray-200">{formatDate(selectedSeason.fundStartDate)} - {formatDate(selectedSeason.fundEndDate)}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Öğrenci Ödemeleri</span>
+                                    <span className="font-medium text-gray-800 dark:text-gray-200">{formatDate(selectedSeason.studentPaymentStartDate)} - {formatDate(selectedSeason.studentPaymentEndDate)}</span>
+                                </div>
+                            </div>
+                            <div className="pt-3 border-t border-blue-200/50 dark:border-blue-800/50 flex gap-6">
+                                <div>
+                                    <span className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Standart Tutar</span>
+                                    <span className="font-bold text-green-700 dark:text-green-400">{selectedSeason.defaultFundAmount || 0} ₺ / Ay</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] uppercase font-bold text-gray-500 mb-1">Standart Süre</span>
+                                    <span className="font-bold text-blue-700 dark:text-blue-400">{selectedSeason.defaultFundDuration || 0} Ay</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* DEĞİŞTİRİLEBİLİR ALANLAR */}
                     <FormField
                         control={form.control}
-                        name="monthlyLimit"
+                        name="targetStudentCount"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Aylık Taahhüt Tutarı (₺)</FormLabel>
+                                <FormLabel>Öğrenci Sayısı (Kapasite) *</FormLabel>
                                 <FormControl>
                                     <div className="relative">
-                                        <TurkishLira className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                        <Input 
-                                            type="number" 
-                                            placeholder="1500" 
-                                            className="h-12 bg-gray-50 border-gray-200 focus:ring-blue-500 focus:border-blue-500 pl-10" 
-                                            readOnly={period !== "none" && activeSeasons.find(s => s.id === period)?.defaultFundAmount != null}
-                                            {...field} 
-                                            value={field.value ?? ""} 
-                                        />
+                                        <Users className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                                        <Input type="number" placeholder="Örn: 2" className="pl-10 h-12" {...field} value={field.value ?? ""} />
                                     </div>
                                 </FormControl>
                                 <FormMessage />
@@ -232,7 +283,7 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                         control={form.control}
                         name="paymentMethod"
                         render={({ field }) => (
-                            <FormItem className="col-span-1 md:col-span-2">
+                            <FormItem>
                                 <FormLabel>Ödeme Şekli *</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value || undefined} defaultValue={field.value}>
                                     <FormControl>
@@ -241,8 +292,8 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="upfront">Kredi Kartı ile Tek Seferde Peşin (Tüm Dönem)</SelectItem>
-                                        <SelectItem value="monthly">Aylık Kredi Kartı Provizyonu (Taksit Taksit)</SelectItem>
+                                        <SelectItem value="upfront">Kredi Kartı ile Tek Seferde Peşin</SelectItem>
+                                        <SelectItem value="monthly">Aylık Kredi Kartı Provizyonu</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -250,82 +301,66 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="targetStudentCount"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Öğrenci Sayısı (Kapasite) *</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                        <Users className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                        <Input type="number" placeholder="Örn: 2" className="pl-10 h-12" {...field} value={field.value ?? ""} />
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {/* KREDİ KARTI ÇEKİM TARİHLERİ (OTOMATİK/READ-ONLY) */}
+                    <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 dark:bg-zinc-800/30 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800">
+                        <div className="col-span-1 md:col-span-2">
+                            <h4 className="text-sm font-semibold flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                                <CreditCard className="w-4 h-4" />
+                                Kredi Kartından Çekim Başlangıç Bitiş Tarihleri
+                            </h4>
+                            <p className="text-xs text-gray-500 mt-1">Bu tarihler seçilen fon döneminin "Bursveren Ödeme Dönemi" parametrelerine göre otomatik belirlenmektedir.</p>
+                        </div>
+                        
+                        <FormField
+                            control={form.control}
+                            name="startDate"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-gray-500">Başlangıç Tarihi</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                                            <Input 
+                                                type="date" 
+                                                className="pl-10 h-12 bg-gray-100 text-gray-600 dark:bg-zinc-900 dark:text-gray-400 cursor-not-allowed border-dashed border-gray-300"
+                                                readOnly
+                                                tabIndex={-1}
+                                                {...field} 
+                                                value={field.value ?? ""} 
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
-                    <FormField
-                        control={form.control}
-                        name="startDate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Başlangıç Tarihi *</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                        <Input 
-                                            type="date" 
-                                            className="pl-10 h-12 bg-gray-50 border-gray-200"
-                                            readOnly={period !== "none" && activeSeasons.find(s => s.id === period)?.fundStartDate != null}
-                                            {...field} 
-                                            value={field.value ?? ""} 
-                                        />
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                        <FormField
+                            control={form.control}
+                            name="endDate"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-gray-500">Bitiş Tarihi</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Clock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                                            <Input 
+                                                type="date" 
+                                                className="pl-10 h-12 bg-gray-100 text-gray-600 dark:bg-zinc-900 dark:text-gray-400 cursor-not-allowed border-dashed border-gray-300" 
+                                                readOnly 
+                                                tabIndex={-1} 
+                                                {...field} 
+                                                value={field.value ?? ""} 
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
 
-                    <FormField
-                        control={form.control}
-                        name="durationMonths"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Fon Süresi (Ay) *</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        className="h-12 bg-gray-50 border-gray-200 focus:ring-blue-500 focus:border-blue-500"
-                                        {...field}
-                                        readOnly={period !== "none" && activeSeasons.find(s => s.id === period)?.defaultFundDuration != null}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="endDate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Bitiş Tarihi (Otomatik Hesaplanır)</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                        <Input type="date" className="pl-10 h-12 bg-gray-50 cursor-not-allowed" readOnly tabIndex={-1} {...field} value={field.value ?? ""} />
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
+                    {/* GÖRSEL VE AMAÇ */}
                     <FormField
                         control={form.control}
                         name="photoUrl"
@@ -334,11 +369,11 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                                 <FormLabel>Fon Görseli / Kapak Fotoğrafı</FormLabel>
                                 <FormControl>
                                     <div className="relative">
-                                        <ImageIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                        <ImageIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                                         <Input
                                             type="file"
                                             accept="image/*"
-                                            className="pl-10 pt-2.5 h-12"
+                                            className="pl-10 pt-3 h-12"
                                             {...fieldProps}
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0];
@@ -390,7 +425,7 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                                     <div className="relative">
                                         <AlignLeft className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                                         <Textarea
-                                            placeholder="Bu fonun sağladığı avantajlar, vizyonu veya ne kadarlık ortak / öğrenci bütçelendiği gibi detaylar..."
+                                            placeholder="Bu fonun sağladığı avantajlar, vizyonu veya detayları..."
                                             className="pl-10 h-32 resize-none"
                                             {...field}
                                             value={field.value ?? ""}
