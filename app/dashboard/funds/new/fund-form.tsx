@@ -212,7 +212,6 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="none">Sezon Bağımsız / Özel</SelectItem>
                                         {activeSeasons.map(s => (
                                             <SelectItem key={s.id} value={s.id}>{s.period}</SelectItem>
                                         ))}
@@ -260,6 +259,10 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                             </div>
                         </div>
                     )}
+
+                    {/* GİZLİ ALANLAR (Form Submission İçin) */}
+                    <input type="hidden" {...form.register("monthlyLimit")} />
+                    <input type="hidden" {...form.register("durationMonths")} />
 
                     {/* DEĞİŞTİRİLEBİLİR ALANLAR */}
                     <FormField

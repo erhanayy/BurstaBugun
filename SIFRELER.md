@@ -224,3 +224,10 @@ Kayıtlarınızı ve veritabanlarınızı manuel kontrol etmek isterseniz:
 - Rol: applicant
 - İlk Şifre: Burs8115!
 - Doğrulama (OTP) Kodu: 239410
+
+[15.07.2026 18:26:54] YENİ KAYIT (FBİAD Vakfı):
+- Ad Soyad: Test Öğrenci 1
+- Email: testogrenci1@fbiad.org
+- Rol: applicant
+- İlk Şifre: Burs5480!
+- Doğrulama (OTP) Kodu: 768787
