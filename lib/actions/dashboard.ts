@@ -1,14 +1,18 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { users, tenantUsers, funds, fundContributors, fundSelections, applications, references, payments, loginLogs, fundInvitations } from "@/lib/db/schema";
+import { users, tenantUsers, funds, fundContributors, fundSelections, applications, references, payments, loginLogs, fundInvitations, parametersTenantSeasons } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, and, sql, desc, isNotNull, or, gte, inArray } from "drizzle-orm";
 
 export async function getDashboardPeriods() {
-    const items = await db.selectDistinct({ period: funds.period })
-        .from(funds)
-        .where(isNotNull(funds.period));
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) return [];
+
+    const items = await db.query.parametersTenantSeasons.findMany({
+        where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+        orderBy: (p, { desc }) => [desc(p.period)]
+    });
     return items.map(i => i.period).filter(Boolean) as string[];
 }
 
