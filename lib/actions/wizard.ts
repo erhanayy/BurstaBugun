@@ -1,33 +1,8 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { applications, funds, tenantUsers } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
-
-async function getPoolFund(tenantId: string) {
-    let poolFund = await db.query.funds.findFirst({
-        where: eq(funds.tenantId, tenantId)
-    });
-
-    if (!poolFund) {
-        const adminTu = await db.query.tenantUsers.findFirst({
-            where: and(eq(tenantUsers.tenantId, tenantId), eq(tenantUsers.role, 'admin'))
-        });
-        
-        if (!adminTu) return null;
-        
-        const inserted = await db.insert(funds).values({
-            tenantId,
-            ownerId: adminTu.userId,
-            title: "Bursiyer Aday Havuzu",
-            description: "Yeni başvuran ve inceleme aşamasında olan öğrencilerin toplandığı genel havuz.",
-        }).returning();
-        
-        poolFund = inserted[0];
-    }
-
-    return poolFund;
-}
+import { applications } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function saveDraftApplication(data: {
     draftId?: string;
@@ -44,14 +19,10 @@ export async function saveDraftApplication(data: {
                 .where(eq(applications.id, data.draftId));
             return { success: true, draftId: data.draftId };
         } else {
-            const poolFund = await getPoolFund(data.tenantId);
-            if (!poolFund) return { success: false, error: "Referans fon havuzu bulunamadı." };
-
             const inserted = await db.insert(applications).values({
                 tenantId: data.tenantId,
                 userId: data.userId,
                 formId: data.formId,
-                fundId: poolFund.id,
                 period: data.period,
                 status: 'draft',
                 answersJson: data.answersJson,
@@ -80,14 +51,10 @@ export async function submitWizardApplication(data: {
                 })
                 .where(eq(applications.id, data.draftId));
         } else {
-            const poolFund = await getPoolFund(data.tenantId);
-            if (!poolFund) return { success: false, error: "Referans fon havuzu bulunamadı." };
-
             await db.insert(applications).values({
                 tenantId: data.tenantId,
                 userId: data.userId,
                 formId: data.formId,
-                fundId: poolFund.id,
                 period: data.period,
                 status: 'waiting_reference',
                 answersJson: data.answersJson,

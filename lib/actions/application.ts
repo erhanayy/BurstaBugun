@@ -61,25 +61,23 @@ export async function submitApplication(data: any) {
     const tenantData = await getCurrentTenant();
     if (!tenantData) throw new Error("Oturum bulunamadı");
 
-    const { fundId, ...answers } = data;
+    const answers = data;
 
-    // Check if already applied to this fund
+    // Check if already has an application in this tenant
     const existing = await db.query.applications.findFirst({
         where: and(
             eq(applications.tenantId, tenantData.tenantId),
-            eq(applications.userId, tenantData.userId),
-            eq(applications.fundId, fundId)
+            eq(applications.userId, tenantData.userId)
         )
     });
 
     if (existing) {
-        throw new Error("Bu fona zaten başvurunuz bulunmaktadır.");
+        throw new Error("Sistemde zaten aktif bir başvurunuz bulunmaktadır.");
     }
 
     await db.insert(applications).values({
         tenantId: tenantData.tenantId,
         userId: tenantData.userId,
-        fundId: fundId,
         answersJson: JSON.stringify(answers),
         status: 'submitted',
     });

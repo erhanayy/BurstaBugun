@@ -157,7 +157,7 @@ export const applications = pgTable('applications', {
     id: uuid('id').defaultRandom().primaryKey(),
     tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
     userId: uuid('user_id').references(() => users.id).notNull(),
-    fundId: uuid('fund_id').references(() => funds.id).notNull(),
+    fundId: uuid('fund_id').references(() => funds.id), // Optional until selected
     formId: uuid('form_id').references(() => applicationForms.id), // Hangi forma göre dolduruldu // Optional for backward comp
     period: text('period'), // Öğrencinin seçtiği dönem
     status: applicationStatusEnum('status').default('draft').notNull(),
