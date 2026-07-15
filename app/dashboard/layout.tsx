@@ -13,7 +13,9 @@ import {
     Menu,
     Wallet,
     Workflow,
-    Bell
+    Bell,
+    Route,
+    ChevronDown
 } from "lucide-react";
 
 import { getCurrentTenant } from "@/lib/data/tenant";
@@ -103,6 +105,7 @@ export default async function DashboardLayout({
                         {/* Bursiyer Menüsü */}
                         {(userRole === 'applicant' || userRole === 'admin') && (
                             <CollapsibleNavSection title="Bursiyer" storageKey="applicant">
+                                <NavItem href="/dashboard/how-to-apply" icon={Route} label="Burs Başvuru Akışı" />
                                 <NavItem href="/dashboard/applications/new" icon={FileText} label="Burs Başvurusu Yap" />
                                 <NavItem href="/dashboard/applications" icon={LayoutDashboard} label="Başvurularım" />
                                 <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
