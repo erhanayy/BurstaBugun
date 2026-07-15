@@ -1,13 +1,31 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { applications, funds } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { applications, funds, tenantUsers } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
 async function getPoolFund(tenantId: string) {
-    const poolFund = await db.query.funds.findFirst({
+    let poolFund = await db.query.funds.findFirst({
         where: eq(funds.tenantId, tenantId)
     });
+
+    if (!poolFund) {
+        const adminTu = await db.query.tenantUsers.findFirst({
+            where: and(eq(tenantUsers.tenantId, tenantId), eq(tenantUsers.role, 'admin'))
+        });
+        
+        if (!adminTu) return null;
+        
+        const inserted = await db.insert(funds).values({
+            tenantId,
+            ownerId: adminTu.userId,
+            title: "Bursiyer Aday Havuzu",
+            description: "Yeni başvuran ve inceleme aşamasında olan öğrencilerin toplandığı genel havuz.",
+        }).returning();
+        
+        poolFund = inserted[0];
+    }
+
     return poolFund;
 }
 
