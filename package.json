@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "logs:sifre": "tail -n 30 SIFRELER.md"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.0",
