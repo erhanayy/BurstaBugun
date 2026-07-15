@@ -87,6 +87,18 @@ export async function processRegistration(data: any) {
             isActive: false // Will activate on OTP verify
         }).returning();
 
+        // Localhost'ta SIFRELER.md dosyasına log at
+        if (process.env.NODE_ENV === "development") {
+            logToDevFile(
+                `YENİ KAYIT (${targetTenant.shortName}):\n` +
+                `- Ad Soyad: ${fullName}\n` +
+                `- Email: ${email}\n` +
+                `- Rol: ${role}\n` +
+                `- İlk Şifre: ${firstPassword}\n` +
+                `- Doğrulama (OTP) Kodu: ${otpCode}`
+            );
+        }
+
         // Link user to tenant
         await db.insert(tenantUsers).values({
             tenantId: targetTenant.id,

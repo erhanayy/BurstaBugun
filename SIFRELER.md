@@ -203,3 +203,24 @@ Kayıtlarınızı ve veritabanlarınızı manuel kontrol etmek isterseniz:
 - Rol: sponsor
 - İlk Şifre: Burs7061!
 - Doğrulama (OTP) Kodu: 306754
+
+[15.07.2026 11:36:15] YENİ KAYIT (BurstaBugün):
+- Ad Soyad: Öğrenci Muaf
+- Email: ogrencimuaf@fbiad.com
+- Rol: applicant
+- İlk Şifre: Burs6567!
+- Doğrulama (OTP) Kodu: 626978
+
+[15.07.2026 11:40:40] YENİ KAYIT (FBİAD Vakfı):
+- Ad Soyad: Öğrenci Muaf
+- Email: ogrencimuaf@fbiad.com
+- Rol: applicant
+- İlk Şifre: Burs9235!
+- Doğrulama (OTP) Kodu: 228589
+
+[15.07.2026 11:58:55] YENİ KAYIT (FBİAD Vakfı):
+- Ad Soyad: Ogrenci Muaf Red
+- Email: ogrencimuafred@fbiad.com
+- Rol: applicant
+- İlk Şifre: Burs8115!
+- Doğrulama (OTP) Kodu: 239410

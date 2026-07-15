@@ -176,7 +176,8 @@ export default async function DashboardHome({ searchParams }: { searchParams: Pr
                                 {applicantData.status === 'selected' && "Bursiyer Olarak SEÇİLDİ!"}
                                 {applicantData.status === 'active' && "Aktif Bursiyer"}
                                 {applicantData.status === 'draft' && "Taslak (Başvuru Tamamlanmadı)"}
-                                {applicantData.status === 'waiting_reference' && "Referans Onayları Bekleniyor"}
+                                {applicantData.status === 'waiting_reference' && applicantData.totalRefs === 0 && "Referans Bilgileri Bekleniyor (Lütfen Giriniz)"}
+                                {applicantData.status === 'waiting_reference' && applicantData.totalRefs > 0 && "Referans Onayları Bekleniyor"}
                             </h3>
                             {applicantData.fundTitle && (applicantData.status === 'selected' || applicantData.status === 'active') && (
                                 <p className="text-fuchsia-600 dark:text-fuchsia-500 font-medium text-sm mt-1 flex items-center">

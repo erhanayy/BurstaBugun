@@ -25,10 +25,18 @@ export default async function ApplicationReferencesPage({ params }: { params: { 
     if (!application) {
         return redirect("/dashboard/applications");
     }
+    
+    const { getSystemParameter } = await import("@/lib/actions/parameters");
+    const enableExemptionStr = await getSystemParameter("ENABLE_FORMER_STUDENT_EXEMPTION", "false");
+    const exemptionTextStr = await getSystemParameter("EXEMPTION_QUESTION_TEXT", `${tenantData.longName} Eski Bursiyeriyim`);
 
     return (
         <div className="max-w-4xl mx-auto py-8">
-            <ReferencesClient application={application} />
+            <ReferencesClient 
+                application={application} 
+                enableExemption={enableExemptionStr === "true"}
+                exemptionText={exemptionTextStr}
+            />
         </div>
     );
 }

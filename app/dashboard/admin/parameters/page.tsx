@@ -36,6 +36,12 @@ export default async function ParametersPage() {
     if (!paramMap.has("MASK_STUDENT_NAMES")) {
         paramMap.set("MASK_STUDENT_NAMES", "false");
     }
+    if (!paramMap.has("ENABLE_FORMER_STUDENT_EXEMPTION")) {
+        paramMap.set("ENABLE_FORMER_STUDENT_EXEMPTION", "false");
+    }
+    if (!paramMap.has("EXEMPTION_QUESTION_TEXT")) {
+        paramMap.set("EXEMPTION_QUESTION_TEXT", "");
+    }
 
     const seasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
@@ -64,6 +70,8 @@ export default async function ParametersPage() {
                 <ParametersForm
                     initialMaxLimit={paramMap.get("MAX_MONTHLY_LIMIT")}
                     initialMaskNames={paramMap.get("MASK_STUDENT_NAMES")}
+                    initialEnableExemption={paramMap.get("ENABLE_FORMER_STUDENT_EXEMPTION")}
+                    initialExemptionText={paramMap.get("EXEMPTION_QUESTION_TEXT")}
                 />
             </div>
 

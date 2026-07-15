@@ -12,17 +12,23 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-type ParametersFormProps = {
+    type ParametersFormProps = {
     initialMaxLimit: string;
     initialMaskNames?: string;
+    initialEnableExemption?: string;
+    initialExemptionText?: string;
 };
 
 export function ParametersForm({ 
     initialMaxLimit, 
     initialMaskNames,
+    initialEnableExemption,
+    initialExemptionText,
 }: ParametersFormProps) {
     const [maxLimit, setMaxLimit] = useState(initialMaxLimit);
     const [maskNames, setMaskNames] = useState(initialMaskNames === "true");
+    const [enableExemption, setEnableExemption] = useState(initialEnableExemption === "true");
+    const [exemptionText, setExemptionText] = useState(initialExemptionText || "");
 
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
@@ -36,6 +42,8 @@ export function ParametersForm({
         try {
             await setSystemParameter("MAX_MONTHLY_LIMIT", maxLimit, "Öğrenci Başına Maksimum Aylık Kazanç Limiti (TL)");
             await setSystemParameter("MASK_STUDENT_NAMES", maskNames ? "true" : "false", "Bursiyer İsimlerini Maskeli Yaz (True/False)");
+            await setSystemParameter("ENABLE_FORMER_STUDENT_EXEMPTION", enableExemption ? "true" : "false", "Eski Bursiyerleri Referans Sisteminden Muaf Tut (True/False)");
+            await setSystemParameter("EXEMPTION_QUESTION_TEXT", exemptionText, "Muafiyet Soru Metni (Örn: FBİAD Vakfı Eski Bursiyeriyim)");
             
             setMessage({ text: "Parametreler başarıyla güncellendi.", type: "success" });
             router.refresh();
@@ -92,6 +100,43 @@ export function ParametersForm({
                     <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                         Aktif edildiğinde Bursiyer havuzundaki ve Fon detayındaki öğrenci isimleri gizlilik amacıyla sadece baş harfleriyle (Örn: A.Y.) gösterilir. Adminler ve öğrencinin kendisi bu ayardan etkilenmez.
                     </p>
+                </div>
+            </div>
+
+            <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Referans Muafiyet Ayarları</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            Eski Bursiyer Muafiyeti Aktif
+                            <div className="relative inline-flex items-center cursor-pointer ml-auto">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer" 
+                                    checked={enableExemption}
+                                    onChange={(e) => setEnableExemption(e.target.checked)}
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            </div>
+                        </label>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                            Açık olduğunda, öğrencilere form sonrası &quot;Eski Bursiyerim&quot; seçeneği sunulur. Eğer seçerlerse Muhtar/Hoca referans mailleri istenmez ve doğrudan Admin onayına düşerler.
+                        </p>
+                    </div>
+
+                    <div className={`space-y-2 transition-opacity ${enableExemption ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+                        <label className="text-sm font-semibold text-gray-900 dark:text-white">Özel Soru Metni (Opsiyonel)</label>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-2">
+                            Öğrenciye sorulacak olan özel muafiyet sorusu metni. Boş bırakırsanız otomatik olarak <b>[Kurum Adı] Eski Bursiyeriyim</b> yazılır.
+                        </p>
+                        <input
+                            type="text"
+                            value={exemptionText}
+                            onChange={(e) => setExemptionText(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            placeholder="Örn: FBİAD Vakfı Eski Bursiyeriyim"
+                        />
+                    </div>
                 </div>
             </div>
 

@@ -63,3 +63,12 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
 - **Ödeme Takvimi Değişikliği:** Öğrenci bir fona atandığında (sponsor onayı), oluşturulan otomatik taksitlendirme mantığı güncellendi:
   - **1. Taksit:** Beklemeksizin anında fonun **Başlangıç Tarihi**ne (ilk ödeme günü) planlandı.
   - **2. ve Sonraki Taksitler:** Başlangıç tarihini takip eden ayların **1. gününe** denk gelecek şekilde hesaplanmaya başlandı.
+
+## 9. 15.07.2026 Süreç ve Kullanıcı Deneyimi (UX) Güncellemeleri
+- **Eski Bursiyer Muafiyeti (Exemption):** FBİAD Vakfı gibi kurumlara özel olarak, eski bursiyerlerin Muhtar ve Akademisyen referans zorunluluğundan muaf tutulması için altyapı kuruldu.
+  - Sisteme `ENABLE_FORMER_STUDENT_EXEMPTION` ve `EXEMPTION_QUESTION_TEXT` parametreleri eklendi.
+  - Öğrenci referans ekranında "Eski Bursiyerim" dediğinde süreç "Admin Onayına" (waiting_reference) düşer.
+  - Admin panelinde `Muafiyet Onayları` sayfasında, onay verilirse öğrenci direkt `in_pool` (Havuz) statüsüne alınır; reddedilirse (isteğe bağlı red nedeni ile) referans girmesi için tekrar standart sürece yönlendirilir.
+- **Dinamik Dashboard Durum Bildirimleri:** Öğrenci ana ekranında (Dashboard) gösterilen "Referans Onayları Bekleniyor" metni, eğer öğrencinin henüz hiç referansı yoksa "Referans Bilgileri Bekleniyor (Lütfen Giriniz)" olarak daha anlaşılır bir formata güncellendi.
+- **Gelişmiş Bildirim (Notification) Sistemi:** Genel menüsü altına tüm kullanıcılar için "Bildirimler" sekmesi eklendi. Kullanıcıların geçmişe dönük aldıkları tüm onay/red/ödeme vb. sistem bildirimlerini geriye dönük görüntüleyebileceği, okundu/okunmadı takibini yapabileceği bir arayüz geliştirildi.
+- **Localhost SIFRELER.md Loglama:** Kayıt aşamasında üretilen ilk şifrelerin ve OTP kodlarının, yalnızca yerel geliştirme (development) ortamında `SIFRELER.md` dosyasına yazılması sağlandı. Canlı ortamda bu işlem atlanarak güvenlik standartları korundu.

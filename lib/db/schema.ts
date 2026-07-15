@@ -161,6 +161,7 @@ export const applications = pgTable('applications', {
     formId: uuid('form_id').references(() => applicationForms.id), // Hangi forma göre dolduruldu // Optional for backward comp
     period: text('period'), // Öğrencinin seçtiği dönem
     status: applicationStatusEnum('status').default('draft').notNull(),
+    isExemptionRequested: boolean('is_exemption_requested').default(false).notNull(),
     answersJson: text('answers_json'), // EAV alternatifi olarak Json string
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),

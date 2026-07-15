@@ -12,7 +12,10 @@ export default function ViewClient({ application, studentName }: { application: 
 
     return (
         <div className="space-y-6">
-            <button onClick={() => router.back()} className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <button 
+                onClick={() => window.history.length > 1 ? router.back() : router.push('/dashboard/applications')} 
+                className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Önceki Ekrana Dön
             </button>

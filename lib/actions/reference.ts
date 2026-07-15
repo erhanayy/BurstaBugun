@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { applications, references, users } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/actions/notification";
@@ -245,5 +245,144 @@ export async function resendReferenceRequest(referenceId: string, applicationId:
     });
 
     revalidatePath(`/dashboard/applications/${applicationId}/references`);
+    return { success: true };
+}
+
+export async function requestExemption(applicationId: string) {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) throw new Error("Unauthorized");
+
+    const app = await db.query.applications.findFirst({
+        where: and(
+            eq(applications.id, applicationId),
+            eq(applications.userId, tenantData.userId)
+        )
+    });
+
+    if (!app) throw new Error("Yetkiniz yok veya başvuru bulunamadı.");
+
+    await db.update(applications)
+        .set({ isExemptionRequested: true })
+        .where(eq(applications.id, applicationId));
+
+    revalidatePath(`/dashboard/applications`);
+    revalidatePath(`/dashboard/applications/${applicationId}/references`);
+    return { success: true };
+}
+
+export async function getExemptionRequests() {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData || tenantData.userRole !== 'admin') throw new Error("Unauthorized");
+
+    const requests = await db.query.applications.findMany({
+        where: and(
+            eq(applications.tenantId, tenantData.tenantId),
+            inArray(applications.status, ["submitted", "waiting_reference"]),
+            eq(applications.isExemptionRequested, true)
+        ),
+        with: {
+            user: true,
+            form: true
+        },
+        orderBy: (applications, { desc }) => [desc(applications.updatedAt)]
+    });
+
+    return requests;
+}
+
+export async function processExemption(applicationId: string, action: "approve" | "reject", reason?: string) {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData || tenantData.userRole !== 'admin') throw new Error("Unauthorized");
+
+    const app = await db.query.applications.findFirst({
+        where: and(
+            eq(applications.id, applicationId),
+            eq(applications.tenantId, tenantData.tenantId)
+        ),
+        with: { user: true }
+    });
+
+    if (!app) throw new Error("Başvuru bulunamadı.");
+
+    if (action === "approve") {
+        await db.update(applications)
+            .set({ 
+                status: "in_pool",
+                isExemptionRequested: false // No longer pending
+            })
+            .where(eq(applications.id, applicationId));
+
+        // Create notification
+        await createNotification(
+            tenantData.tenantId,
+            [app.userId],
+            'application',
+            'Eski Bursiyer Statünüz Onaylandı',
+            'Tebrikler! Eski bursiyer statünüz onaylandı ve başvurunuz referans aşamasını atlayarak başarılı bir şekilde Bursiyer Havuzuna alındı.',
+            `/dashboard/applications`
+        );
+
+        // Send Email
+        if (app.user?.email) {
+            await sendEmail({
+                code: EMAIL_CODES.GENEL,
+                sentTo: app.user.email,
+                subject: `${tenantData.tenantName || 'Vakıf'} - Muafiyet Talebi Onaylandı`,
+                screen: "exemption_approved",
+                body: `
+                    <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+                        <h2 style="color: #1a365d; text-align: center;">${tenantData.tenantName || 'Vakıf'} Burs Platformu</h2>
+                        <p>Sayın <strong>${app.user.firstName} ${app.user.lastName}</strong>,</p>
+                        <p>Tebrikler! Vakfımıza yaptığınız "Eski Bursiyer" muafiyet talebi yöneticilerimiz tarafından onaylanmıştır.</p>
+                        <p>Başvurunuz, Muhtar ve Akademisyen referans aşamalarını başarıyla atlayarak doğrudan Bursiyer Havuzu'na alınmıştır.</p>
+                    </div>
+                `
+            });
+        }
+
+    } else if (action === "reject") {
+        await db.update(applications)
+            .set({ 
+                isExemptionRequested: false 
+                // status remains 'submitted'
+            })
+            .where(eq(applications.id, applicationId));
+
+        const rejectionMessage = reason 
+            ? `Eski bursiyerlik beyanınız doğrulanamadı veya reddedildi. Red Sebebi: "${reason}". Başvurunuza devam edebilmek için lütfen referanslarınızı giriniz.` 
+            : 'Eski bursiyerlik beyanınız doğrulanamadı. Başvurunuza devam edebilmek için lütfen referanslarınızı giriniz.';
+
+        // Create notification
+        await createNotification(
+            tenantData.tenantId,
+            [app.userId],
+            'application',
+            'Muafiyet Talebiniz Onaylanmadı',
+            rejectionMessage,
+            `/dashboard/applications/${applicationId}/references`
+        );
+
+        // Send Email
+        if (app.user?.email) {
+            await sendEmail({
+                code: EMAIL_CODES.GENEL,
+                sentTo: app.user.email,
+                subject: `${tenantData.tenantName || 'Vakıf'} - Muafiyet Talebi Reddedildi`,
+                screen: "exemption_rejected",
+                body: `
+                    <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+                        <h2 style="color: #1a365d; text-align: center;">${tenantData.tenantName || 'Vakıf'} Burs Platformu</h2>
+                        <p>Sayın <strong>${app.user.firstName} ${app.user.lastName}</strong>,</p>
+                        <p>Bilgilendirme: Vakfımıza yaptığınız muafiyet talebi yöneticilerimiz tarafından onaylanmamıştır.</p>
+                        ${reason ? `<p style="background: #fff5f5; border-left: 4px solid #fc8181; padding: 10px; color: #c53030;"><strong>Red Sebebi:</strong> ${reason}</p>` : ''}
+                        <p>Başvurunuza devam edebilmek ve havuza girebilmek için sisteme giriş yaparak Mahalle Muhtarı ve Akademisyen referans bilgilerinizi girmeniz gerekmektedir.</p>
+                    </div>
+                `
+            });
+        }
+    }
+
+    revalidatePath("/dashboard/admin/exemptions");
+    revalidatePath("/dashboard/applications");
     return { success: true };
 }

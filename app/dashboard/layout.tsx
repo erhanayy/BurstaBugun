@@ -12,7 +12,8 @@ import {
     LogOut,
     Menu,
     Wallet,
-    Workflow
+    Workflow,
+    Bell
 } from "lucide-react";
 
 import { getCurrentTenant } from "@/lib/data/tenant";
@@ -96,6 +97,7 @@ export default async function DashboardLayout({
 
                         <CollapsibleNavSection title="Genel" storageKey="general">
                             <NavItem href="/dashboard/home" icon={Home} label="Ana Sayfa" />
+                            <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
                         </CollapsibleNavSection>
 
                         {/* Bursiyer Menüsü */}
@@ -147,6 +149,7 @@ export default async function DashboardLayout({
                                 )}
                                 <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
                                 <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
+                                <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
                                 <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
                             </CollapsibleNavSection>
                         )}
