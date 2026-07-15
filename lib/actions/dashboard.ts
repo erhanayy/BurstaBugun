@@ -46,10 +46,34 @@ export async function getAdminDashboardData(period: string | null) {
             )
         );
 
+    const baseAppCondition = period
+        ? and(eq(applications.tenantId, tenantData.tenantId), eq(applications.period, period))
+        : eq(applications.tenantId, tenantData.tenantId);
+
+    const activeStudents = await db.select({ count: sql<number>`count(*)` })
+        .from(applications)
+        .where(and(baseAppCondition, eq(applications.status, 'active')));
+
+    const inPoolStudents = await db.select({ count: sql<number>`count(*)` })
+        .from(applications)
+        .where(and(baseAppCondition, eq(applications.status, 'in_pool')));
+
+    const selectedStudents = await db.select({ count: sql<number>`count(*)` })
+        .from(applications)
+        .where(and(baseAppCondition, eq(applications.status, 'selected')));
+
+    const activeSponsors = await db.select({ count: sql<number>`count(*)` })
+        .from(tenantUsers)
+        .where(and(eq(tenantUsers.tenantId, tenantData.tenantId), eq(tenantUsers.role, 'sponsor')));
+
     return {
         totalUsers: Number(allUsers[0]?.count || 0),
         activeFunds: Number(activeFunds[0]?.count || 0),
         recentActiveUsers: Number(recentLoginQuery[0]?.count || 0),
+        activeStudents: Number(activeStudents[0]?.count || 0),
+        inPoolStudents: Number(inPoolStudents[0]?.count || 0),
+        selectedStudents: Number(selectedStudents[0]?.count || 0),
+        activeSponsors: Number(activeSponsors[0]?.count || 0),
     };
 }
 

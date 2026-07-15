@@ -75,6 +75,44 @@ export default async function DashboardHome({ searchParams }: { searchParams: Pr
                             </div>
                         </div>
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-4">
+                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                <GraduationCap className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktif Öğrenci</p>
+                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.activeStudents}</h3>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400">
+                                <Users className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Havuza Dahil</p>
+                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.inPoolStudents}</h3>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-fuchsia-50 dark:bg-fuchsia-900/20 text-fuchsia-600 dark:text-fuchsia-400">
+                                <CheckCircle2 className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fona Atanan</p>
+                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.selectedStudents}</h3>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+                                <ShieldCheck className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktif Bursveren</p>
+                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.activeSponsors}</h3>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
 
