@@ -28,13 +28,19 @@ export async function getAdminDashboardData(period: string | null) {
         .where(and(baseFundCondition, eq(funds.isActive, true)));
 
     const allUsers = await db.select({ count: sql<number>`count(*)` })
-        .from(users);
+        .from(tenantUsers)
+        .where(eq(tenantUsers.tenantId, tenantData.tenantId));
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const recentLoginQuery = await db.select({ count: sql<number>`count(distinct ${loginLogs.userId})` })
         .from(loginLogs)
-        .where(gte(loginLogs.loggedInAt, thirtyDaysAgo));
+        .where(
+            and(
+                gte(loginLogs.loggedInAt, thirtyDaysAgo),
+                eq(loginLogs.tenantId, tenantData.tenantId)
+            )
+        );
 
     return {
         totalUsers: Number(allUsers[0]?.count || 0),
