@@ -23,6 +23,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { TenantSwitcher } from "@/components/tenant-switcher";
 import { ForcePasswordCheck } from "./force-password-check";
 import { ContractEnforcer } from "./contract-enforcer";
+import { MobileMenu } from "@/components/mobile-menu";
 import { getMissingContracts } from "@/lib/actions/agreements";
 import { auth } from "@/auth";
 import Image from "next/image";
@@ -87,6 +88,12 @@ export default async function DashboardLayout({
                     --screen-text: #f4f4f5;
                 }
             `}} />
+
+            {/* Common Sidebar Content for both Desktop and Mobile */}
+            <div style={{ display: 'none' }}>
+                <span id="mobile-menu-content" />
+            </div>
+            
             <div className="h-screen overflow-hidden bg-[var(--bg-color)] dark:bg-[var(--bg-color)] text-[var(--screen-text)] dark:text-[var(--screen-text)] flex">
                 <ForcePasswordCheck forcePasswordChange={false} />
 
@@ -95,7 +102,7 @@ export default async function DashboardLayout({
                     <div className="h-16 flex items-center px-6 border-b border-gray-200/20 dark:border-zinc-800 font-bold text-lg text-[var(--menu-text)]">
                         {tenantData?.userName}
                     </div>
-                    <nav className="flex-1 p-4 overflow-y-auto space-y-1">
+                    <nav className="flex-1 p-4 overflow-y-auto space-y-1 custom-scrollbar">
 
                         <CollapsibleNavSection title="Genel" storageKey="general">
                             <NavItem href="/dashboard/home" icon={Home} label="Ana Sayfa" />
@@ -211,7 +218,77 @@ export default async function DashboardLayout({
 
                             {/* Mobile menu trigger */}
                             <div className="lg:hidden p-2">
-                                <Menu className="w-6 h-6 text-white" />
+                                <MobileMenu>
+                                    <div className="h-16 flex items-center px-6 border-b border-gray-200/20 dark:border-zinc-800 font-bold text-lg text-[var(--menu-text)]">
+                                        {tenantData?.userName}
+                                    </div>
+                                    <nav className="flex-1 p-4 overflow-y-auto space-y-1 custom-scrollbar">
+
+                                        <CollapsibleNavSection title="Genel" storageKey="general">
+                                            <NavItem href="/dashboard/home" icon={Home} label="Ana Sayfa" />
+                                            <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
+                                        </CollapsibleNavSection>
+
+                                        {/* Bursiyer Menüsü */}
+                                        {(userRole === 'applicant' || userRole === 'admin') && (
+                                            <CollapsibleNavSection title="Bursiyer" storageKey="applicant">
+                                                <NavItem href="/dashboard/how-to-apply" icon={Route} label="Burs Başvuru Akışı" />
+                                                <NavItem href="/dashboard/applications/new" icon={FileText} label="Burs Başvurusu Yap" />
+                                                <NavItem href="/dashboard/applications" icon={LayoutDashboard} label="Başvurularım" />
+                                                <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
+                                            </CollapsibleNavSection>
+                                        )}
+
+                                        {/* Bursveren Sponsor Menüsü */}
+                                        {(userRole === 'sponsor' || userRole === 'admin') && (
+                                            <CollapsibleNavSection title="Burs Fonları" storageKey="sponsor">
+                                                <NavItem href="/dashboard/funds/flow" icon={Workflow} label="Fon Akışı" />
+                                                <NavItem href="/dashboard/funds" icon={Landmark} label="Fonlarım / Desteklerim" />
+                                                <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
+                                                <NavItem href="/dashboard/pool" icon={Users} label="Bursiyer Havuzu" />
+                                            </CollapsibleNavSection>
+                                        )}
+
+                                        {/* Bursveren Katılımcı Menüsü */}
+                                        {(userRole === 'contributor') && (
+                                            <CollapsibleNavSection title="Destekçi" storageKey="contributor">
+                                                <NavItem href="/dashboard/funds" icon={Landmark} label="Destek Olduğum Fonlar" />
+                                            </CollapsibleNavSection>
+                                        )}
+
+                                        {/* Referans Menüsü */}
+                                        {(userRole === 'reference' || userRole === 'admin') && (
+                                            <CollapsibleNavSection title="Referans" storageKey="reference">
+                                                <NavItem href="/dashboard/references" icon={CheckSquare} label="Referans Onayları" />
+                                            </CollapsibleNavSection>
+                                        )}
+
+                                        {/* Ayarlar Menüsü (Tüm Roller) */}
+                                        <CollapsibleNavSection title="Ayarlar" storageKey="user">
+                                            <NavItem href="/dashboard/settings" icon={Settings} label="Ayarlar" />
+                                        </CollapsibleNavSection>
+
+                                        {/* Sistem Yönetimi (Super Admin veya Admin) */}
+                                        {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                                            <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
+                                                <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
+                                                <NavItem href="/dashboard/admin/donations" icon={Landmark} label="Web Bağış" />
+                                                <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
+                                                {tenantData?.isSuperAdmin && (
+                                                    <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />
+                                                )}
+                                                <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
+                                                <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
+                                                <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
+                                                <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
+                                            </CollapsibleNavSection>
+                                        )}
+
+                                    </nav>
+                                    <div className="p-4 border-t border-white/10 mt-auto">
+                                        <SignOutButton />
+                                    </div>
+                                </MobileMenu>
                             </div>
                         </div>
                     </header>

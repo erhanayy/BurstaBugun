@@ -25,8 +25,10 @@ export function ContractEnforcer({
 
     // Trapped! Massive unclosable full screen view
     return (
-        <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4">
-            <ForceContractSignature userId={userId} pendingContracts={pendingContracts} />
+        <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-zinc-950 overflow-y-auto">
+            <div className="min-h-full flex flex-col items-center justify-center p-4 py-8">
+                <ForceContractSignature userId={userId} pendingContracts={pendingContracts} />
+            </div>
         </div>
     );
 }

@@ -1,7 +1,15 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-export function PhoneInput({ value, onChange, className, placeholder }: any) {
+export function PhoneInput({ value, onChange, className, placeholder, name, required, ...props }: any) {
+    const [internalValue, setInternalValue] = useState(value || '00 90 ');
+
+    useEffect(() => {
+        if (value !== undefined) {
+            setInternalValue(value);
+        }
+    }, [value]);
+
     const formatPhone = (val: string) => {
         // Rakamlar dışındaki her şeyi temizle (artı işareti dahil)
         const digits = val.replace(/\D/g, '');
@@ -31,21 +39,29 @@ export function PhoneInput({ value, onChange, className, placeholder }: any) {
             inputVal = '00' + inputVal.substring(1);
         }
 
+        let formattedVal;
         if (inputVal.replace(/\D/g, '').length < 2) {
-            onChange('00 ');
-            return;
+            formattedVal = '00 ';
+        } else {
+            formattedVal = formatPhone(inputVal);
         }
 
-        onChange(formatPhone(inputVal));
+        setInternalValue(formattedVal);
+        if (onChange) {
+            onChange(formattedVal);
+        }
     };
 
     return (
         <input
             type="text"
-            value={value || '00 90 '}
+            name={name}
+            required={required}
+            value={internalValue}
             onChange={handleChange}
             className={className}
             placeholder={placeholder || "00 90 5XX XXX XX XX"}
+            {...props}
         />
     );
 }
