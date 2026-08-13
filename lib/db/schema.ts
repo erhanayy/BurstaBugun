@@ -237,7 +237,7 @@ export const fundInvitations = pgTable('fund_invitations', {
 
 // --- Contracts & Agreements ---
 
-export const contractTypeEnum = pgEnum('contract_type', ['KVKK', 'USER_AGREEMENT', 'STUDENT_AGREEMENT', 'OTHER']);
+export const contractTypeEnum = pgEnum('contract_type', ['KVKK', 'USER_AGREEMENT', 'STUDENT_AGREEMENT', 'WEB_KVKK', 'WEB_DONATION_AGREEMENT', 'OTHER']);
 
 export const contracts = pgTable('contracts', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -336,6 +336,7 @@ export const donations = pgTable('donations', {
     bankTransactionId: text('bank_transaction_id'),
     bankCode: text('bank_code'),
     status: donationStatusEnum('status').default('completed').notNull(),
+    agreementsAccepted: boolean('agreements_accepted').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

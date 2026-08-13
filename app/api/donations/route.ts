@@ -37,7 +37,8 @@ export async function POST(req: Request) {
             wantsMembershipInfo,
             bankTransactionId,
             bankCode,
-            status
+            status,
+            agreementsAccepted
         } = body;
 
         if (!amount) {
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
             wantsMembershipInfo: !!wantsMembershipInfo,
             bankTransactionId,
             bankCode,
+            agreementsAccepted: !!agreementsAccepted,
             status: status === 'failed' ? 'failed' : 'completed'
         }).returning();
 

@@ -13,6 +13,13 @@ Kayıtlarınızı ve veritabanlarınızı manuel kontrol etmek isterseniz:
 - **Mevcut Veritabanları:** `bursta-bugun`, `dernekte-bugun`, `sirkette-bugun`
 - **Canlı (Production) IP Adresi:** `34.38.207.47`
 ---
+### 💳 Moka Ödeme Sistemi Üretim (Canlı) API Bilgileri
+- **Servis URL:** `https://service.mokaunited.com`
+- **Api Username:** `c4152353-27d3-4dbc-912e-d748bd63c80f`
+- **Api Password:** `bc730821-ea91-46d8-8671-55307c13d0a1`
+- **Bayi Kodu:** `206019`
+
+---
 *Yeni üretilen kayıtlar ve şifreler bunun altına otomatik olarak eklenecektir...*
 
 [18.04.2026 16:58:01] YENİ KAYIT:
