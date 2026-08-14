@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from 'fs';
-import path from "path";
+import { Storage } from "@google-cloud/storage";
+
+const storage = new Storage();
+const bucketName = "fbiad-burs-documents";
+const bucket = storage.bucket(bucketName);
 
 export async function POST(req: NextRequest) {
     try {
@@ -20,22 +23,22 @@ export async function POST(req: NextRequest) {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        // Upload dizinini kontrol et ve oluştur
-        const uploadDir = path.join(process.cwd(), 'public/uploads');
-        try {
-            await fs.access(uploadDir);
-        } catch {
-            await fs.mkdir(uploadDir, { recursive: true });
-        }
-
         const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        const filename = `${uniqueSuffix}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const filename = `${uniqueSuffix}-${originalName}`;
 
-        const filePath = path.join(uploadDir, filename);
-        await fs.writeFile(filePath, buffer);
+        const gcsFile = bucket.file(filename);
 
-        // Tarayıcıdan erişilebilecek URL
-        const fileUrl = `/uploads/${filename}`;
+        // Upload to GCS
+        await gcsFile.save(buffer, {
+            resumable: false,
+            metadata: {
+                contentType: file.type || 'application/octet-stream',
+            }
+        });
+
+        // The bucket is public-read, so we can use the direct storage.googleapis.com URL
+        const fileUrl = `https://storage.googleapis.com/${bucketName}/${filename}`;
 
         return NextResponse.json({ url: fileUrl });
     } catch (error) {
