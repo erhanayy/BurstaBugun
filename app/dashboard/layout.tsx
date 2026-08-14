@@ -15,7 +15,8 @@ import {
     Workflow,
     Bell,
     Route,
-    ChevronDown
+    ChevronDown,
+    UploadCloud
 } from "lucide-react";
 
 import { getCurrentTenant } from "@/lib/data/tenant";
@@ -116,6 +117,7 @@ export default async function DashboardLayout({
                                 <NavItem href="/dashboard/applications/new" icon={FileText} label="Burs Başvurusu Yap" />
                                 <NavItem href="/dashboard/applications" icon={LayoutDashboard} label="Başvurularım" />
                                 <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
+                                <NavItem href="/dashboard/applications/recover-documents" icon={UploadCloud} label="Eksik Evrak Yükle" />
                             </CollapsibleNavSection>
                         )}
 
@@ -236,6 +238,7 @@ export default async function DashboardLayout({
                                                 <NavItem href="/dashboard/applications/new" icon={FileText} label="Burs Başvurusu Yap" />
                                                 <NavItem href="/dashboard/applications" icon={LayoutDashboard} label="Başvurularım" />
                                                 <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
+                                                <NavItem href="/dashboard/applications/recover-documents" icon={UploadCloud} label="Eksik Evrak Yükle" />
                                             </CollapsibleNavSection>
                                         )}
 

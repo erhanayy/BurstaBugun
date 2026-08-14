@@ -85,3 +85,39 @@ export async function submitApplication(data: any) {
     revalidatePath("/dashboard/applications");
     redirect("/dashboard/applications");
 }
+
+export async function recoverApplicationDocuments(applicationId: string, docs: { ogrenciBelgesi?: string, transkript?: string, sabikaKaydi?: string }) {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) throw new Error("Oturum bulunamadı");
+
+    const application = await db.query.applications.findFirst({
+        where: and(
+            eq(applications.id, applicationId),
+            eq(applications.userId, tenantData.userId)
+        )
+    });
+
+    if (!application) throw new Error("Başvuru bulunamadı veya yetkiniz yok.");
+
+    let answers: Record<string, any> = {};
+    if (application.answersJson) {
+        try {
+            answers = JSON.parse(application.answersJson);
+        } catch (e) {
+            console.error("JSON parse error on recovery:", e);
+        }
+    }
+
+    if (docs.ogrenciBelgesi) answers["Okul Öğrenci Belgesi"] = docs.ogrenciBelgesi;
+    if (docs.transkript) answers["Okul Transkrip"] = docs.transkript; // Note: 'Transkrip' matches the DB schema field name exactly
+    if (docs.sabikaKaydi) answers["Sabıka Kaydı Çıktısı"] = docs.sabikaKaydi;
+
+    await db.update(applications)
+        .set({ answersJson: JSON.stringify(answers) })
+        .where(eq(applications.id, applicationId));
+
+    revalidatePath("/dashboard/applications");
+    revalidatePath(`/dashboard/applications/${applicationId}`);
+    
+    return { success: true };
+}
