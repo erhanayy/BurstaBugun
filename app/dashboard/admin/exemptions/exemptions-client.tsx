@@ -13,6 +13,12 @@ export default function ExemptionsClient({ initialRequests }: { initialRequests:
     const [requests, setRequests] = useState(initialRequests);
     const [processingId, setProcessingId] = useState<string | null>(null);
 
+    const getInitials = (name?: string) => {
+        if (!name) return "?";
+        const parts = name.trim().split(" ");
+        return parts.length > 1 ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+    };
+
     const handleProcess = async (id: string, action: "approve" | "reject") => {
         let reason = "";
         
@@ -69,21 +75,22 @@ export default function ExemptionsClient({ initialRequests }: { initialRequests:
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                                            {req.user?.firstName?.charAt(0)}{req.user?.lastName?.charAt(0)}
+                                            {getInitials(req.user?.fullName)}
                                         </div>
                                         <div>
                                             <div className="font-semibold text-gray-900 dark:text-white">
-                                                {req.user?.firstName} {req.user?.lastName}
+                                                {req.user?.fullName}
                                             </div>
                                             <div className="text-xs text-gray-500">
-                                                TC: {req.user?.tcNo || "-"}
+                                                {/* TC is stored in dynamic form fields if needed */}
+                                                TC: -
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="text-gray-900 dark:text-gray-300">{req.user?.email}</div>
-                                    <div className="text-xs text-gray-500">{req.user?.phone}</div>
+                                    <div className="text-xs text-gray-500">{req.user?.phoneNumber}</div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="text-gray-900 dark:text-gray-300 flex items-center gap-2">
