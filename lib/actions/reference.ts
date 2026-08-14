@@ -56,7 +56,7 @@ export async function addReference(applicationId: string, email: string, fullNam
     });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://burs.fbiadvakfi.org";
-    const studentName = app?.user ? `${app.user.firstName} ${app.user.lastName}` : "Bir öğrenci";
+    const studentName = app?.user ? app.user.fullName : "Bir öğrenci";
 
     await sendEmail({
         code: EMAIL_CODES.DAVET,
@@ -224,7 +224,7 @@ export async function resendReferenceRequest(referenceId: string, applicationId:
         .where(eq(references.id, referenceId));
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://burs.fbiadvakfi.org";
-    const studentName = app?.user ? `${app.user.firstName} ${app.user.lastName}` : "Bir öğrenci";
+    const studentName = app?.user ? app.user.fullName : "Bir öğrenci";
 
     await sendEmail({
         code: EMAIL_CODES.DAVET,
@@ -332,7 +332,7 @@ export async function processExemption(applicationId: string, action: "approve" 
                 body: `
                     <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
                         <h2 style="color: #1a365d; text-align: center;">${tenantData.tenantName || 'Vakıf'} Burs Platformu</h2>
-                        <p>Sayın <strong>${app.user.firstName} ${app.user.lastName}</strong>,</p>
+                        <p>Sayın <strong>${app.user.fullName}</strong>,</p>
                         <p>Tebrikler! Vakfımıza yaptığınız "Eski Bursiyer" muafiyet talebi yöneticilerimiz tarafından onaylanmıştır.</p>
                         <p>Başvurunuz, Muhtar ve Akademisyen referans aşamalarını başarıyla atlayarak doğrudan Bursiyer Havuzu'na alınmıştır.</p>
                     </div>
@@ -372,7 +372,7 @@ export async function processExemption(applicationId: string, action: "approve" 
                 body: `
                     <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
                         <h2 style="color: #1a365d; text-align: center;">${tenantData.tenantName || 'Vakıf'} Burs Platformu</h2>
-                        <p>Sayın <strong>${app.user.firstName} ${app.user.lastName}</strong>,</p>
+                        <p>Sayın <strong>${app.user.fullName}</strong>,</p>
                         <p>Bilgilendirme: Vakfımıza yaptığınız muafiyet talebi yöneticilerimiz tarafından onaylanmamıştır.</p>
                         ${reason ? `<p style="background: #fff5f5; border-left: 4px solid #fc8181; padding: 10px; color: #c53030;"><strong>Red Sebebi:</strong> ${reason}</p>` : ''}
                         <p>Başvurunuza devam edebilmek ve havuza girebilmek için sisteme giriş yaparak Mahalle Muhtarı ve Akademisyen referans bilgilerinizi girmeniz gerekmektedir.</p>
