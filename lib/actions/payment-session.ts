@@ -151,8 +151,8 @@ export async function createPaymentSession(fundId: string) {
         LIVE_ENV: process.env.LIVE_ENV, 
         isProd 
     });
-    // Use NEXT_PUBLIC_APP_URL if available (e.g. https://www.fbiadvakfi.org), else fallback
-    const webAppUrl = isProd ? (process.env.NEXT_PUBLIC_APP_URL || 'https://fbiadvakfi.org') : 'http://localhost:3005';
+    // Use the main website URL where the payment component lives
+    const webAppUrl = isProd ? 'https://www.fbiadvakfi.org' : 'http://localhost:3005';
     const paymentUrl = `${webAppUrl}/app-payment?token=${token}`;
     
     return { success: true, url: paymentUrl };
