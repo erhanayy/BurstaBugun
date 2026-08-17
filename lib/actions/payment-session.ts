@@ -145,13 +145,14 @@ export async function createPaymentSession(fundId: string) {
     
     // The web app URL should be mapped. For production, we use the public URL.
     // If we are on localhost, we can fallback to localhost:3005 for local testing.
-    const isProd = process.env.LIVE_ENV === 'true';
+    const isProd = process.env.LIVE_ENV === 'true' || process.env.NODE_ENV === 'production';
     console.log("PAYMENT SESSION DEBUG:", { 
         NODE_ENV: process.env.NODE_ENV, 
         LIVE_ENV: process.env.LIVE_ENV, 
         isProd 
     });
-    const webAppUrl = isProd ? 'https://fbiadvakfi.org' : 'http://localhost:3005';
+    // Use NEXT_PUBLIC_APP_URL if available (e.g. https://www.fbiadvakfi.org), else fallback
+    const webAppUrl = isProd ? (process.env.NEXT_PUBLIC_APP_URL || 'https://fbiadvakfi.org') : 'http://localhost:3005';
     const paymentUrl = `${webAppUrl}/app-payment?token=${token}`;
     
     return { success: true, url: paymentUrl };
