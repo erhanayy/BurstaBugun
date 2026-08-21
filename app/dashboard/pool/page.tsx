@@ -66,7 +66,7 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Bursiyer Havuzu (V2)</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Bursiyer Havuzu</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">
                         Fonlarınıza başvuran adayları inceleyin ve destekleyeceğiniz bursiyerleri seçin.
                     </p>
