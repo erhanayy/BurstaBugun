@@ -23,8 +23,13 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
     const fundPeriod = selectedFund?.period || null;
 
     const poolData = await getApplicationPool(fundPeriod);
+    const sortedPoolData = [...poolData].sort((a, b) => {
+        const nameA = a.user?.fullName?.toLowerCase() || "";
+        const nameB = b.user?.fullName?.toLowerCase() || "";
+        return nameA.localeCompare(nameB, 'tr');
+    });
 
-    const userIds = Array.from(new Set(poolData.map((a: any) => a.userId)));
+    const userIds = Array.from(new Set(sortedPoolData.map((a: any) => a.userId)));
     const allocationStats = await getStudentsAllocationsStats(userIds);
 
     const capacity = selectedFund?.targetStudentCount !== null ? selectedFund?.targetStudentCount : Infinity;
@@ -81,7 +86,7 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {poolData.map((app) => {
+                    {sortedPoolData.map((app) => {
                         let answers: any = {};
                         try {
                             if (app.answersJson) {
@@ -92,15 +97,22 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
                         }
 
                         const isSelected = app.status === 'selected' || app.status === 'active';
+                        const isOldStudent = app.isExemptionRequested;
+                        const bgClass = isOldStudent ? 'bg-indigo-50/30 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800' : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800';
 
                         return (
-                            <div key={app.id} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+                            <div key={app.id} className={`${bgClass} border rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row relative`}>
                                 <div className="p-6 flex-1">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isSelected ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'} mb-2`}>
                                                 {isSelected ? (app.fund?.title || 'Seçildi') : 'Aday Havuzda'}
                                             </span>
+                                            {isOldStudent && (
+                                                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 mb-2">
+                                                    Eski Bursiyer
+                                                </span>
+                                            )}
                                             <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
                                                 {shouldMask ? maskFullName(app.user?.fullName) : app.user?.fullName}
                                                 {isSelected && (
@@ -166,7 +178,7 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
                                     )}
                                 </div>
 
-                                <div className="bg-gray-50 dark:bg-zinc-800/50 p-6 flex flex-col justify-center items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 dark:border-zinc-800 md:w-64">
+                                <div className="bg-gray-50/50 dark:bg-zinc-800/50 p-6 flex flex-col justify-center items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 dark:border-zinc-800 md:w-64">
                                     <SelectionButton applicationId={app.id} fundId={specificFundId || app.fundId || ""} defaultSelected={isSelected} disabled={isFundFull} />
                                     <Link href={`/dashboard/applications/${app.id}`} className="mt-3 text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline flex items-center">
                                         <FileText className="w-4 h-4 mr-1" />
