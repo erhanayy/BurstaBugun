@@ -520,6 +520,23 @@ export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one })
     }),
 }));
 
+// Moka Tokens (Aylık Otomatik Çekim için)
+export const mokaTokens = pgTable('moka_tokens', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    tokenCode: text('token_code').notNull(),
+    cardMask: text('card_mask'), // e.g. "5549 **** **** 1234" (if provided by Moka)
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const mokaTokensRelations = relations(mokaTokens, ({ one }) => ({
+    user: one(users, {
+        fields: [mokaTokens.userId],
+        references: [users.id],
+    }),
+}));
+
 export const tenantApiTokensRelations = relations(tenantApiTokens, ({ one }) => ({
     tenant: one(tenants, {
         fields: [tenantApiTokens.tenantId],

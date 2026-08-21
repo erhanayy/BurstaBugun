@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { payments, funds, fundContributors, fundSelections } from '@/lib/db/schema';
+import { payments, funds, fundContributors, fundSelections, mokaTokens } from '@/lib/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 
 export async function POST(request: Request) {
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Yetkisiz erişim' }, { status: 401 });
     }
 
-    const { fundId, transactionId, paymentIds, count, userId } = await request.json();
+    const { fundId, transactionId, paymentIds, count, userId, tokenCode, paymentMethod } = await request.json();
 
     if (!fundId) {
       return NextResponse.json({ success: false, error: 'fundId gerekli' }, { status: 400 });
@@ -107,6 +107,16 @@ export async function POST(request: Request) {
                 isPaid: true
             });
         }
+    }
+
+    // Save Moka Token if provided
+    if (tokenCode && userId) {
+        await db.insert(mokaTokens).values({
+            userId: userId,
+            tokenCode: tokenCode,
+            cardMask: null // Moka might not return this, so we leave it null for now
+        });
+        console.log(`Saved Moka token for user ${userId}`);
     }
 
     return NextResponse.json({ success: true });
