@@ -12,6 +12,9 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { FundSelector } from "./fund-selector";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function PoolPage({ searchParams }: { searchParams: Promise<{ fundId?: string }> }) {
     const myFunds = await getSponsorFunds();
     const eligibleFunds = myFunds;
