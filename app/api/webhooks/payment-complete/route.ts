@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { payments, funds, fundContributors, fundSelections, mokaTokens } from '@/lib/db/schema';
+import { payments, funds, fundContributors, fundSelections, mokaTokens, applications } from '@/lib/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
+import { createNotification } from '@/lib/actions/notification';
 
 export async function POST(request: Request) {
   try {
@@ -106,6 +107,30 @@ export async function POST(request: Request) {
                 amount: 0,
                 isPaid: true
             });
+        }
+
+        // ACTIVATE APPLICATIONS AND NOTIFY STUDENTS GLOBALLY FOR THIS FUND
+        const appsToActivate = await db.query.applications.findMany({
+            where: and(
+                eq(applications.fundId, fundId),
+                eq(applications.status, 'selected')
+            )
+        });
+
+        if (appsToActivate.length > 0) {
+            await db.update(applications)
+              .set({ status: 'active' })
+              .where(and(eq(applications.fundId, fundId), eq(applications.status, 'selected')));
+
+            for (const app of appsToActivate) {
+               await createNotification(
+                  app.tenantId,
+                  [app.userId],
+                  'application',
+                  'Tebrikler! Bursa Seçildiniz 🎉',
+                  `Başvurunuz onaylandı ve bir burs fonuna atandınız. İlk tahsilat başarıyla yapıldı. Öğrenim döneminiz boyunca ödemeleriniz gerçekleşecektir.`
+               ).catch(e => console.error("Notification failed", e));
+            }
         }
     }
 
