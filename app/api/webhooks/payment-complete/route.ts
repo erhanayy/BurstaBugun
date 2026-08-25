@@ -13,7 +13,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Yetkisiz erişim' }, { status: 401 });
     }
 
-    const { fundId, transactionId, paymentIds, count, userId, tokenCode, paymentMethod } = await request.json();
+    const { fundId, transactionId, paymentIds, count, userId, tokenCode, paymentMethod, receiptUrl } = await request.json();
+
+    const isWireTransfer = paymentMethod === 'wire_transfer';
 
     if (!fundId) {
       return NextResponse.json({ success: false, error: 'fundId gerekli' }, { status: 400 });
@@ -51,8 +53,11 @@ export async function POST(request: Request) {
       if (paymentsToMark.length > 0) {
         await db.update(payments)
           .set({ 
-            status: 'completed',
-            notes: transactionId ? `Web Sanal POS ile ödendi. İşlem No: ${transactionId}` : 'Web üzerinden ödendi'
+            status: isWireTransfer ? 'pending' : 'completed',
+            receiptUrl: receiptUrl || null,
+            notes: isWireTransfer 
+              ? `Havale/EFT dekontu yüklendi. Onay bekliyor. İşlem No: ${transactionId}` 
+              : (transactionId ? `Web Sanal POS ile ödendi. İşlem No: ${transactionId}` : 'Web üzerinden ödendi')
           })
           .where(inArray(payments.id, paymentsToMark));
       }
@@ -60,8 +65,11 @@ export async function POST(request: Request) {
       // Geriye dönük uyumluluk: Sadece gönderilen ödeme ID'lerini tamamlandı olarak işaretle
       await db.update(payments)
         .set({ 
-          status: 'completed',
-          notes: transactionId ? `Web Sanal POS ile ödendi. İşlem No: ${transactionId}` : 'Web üzerinden ödendi'
+          status: isWireTransfer ? 'pending' : 'completed',
+          receiptUrl: receiptUrl || null,
+          notes: isWireTransfer 
+            ? `Havale/EFT dekontu yüklendi. Onay bekliyor. İşlem No: ${transactionId}` 
+            : (transactionId ? `Web Sanal POS ile ödendi. İşlem No: ${transactionId}` : 'Web üzerinden ödendi')
         })
         .where(
           and(
@@ -74,8 +82,11 @@ export async function POST(request: Request) {
       // Fallback: eski sistem çalışıyorsa veya tüm fon ödeniyorsa
       await db.update(payments)
         .set({ 
-          status: 'completed',
-          notes: transactionId ? `Web Sanal POS ile (Tüm Kalan) ödendi. İşlem No: ${transactionId}` : 'Web üzerinden (Tüm Kalan) ödendi'
+          status: isWireTransfer ? 'pending' : 'completed',
+          receiptUrl: receiptUrl || null,
+          notes: isWireTransfer 
+            ? `Havale/EFT dekontu yüklendi. Onay bekliyor. İşlem No: ${transactionId}` 
+            : (transactionId ? `Web Sanal POS ile (Tüm Kalan) ödendi. İşlem No: ${transactionId}` : 'Web üzerinden (Tüm Kalan) ödendi')
         })
         .where(
           and(
@@ -83,6 +94,10 @@ export async function POST(request: Request) {
             eq(payments.status, 'pending')
           )
         );
+    }
+
+    if (isWireTransfer) {
+      return NextResponse.json({ success: true, message: 'Dekont alındı, onay bekleniyor.' });
     }
 
     // Ayrıca, fonun ödemesi yapıldığı için katılımcıları da onaylı (isPaid=true) hale getir
