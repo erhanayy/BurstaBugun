@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { approveWireTransfer, rejectWireTransfer } from "@/lib/actions/wire-transfers";
 import { CheckCircle, XCircle, FileText, Loader2, ExternalLink } from "lucide-react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export function WireTransferList({ payments }: { payments: any[] }) {
     const [loadingId, setLoadingId] = useState<string | null>(null);
