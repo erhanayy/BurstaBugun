@@ -295,8 +295,8 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="upfront">Kredi Kartı ile Tek Seferde Peşin</SelectItem>
-                                        <SelectItem value="monthly">Aylık Kredi Kartı Provizyonu</SelectItem>
+                                        <SelectItem value="upfront">Peşin</SelectItem>
+                                        <SelectItem value="monthly">Taksitli</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

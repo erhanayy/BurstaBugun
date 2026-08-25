@@ -127,7 +127,7 @@ export function InvitationActions({ invitationId, fundId, fund, currentTotal, ta
                             <div className="pt-2 border-t border-gray-100 dark:border-zinc-800">
                                 <strong className="block text-sm text-gray-500">Ödeme Şekli</strong>
                                 <span className="font-medium text-gray-900 dark:text-gray-100">
-                                    {paymentMethod === 'upfront' ? 'Kredi Kartı ile Tek Seferde Peşin (Tüm Dönem)' : 'Aylık Kredi Kartı Provizyonu (Taksit Taksit)'}
+                                    {paymentMethod === 'upfront' ? 'Peşin (Tüm Dönem)' : 'Taksitli (Aylık)'}
                                 </span>
                             </div>
                         </div>
