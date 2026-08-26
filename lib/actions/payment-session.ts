@@ -96,7 +96,7 @@ export async function createPaymentSession(fundId: string) {
 
     const toplamTutar = displayedPayments.reduce((acc, p) => acc + (p.amount || 0), 0);
     const tekilTutar = displayedPayments[0].amount || 0;
-    const taksitMi = displayedPayments.length > 1;
+    const taksitMi = fund.paymentMethod === 'upfront' ? false : displayedPayments.length > 1;
 
     const plan: PaymentPlanItem[] = displayedPayments.map(p => ({
       id: p.id,
