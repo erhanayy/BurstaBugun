@@ -13,7 +13,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Yetkisiz erişim' }, { status: 401 });
     }
 
-    const { fundId, transactionId, paymentIds, count, userId, tokenCode, paymentMethod, receiptUrl } = await request.json();
+    const payload = await request.json();
+    console.log("PAYMENT COMPLETE WEBHOOK RECEIVED:", JSON.stringify(payload));
+    const { fundId, transactionId, paymentIds, count, userId, tokenCode, paymentMethod, receiptUrl } = payload;
 
     const isWireTransfer = paymentMethod === 'wire_transfer';
 
@@ -80,20 +82,40 @@ export async function POST(request: Request) {
         );
     } else {
       // Fallback: eski sistem çalışıyorsa veya tüm fon ödeniyorsa
-      await db.update(payments)
-        .set({ 
-          status: isWireTransfer ? 'pending' : 'completed',
-          receiptUrl: receiptUrl || null,
-          notes: isWireTransfer 
-            ? `Havale/EFT dekontu yüklendi. Onay bekliyor. İşlem No: ${transactionId}` 
-            : (transactionId ? `Web Sanal POS ile (Tüm Kalan) ödendi. İşlem No: ${transactionId}` : 'Web üzerinden (Tüm Kalan) ödendi')
-        })
-        .where(
-          and(
+      const allPendingPayments = await db.query.payments.findMany({
+        where: and(
             eq(payments.fundId, fundId),
             eq(payments.status, 'pending')
-          )
-        );
+        ),
+        orderBy: (p, { asc }) => [asc(p.paymentDate)]
+      });
+
+      if (allPendingPayments.length > 0) {
+          const isSubscription = paymentMethod === 'subscription';
+          // If it's a subscription, only mark the FIRST payment as completed
+          const paymentsToUpdate = isSubscription ? [allPendingPayments[0]] : allPendingPayments;
+
+          await db.update(payments)
+            .set({ 
+              status: isWireTransfer ? 'pending' : 'completed',
+              receiptUrl: receiptUrl || null,
+              paymentMethod: isSubscription ? 'subscription' : 'wire_transfer',
+              notes: isWireTransfer 
+                ? `Havale/EFT dekontu yüklendi. Onay bekliyor. İşlem No: ${transactionId}` 
+                : (transactionId ? `Web Sanal POS ile ${isSubscription ? '(Aylık Abonelik İlk Taksit)' : '(Tüm Kalan)'} ödendi. İşlem No: ${transactionId}` : `Web üzerinden ${isSubscription ? '(Aylık Abonelik)' : '(Tüm Kalan)'} ödendi`)
+            })
+            .where(
+              inArray(payments.id, paymentsToUpdate.map(p => p.id))
+            );
+
+          // Update the REST of the pending payments for this fund to have paymentMethod = 'subscription'
+          if (isSubscription && allPendingPayments.length > 1) {
+             const restIds = allPendingPayments.slice(1).map(p => p.id);
+             await db.update(payments)
+               .set({ paymentMethod: 'subscription' })
+               .where(inArray(payments.id, restIds));
+          }
+      }
     }
 
     if (isWireTransfer) {

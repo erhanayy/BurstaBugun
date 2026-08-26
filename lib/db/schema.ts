@@ -212,6 +212,7 @@ export const payments = pgTable('payments', {
     applicationId: uuid('application_id').references(() => applications.id).notNull(),
     amount: integer('amount').notNull(),
     status: paymentStatusEnum('status').default('pending').notNull(),
+    paymentMethod: text('payment_method').default('wire_transfer'), // 'wire_transfer' | 'subscription'
     paymentDate: timestamp('payment_date'),
     receiptUrl: varchar('receipt_url'),
     notes: text('notes'),

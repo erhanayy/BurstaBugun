@@ -155,6 +155,7 @@ export default async function DashboardLayout({
                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
+                                <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
                                 <NavItem href="/dashboard/admin/donations" icon={Landmark} label="Web Bağış" />
                                 <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
                                 {tenantData?.isSuperAdmin && (
@@ -277,6 +278,7 @@ export default async function DashboardLayout({
                                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
                                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
+                                                <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
                                                 <NavItem href="/dashboard/admin/donations" icon={Landmark} label="Web Bağış" />
                                                 <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
                                                 {tenantData?.isSuperAdmin && (

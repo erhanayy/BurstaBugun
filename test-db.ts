@@ -1,16 +1,30 @@
-import { db } from './lib/db';
-import { tenants } from './lib/db/schema';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
+import { config } from "dotenv";
+config({ path: ".env.local" });
+config({ path: ".env" });
+import { db } from "./lib/db/index.ts";
+import { funds, payments } from "./lib/db/schema.ts";
+import { like, desc } from "drizzle-orm";
 
-async function test() {
-    try {
-        const res = await db.select().from(tenants);
-        console.log("Success:", res.length, "tenants found.");
-        process.exit(0);
-    } catch (e: any) {
-        console.error("DB Error:", e.message);
-        process.exit(1);
-    }
+async function run() {
+  const fundList = await db.query.funds.findMany({
+    where: like(funds.title, '%TEST FON PEŞİN HAVALE%'),
+    orderBy: [desc(funds.createdAt)]
+  });
+  if (fundList.length === 0) { console.log("Fund not found"); return; }
+  
+  for (const fund of fundList.slice(0, 3)) {
+      console.log("-------------------");
+      console.log("Fund:", fund.id, fund.title);
+      const fundPayments = await db.query.payments.findMany({
+        where: (payments, { eq }) => eq(payments.fundId, fund.id)
+      });
+      console.log("Payments count:", fundPayments.length);
+      if (fundPayments.length > 0) {
+        console.log("First payment status:", fundPayments[0].status);
+        console.log("First payment notes:", fundPayments[0].notes);
+        console.log("First payment receipt:", fundPayments[0].receiptUrl);
+      }
+  }
+  process.exit(0);
 }
-test();
+run();

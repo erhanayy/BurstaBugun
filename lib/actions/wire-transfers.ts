@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { payments, applications, fundSelections, fundContributors, funds } from "@/lib/db/schema";
-import { eq, and, isNotNull } from "drizzle-orm";
+import { eq, and, isNotNull, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/actions/notification";
 
@@ -24,18 +24,39 @@ export async function getPendingWireTransfers(tenantId: string) {
             },
             orderBy: (p, { desc }) => [desc(p.createdAt)]
         });
+        const grouped = pendingPayments.reduce((acc, p) => {
+            const key = p.receiptUrl || p.id;
+            if (!acc[key]) {
+                acc[key] = {
+                    id: key,
+                    receiptUrl: p.receiptUrl,
+                    fund: p.fund,
+                    application: p.application,
+                    createdAt: p.createdAt,
+                    totalAmount: 0,
+                    paymentIds: []
+                };
+            }
+            acc[key].totalAmount += (p.amount || 0);
+            acc[key].paymentIds.push(p.id);
+            return acc;
+        }, {} as Record<string, any>);
         
-        return { success: true, data: pendingPayments };
+        const groupedData = Object.values(grouped).sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime());
+        
+        return { success: true, data: groupedData };
     } catch (e) {
         console.error("Error fetching wire transfers:", e);
         return { success: false, error: "Hatali islem" };
     }
 }
 
-export async function approveWireTransfer(paymentId: string) {
+export async function approveWireTransfer(paymentIds: string[]) {
     try {
+        if (!paymentIds || paymentIds.length === 0) return { success: false, error: "Ödeme bulunamadı" };
+
         const payment = await db.query.payments.findFirst({
-            where: eq(payments.id, paymentId),
+            where: eq(payments.id, paymentIds[0]),
             with: { fund: true }
         });
 
@@ -46,7 +67,7 @@ export async function approveWireTransfer(paymentId: string) {
                 status: 'completed',
                 notes: payment.notes ? payment.notes + " (Yönetici Onaylı)" : "Yönetici tarafından Havale/EFT onaylandı"
             })
-            .where(eq(payments.id, paymentId));
+            .where(inArray(payments.id, paymentIds));
 
         // Mark contributor as paid
         if (payment.fund) {
@@ -100,14 +121,16 @@ export async function approveWireTransfer(paymentId: string) {
     }
 }
 
-export async function rejectWireTransfer(paymentId: string) {
+export async function rejectWireTransfer(paymentIds: string[]) {
     try {
+        if (!paymentIds || paymentIds.length === 0) return { success: false, error: "Ödeme bulunamadı" };
+
         await db.update(payments)
             .set({ 
                 status: 'failed',
                 notes: "Havale/EFT Yönetici tarafından reddedildi."
             })
-            .where(eq(payments.id, paymentId));
+            .where(inArray(payments.id, paymentIds));
 
         revalidatePath('/dashboard/wire-transfers');
         return { success: true };

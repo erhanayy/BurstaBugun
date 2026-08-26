@@ -8,10 +8,10 @@ import { toast } from "sonner";
 export function WireTransferList({ payments }: { payments: any[] }) {
     const [loadingId, setLoadingId] = useState<string | null>(null);
 
-    const handleApprove = async (id: string) => {
+    const handleApprove = async (paymentIds: string[]) => {
         if (!confirm("Bu havale ödemesini onaylamak istediğinize emin misiniz?")) return;
-        setLoadingId(id);
-        const res = await approveWireTransfer(id);
+        setLoadingId(paymentIds[0]);
+        const res = await approveWireTransfer(paymentIds);
         if (res.success) {
             toast.success("Ödeme onaylandı!");
         } else {
@@ -20,10 +20,10 @@ export function WireTransferList({ payments }: { payments: any[] }) {
         setLoadingId(null);
     };
 
-    const handleReject = async (id: string) => {
+    const handleReject = async (paymentIds: string[]) => {
         if (!confirm("Bu ödemeyi reddetmek istediğinize emin misiniz?")) return;
-        setLoadingId(id);
-        const res = await rejectWireTransfer(id);
+        setLoadingId(paymentIds[0]);
+        const res = await rejectWireTransfer(paymentIds);
         if (res.success) {
             toast.success("Ödeme reddedildi!");
         } else {
@@ -47,60 +47,77 @@ export function WireTransferList({ payments }: { payments: any[] }) {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {payments.map(payment => (
-                <div key={payment.id} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden hover:shadow-md transition-all flex flex-col h-full">
-                    <div className="p-5 flex-1">
-                        <div className="flex items-start justify-between mb-4">
-                            <h3 className="font-bold text-gray-900 dark:text-white line-clamp-1">{payment.fund?.title || "Bilinmeyen Fon"}</h3>
-                            <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-md">Bekliyor</span>
-                        </div>
-                        
-                        <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4">
-                            {payment.amount?.toLocaleString('tr-TR')} ₺
-                        </div>
-
-                        <div className="space-y-3 mb-6">
-                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                <span className="font-semibold w-24">Öğrenci:</span>
-                                <span className="truncate">{payment.application?.user?.name || payment.application?.user?.email || "Bilinmiyor"}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                <span className="font-semibold w-24">Tarih:</span>
-                                <span>{new Date(payment.createdAt).toLocaleDateString('tr-TR')}</span>
-                            </div>
-                        </div>
-
-                        {payment.receiptUrl && (
-                            <a 
-                                href={payment.receiptUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-2 w-full py-3 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors border border-gray-200 dark:border-zinc-700"
-                            >
-                                <ExternalLink size={18} /> Dekontu Görüntüle
-                            </a>
-                        )}
-                    </div>
-                    <div className="p-4 border-t border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/80 flex items-center justify-between gap-3">
-                        <button 
-                            onClick={() => handleReject(payment.id)}
-                            disabled={loadingId === payment.id}
-                            className="flex-1 py-2.5 flex justify-center items-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg font-medium transition-colors disabled:opacity-50"
-                        >
-                            <XCircle size={18} /> Reddet
-                        </button>
-                        <button 
-                            onClick={() => handleApprove(payment.id)}
-                            disabled={loadingId === payment.id}
-                            className="flex-1 py-2.5 flex justify-center items-center gap-2 text-white bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-colors disabled:opacity-50 shadow-sm"
-                        >
-                            {loadingId === payment.id ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
-                            Onayla
-                        </button>
-                    </div>
-                </div>
-            ))}
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-700 dark:text-gray-300">
+                        <tr>
+                            <th className="px-6 py-4 font-semibold border-b border-gray-100 dark:border-zinc-800">Tarih</th>
+                            <th className="px-6 py-4 font-semibold border-b border-gray-100 dark:border-zinc-800">Öğrenci / Gönderen</th>
+                            <th className="px-6 py-4 font-semibold border-b border-gray-100 dark:border-zinc-800">Fon Adı</th>
+                            <th className="px-6 py-4 font-semibold border-b border-gray-100 dark:border-zinc-800 text-right">Tutar</th>
+                            <th className="px-6 py-4 font-semibold border-b border-gray-100 dark:border-zinc-800 text-center">Dekont</th>
+                            <th className="px-6 py-4 font-semibold border-b border-gray-100 dark:border-zinc-800 text-right">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
+                        {payments.map(payment => (
+                            <tr key={payment.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors">
+                                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
+                                    {new Date(payment.createdAt).toLocaleDateString('tr-TR')}
+                                </td>
+                                <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                    {payment.application?.user?.name || payment.application?.user?.email || "Bilinmiyor"}
+                                </td>
+                                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
+                                    {payment.fund?.title || "Bilinmeyen Fon"}
+                                    {payment.paymentIds.length > 1 && (
+                                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                            Tüm Dönem ({payment.paymentIds.length} Taksit)
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="px-6 py-4 font-bold text-fbiad-dark-blue dark:text-fbiad-blue text-right">
+                                    {payment.totalAmount?.toLocaleString('tr-TR')} ₺
+                                </td>
+                                <td className="px-6 py-4 text-center">
+                                    {payment.receiptUrl ? (
+                                        <a 
+                                            href={payment.receiptUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                                        >
+                                            <ExternalLink size={16} /> Görüntüle
+                                        </a>
+                                    ) : (
+                                        <span className="text-gray-400">-</span>
+                                    )}
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button 
+                                            onClick={() => handleReject(payment.paymentIds)}
+                                            disabled={loadingId === payment.paymentIds[0]}
+                                            className="px-3 py-1.5 flex items-center gap-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium transition-colors disabled:opacity-50 border border-transparent hover:border-red-200 dark:hover:border-red-900/50"
+                                        >
+                                            <XCircle size={16} /> Reddet
+                                        </button>
+                                        <button 
+                                            onClick={() => handleApprove(payment.paymentIds)}
+                                            disabled={loadingId === payment.paymentIds[0]}
+                                            className="px-3 py-1.5 flex items-center gap-1.5 text-white bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-colors disabled:opacity-50 shadow-sm"
+                                        >
+                                            {loadingId === payment.paymentIds[0] ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                                            Onayla
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
