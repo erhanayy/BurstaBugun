@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { applications, funds, payments, users } from "@/lib/db/schema";
+import { applications, funds, payments, users, fundSelections } from "@/lib/db/schema";
 import { and, eq, like, ne } from "drizzle-orm";
 import SubscriptionList from "./subscription-list";
 import { Metadata } from "next";
@@ -14,16 +14,21 @@ export default async function SubscriptionsPage() {
         payment: payments,
         fund: funds,
         application: applications,
-        user: users
+        sponsor: users
     })
     .from(payments)
     .innerJoin(funds, eq(payments.fundId, funds.id))
     .innerJoin(applications, eq(payments.applicationId, applications.id))
-    .innerJoin(users, eq(applications.userId, users.id))
+    .innerJoin(fundSelections, and(
+        eq(fundSelections.fundId, payments.fundId),
+        eq(fundSelections.applicationId, payments.applicationId)
+    ))
+    .innerJoin(users, eq(fundSelections.sponsorId, users.id))
     .where(
         and(
             eq(payments.status, 'pending'),
-            eq(payments.paymentMethod, 'subscription')
+            eq(payments.paymentMethod, 'subscription'),
+            eq(fundSelections.isActive, true)
         )
     );
 
@@ -33,11 +38,11 @@ export default async function SubscriptionsPage() {
             id: p.payment.id,
             fundName: p.fund.title,
             studentName: "Bursiyer (Gizli)", // Simplified for demo, could join with student
-            sponsorName: p.user.fullName,
+            sponsorName: p.sponsor.fullName,
             amount: p.payment.amount,
             dueDate: p.payment.paymentDate ? p.payment.paymentDate.toISOString() : '',
             status: p.payment.status,
-            userId: p.user.id
+            userId: p.sponsor.id
         }));
 
     return (

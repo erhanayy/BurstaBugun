@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "../db";
-import { payments, mokaTokens } from "../db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { payments, mokaTokens, fundSelections } from "../db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
 
@@ -48,9 +48,18 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
                 continue;
             }
 
-            const userId = payment.application?.user?.id;
+            // Find the sponsor for this payment
+            const selection = await db.query.fundSelections.findFirst({
+                where: and(
+                    eq(fundSelections.fundId, payment.fundId),
+                    eq(fundSelections.applicationId, payment.applicationId),
+                    eq(fundSelections.isActive, true)
+                )
+            });
+
+            const userId = selection?.sponsorId;
             if (!userId) {
-                results.push({ paymentId: payment.id, success: false, error: "Kullanıcı bilgisi bulunamadı." });
+                results.push({ paymentId: payment.id, success: false, error: "Bu ödemeye ait bursveren (sponsor) bulunamadı." });
                 continue;
             }
 
