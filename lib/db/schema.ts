@@ -321,7 +321,7 @@ export const tenantApiTokens = pgTable('tenant_api_tokens', {
     tokenIdx: index('tenant_api_tokens_token_idx').on(t.token),
 }));
 
-export const donationStatusEnum = pgEnum('donation_status', ['completed', 'failed', 'refunded']);
+export const donationStatusEnum = pgEnum('donation_status', ['completed', 'failed', 'refunded', 'pending']);
 
 export const donations = pgTable('donations', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -334,6 +334,8 @@ export const donations = pgTable('donations', {
     isAnonymous: boolean('is_anonymous').default(false).notNull(),
     isFbiadMember: boolean('is_fbiad_member').default(false).notNull(),
     wantsMembershipInfo: boolean('wants_membership_info').default(false).notNull(),
+    paymentMethod: text('payment_method').default('credit_card').notNull(),
+    receiptUrl: text('receipt_url'),
     bankTransactionId: text('bank_transaction_id'),
     bankCode: text('bank_code'),
     status: donationStatusEnum('status').default('completed').notNull(),

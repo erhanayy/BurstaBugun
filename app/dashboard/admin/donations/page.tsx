@@ -76,6 +76,8 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
         isFbiadMember: d.isFbiadMember,
         wantsMembershipInfo: d.wantsMembershipInfo,
         status: d.status,
+        paymentMethod: d.paymentMethod,
+        receiptUrl: d.receiptUrl,
         bankTransactionId: d.bankTransactionId || "-",
         dateString: format(new Date(d.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })
     }));
@@ -103,6 +105,7 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
                     <div className="flex-1">
                         <select name="status" defaultValue={searchObj.status || "all"} className="w-full h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-gray-100">
                             <option value="all">Tüm İşlemler</option>
+                            <option value="pending">Onay Bekleyen İşlemler</option>
                             <option value="completed">Başarılı İşlemler</option>
                             <option value="failed">Başarısız İşlemler</option>
                         </select>

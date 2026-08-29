@@ -42,6 +42,12 @@ export default async function ParametersPage() {
     if (!paramMap.has("EXEMPTION_QUESTION_TEXT")) {
         paramMap.set("EXEMPTION_QUESTION_TEXT", "");
     }
+    if (!paramMap.has("TENANT_IBAN")) {
+        paramMap.set("TENANT_IBAN", "");
+    }
+    if (!paramMap.has("TENANT_ACCOUNT_NAME")) {
+        paramMap.set("TENANT_ACCOUNT_NAME", "");
+    }
 
     const seasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
@@ -72,6 +78,8 @@ export default async function ParametersPage() {
                     initialMaskNames={paramMap.get("MASK_STUDENT_NAMES")}
                     initialEnableExemption={paramMap.get("ENABLE_FORMER_STUDENT_EXEMPTION")}
                     initialExemptionText={paramMap.get("EXEMPTION_QUESTION_TEXT")}
+                    initialTenantIban={paramMap.get("TENANT_IBAN")}
+                    initialTenantAccountName={paramMap.get("TENANT_ACCOUNT_NAME")}
                 />
             </div>
 

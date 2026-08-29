@@ -57,6 +57,13 @@
       "when": 1784130622980,
       "tag": "0007_minor_amazoness",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787994699770,
+      "tag": "0008_spooky_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }

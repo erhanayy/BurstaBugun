@@ -17,6 +17,8 @@ import {
     initialMaskNames?: string;
     initialEnableExemption?: string;
     initialExemptionText?: string;
+    initialTenantIban?: string;
+    initialTenantAccountName?: string;
 };
 
 export function ParametersForm({ 
@@ -24,11 +26,15 @@ export function ParametersForm({
     initialMaskNames,
     initialEnableExemption,
     initialExemptionText,
+    initialTenantIban,
+    initialTenantAccountName,
 }: ParametersFormProps) {
     const [maxLimit, setMaxLimit] = useState(initialMaxLimit);
     const [maskNames, setMaskNames] = useState(initialMaskNames === "true");
     const [enableExemption, setEnableExemption] = useState(initialEnableExemption === "true");
     const [exemptionText, setExemptionText] = useState(initialExemptionText || "");
+    const [tenantIban, setTenantIban] = useState(initialTenantIban || "");
+    const [tenantAccountName, setTenantAccountName] = useState(initialTenantAccountName || "");
 
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
@@ -44,6 +50,8 @@ export function ParametersForm({
             await setSystemParameter("MASK_STUDENT_NAMES", maskNames ? "true" : "false", "Bursiyer İsimlerini Maskeli Yaz (True/False)");
             await setSystemParameter("ENABLE_FORMER_STUDENT_EXEMPTION", enableExemption ? "true" : "false", "Eski Bursiyerleri Referans Sisteminden Muaf Tut (True/False)");
             await setSystemParameter("EXEMPTION_QUESTION_TEXT", exemptionText, "Muafiyet Soru Metni (Örn: FBİAD Vakfı Eski Bursiyeriyim)");
+            await setSystemParameter("TENANT_IBAN", tenantIban, "Kurum IBAN Numarası (Havale/EFT bağışları için)");
+            await setSystemParameter("TENANT_ACCOUNT_NAME", tenantAccountName, "Kurum Banka Hesap Adı (Havale/EFT bağışları için)");
             
             setMessage({ text: "Parametreler başarıyla güncellendi.", type: "success" });
             router.refresh();
@@ -138,9 +146,41 @@ export function ParametersForm({
                         />
                     </div>
                 </div>
+                </div>
             </div>
 
-
+            <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Banka Hesap Bilgileri (Havale/EFT)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-900 dark:text-white">Alıcı (Hesap) Adı</label>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-2">
+                            Dış web sitenizde Havale/EFT ile bağış ekranında gösterilecek kurum resmi adıdır.
+                        </p>
+                        <input
+                            type="text"
+                            value={tenantAccountName}
+                            onChange={(e) => setTenantAccountName(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            placeholder="Örn: FBİAD VAKFI"
+                        />
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-900 dark:text-white">IBAN Numarası</label>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-2">
+                            Havale/EFT gönderimleri için IBAN numarasıdır.
+                        </p>
+                        <input
+                            type="text"
+                            value={tenantIban}
+                            onChange={(e) => setTenantIban(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono"
+                            placeholder="Örn: TR00 0000 0000 0000 0000 0000 00"
+                        />
+                    </div>
+                </div>
+            </div>
 
             <div className="pt-6 border-t border-gray-200 dark:border-zinc-800 flex justify-end">
                 <button

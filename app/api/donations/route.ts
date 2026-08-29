@@ -38,7 +38,9 @@ export async function POST(req: Request) {
             bankTransactionId,
             bankCode,
             status,
-            agreementsAccepted
+            agreementsAccepted,
+            paymentMethod,
+            receiptUrl
         } = body;
 
         if (!amount) {
@@ -59,7 +61,9 @@ export async function POST(req: Request) {
             bankTransactionId,
             bankCode,
             agreementsAccepted: !!agreementsAccepted,
-            status: status === 'failed' ? 'failed' : 'completed'
+            paymentMethod: paymentMethod || 'credit_card',
+            receiptUrl: receiptUrl || null,
+            status: status === 'pending' ? 'pending' : (status === 'failed' ? 'failed' : 'completed')
         }).returning();
 
         return NextResponse.json({ 

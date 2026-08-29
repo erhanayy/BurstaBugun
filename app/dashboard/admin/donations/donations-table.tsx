@@ -11,6 +11,8 @@ interface Donation {
     isFbiadMember: boolean;
     wantsMembershipInfo: boolean;
     status: string;
+    paymentMethod: string;
+    receiptUrl: string | null;
     bankTransactionId: string;
     dateString: string;
 }
@@ -35,7 +37,7 @@ export default function DonationsTable({ donations }: { donations: Donation[] })
                             <th className="px-4 py-3 font-medium">İletişim</th>
                             <th className="px-4 py-3 font-medium text-right">Tutar</th>
                             <th className="px-4 py-3 font-medium text-center">İşlem Durumu</th>
-                            <th className="px-4 py-3 font-medium text-right">İşlem No</th>
+                            <th className="px-4 py-3 font-medium text-right">Ödeme Tipi & Dekont</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
@@ -79,14 +81,33 @@ export default function DonationsTable({ donations }: { donations: Donation[] })
                                         <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800 px-2.5 py-1 rounded-full text-xs font-semibold">
                                             Başarılı
                                         </span>
+                                    ) : item.status === 'pending' ? (
+                                        <span className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 px-2.5 py-1 rounded-full text-xs font-semibold">
+                                            Onay Bekliyor
+                                        </span>
                                     ) : (
                                         <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 px-2.5 py-1 rounded-full text-xs font-semibold">
                                             Başarısız
                                         </span>
                                     )}
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-xs text-gray-500">
-                                    {item.bankTransactionId}
+                                <td className="px-4 py-3 whitespace-nowrap text-right">
+                                    <div className="flex flex-col items-end gap-1">
+                                        {item.paymentMethod === 'wire_transfer' ? (
+                                            <span className="font-semibold text-xs text-fbiad-dark-blue">Havale / EFT</span>
+                                        ) : (
+                                            <span className="font-semibold text-xs text-gray-600">Kredi Kartı</span>
+                                        )}
+                                        
+                                        {item.paymentMethod === 'wire_transfer' && item.receiptUrl && (
+                                            <a href={item.receiptUrl} target="_blank" rel="noreferrer" className="text-[11px] text-blue-600 hover:underline">
+                                                Dekontu Gör
+                                            </a>
+                                        )}
+                                        {item.paymentMethod === 'credit_card' && (
+                                            <span className="font-mono text-xs text-gray-500">{item.bankTransactionId}</span>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
