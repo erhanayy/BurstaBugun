@@ -85,9 +85,12 @@ export async function createPaymentSession(fundId: string) {
     
     // Explicitly assigned students ONLY (for everyone, including owner)
     let myAppIds: string[] = stableSelections
-        .filter(s => s.sponsorId === tenantData.userId)
+        .filter(s => s.sponsorId === tenantData.userId || (!s.sponsorId && isOwner))
         .map(s => s.applicationId);
 
+    // If this is a general fund (no selections), owner should see ALL pending payments 
+    // (Wait, if there are no selections, then there are no payments because payments are tied to applications)
+    
     const displayedPayments = fundPayments.filter(p => myAppIds.includes(p.applicationId));
 
     if (displayedPayments.length === 0) {
