@@ -11,6 +11,7 @@ import {
     Landmark,
     LogOut,
     Menu,
+    PlusCircle,
     Wallet,
     Workflow,
     Bell,
@@ -125,6 +126,7 @@ export default async function DashboardLayout({
                         {(userRole === 'sponsor' || userRole === 'admin') && (
                             <CollapsibleNavSection title="Burs Fonları" storageKey="sponsor">
                                 <NavItem href="/dashboard/funds/flow" icon={Workflow} label="Fon Akışı" />
+                                <NavItem href="/dashboard/fast-fund" icon={PlusCircle} label="Hızlı Fon (Sihirbaz)" />
                                 <NavItem href="/dashboard/funds" icon={Landmark} label="Fonlarım / Desteklerim" />
                                 <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
                                 <NavItem href="/dashboard/pool" icon={Users} label="Bursiyer Havuzu" />

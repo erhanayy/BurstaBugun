@@ -62,7 +62,7 @@ type Season = {
     defaultFundDuration: number | null;
 };
 
-export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: boolean }) {
+export function FundForm({ seasons, isAdmin, onSuccessRedirect }: { seasons?: Season[], isAdmin?: boolean, onSuccessRedirect?: string }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [seasonError, setSeasonError] = useState("");
@@ -154,7 +154,11 @@ export function FundForm({ seasons, isAdmin }: { seasons?: Season[], isAdmin?: b
 
                 if (result.success) {
                     toast.success("Fon başarıyla oluşturuldu!");
-                    router.push(`/dashboard/funds`);
+                    if (onSuccessRedirect) {
+                        router.push(onSuccessRedirect.replace('{fundId}', result.fundId));
+                    } else {
+                        router.push(`/dashboard/funds`);
+                    }
                     router.refresh();
                 }
             } catch (error: any) {
