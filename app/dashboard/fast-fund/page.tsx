@@ -25,29 +25,33 @@ export default async function FastFundPage({ searchParams }: { searchParams: Pro
     });
 
     const Stepper = () => (
-        <div className="max-w-4xl mx-auto mb-8">
+        <div className="max-w-3xl mx-auto mb-12 mt-6">
             <div className="flex items-center justify-between relative">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 rounded-full -z-10"></div>
+                {/* Connecting Line */}
+                <div className="absolute left-8 right-8 top-1/2 -translate-y-1/2 h-0.5 bg-[#e2e8f0] -z-10"></div>
                 
-                <div className="flex flex-col items-center bg-white dark:bg-zinc-950 px-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-4 ${step === "1" ? "border-blue-500 bg-blue-50 text-blue-600" : "border-emerald-500 bg-emerald-50 text-emerald-600"}`}>
-                        {step === "1" ? "1" : <CheckCircle2 className="w-5 h-5" />}
+                {/* Step 1 */}
+                <div className="flex flex-col items-center relative bg-transparent z-10 w-24">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-colors ${step === "1" || step === "2" || step === "3" ? "bg-blue-600 text-white shadow-md border-0" : "bg-white text-gray-400 border-2 border-gray-200"}`}>
+                        1
                     </div>
-                    <span className={`text-xs font-medium mt-2 ${step === "1" ? "text-blue-600" : "text-emerald-600"}`}>Fon Bilgileri</span>
+                    <span className={`text-[13px] font-semibold mt-3 text-center w-full ${step === "1" || step === "2" || step === "3" ? "text-blue-600" : "text-gray-400"}`}>Fon Bilgileri</span>
                 </div>
 
-                <div className="flex flex-col items-center bg-white dark:bg-zinc-950 px-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-4 ${step === "2" ? "border-blue-500 bg-blue-50 text-blue-600" : step === "3" ? "border-emerald-500 bg-emerald-50 text-emerald-600" : "border-gray-200 bg-gray-50 text-gray-400"}`}>
-                        {step === "2" ? "2" : step === "3" ? <CheckCircle2 className="w-5 h-5" /> : "2"}
+                {/* Step 2 */}
+                <div className="flex flex-col items-center relative bg-transparent z-10 w-24">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-colors ${step === "2" || step === "3" ? "bg-blue-600 text-white shadow-md border-0" : "bg-white text-gray-400 border-2 border-gray-200"}`}>
+                        2
                     </div>
-                    <span className={`text-xs font-medium mt-2 ${step === "2" ? "text-blue-600" : step === "3" ? "text-emerald-600" : "text-gray-400"}`}>Bursiyer Seçimi</span>
+                    <span className={`text-[13px] font-semibold mt-3 text-center w-full ${step === "2" || step === "3" ? "text-blue-600" : "text-gray-400"}`}>Öğrenci Seçimi</span>
                 </div>
 
-                <div className="flex flex-col items-center bg-white dark:bg-zinc-950 px-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-4 ${step === "3" ? "border-blue-500 bg-blue-50 text-blue-600" : "border-gray-200 bg-gray-50 text-gray-400"}`}>
+                {/* Step 3 */}
+                <div className="flex flex-col items-center relative bg-transparent z-10 w-24">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-colors ${step === "3" ? "bg-blue-600 text-white shadow-md border-0" : "bg-white text-gray-400 border-2 border-gray-200"}`}>
                         3
                     </div>
-                    <span className={`text-xs font-medium mt-2 ${step === "3" ? "text-blue-600" : "text-gray-400"}`}>Özet & Ödeme</span>
+                    <span className={`text-[13px] font-semibold mt-3 text-center w-full ${step === "3" ? "text-blue-600" : "text-gray-400"}`}>Özet & Ödeme</span>
                 </div>
             </div>
         </div>

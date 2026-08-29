@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CreditCard, Wallet, Users, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { getSystemParameter } from "@/lib/actions/parameters";
+import AppPaymentButton from "../funds/[id]/payment/app-payment-button";
 
 export default async function SummaryPage({ fundId }: { fundId: string }) {
     const tenantData = await getCurrentTenant();
@@ -139,12 +140,9 @@ export default async function SummaryPage({ fundId }: { fundId: string }) {
                         </div>
                         
                         {totalMonthlyAmount > 0 ? (
-                            <Link href={`/api/app-payment/execute?fundId=${fund.id}`}>
-                                <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-6 rounded-xl shadow-lg w-full md:w-auto text-lg">
-                                    <CreditCard className="w-6 h-6 mr-2" />
-                                    Kredi Kartı ile Öde
-                                </Button>
-                            </Link>
+                            <div className="w-full md:w-auto scale-110 origin-right">
+                                <AppPaymentButton fundId={fund.id} />
+                            </div>
                         ) : (
                             <div className="text-red-500 font-medium text-sm">Geçerli bir tutar bulunamadı.</div>
                         )}
