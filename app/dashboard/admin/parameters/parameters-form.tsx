@@ -146,7 +146,6 @@ export function ParametersForm({
                         />
                     </div>
                 </div>
-                </div>
             </div>
 
             <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
