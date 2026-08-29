@@ -76,6 +76,16 @@ export async function POST(request: Request) {
         }
       }
     } else if (paymentIds && Array.isArray(paymentIds) && paymentIds.length > 0) {
+      // Flatten comma-separated IDs if any
+      let finalPaymentIds: string[] = [];
+      paymentIds.forEach((pid: string) => {
+          if (pid.includes(',')) {
+              finalPaymentIds.push(...pid.split(','));
+          } else {
+              finalPaymentIds.push(pid);
+          }
+      });
+
       // Geriye dönük uyumluluk: Sadece gönderilen ödeme ID'lerini tamamlandı olarak işaretle
       await db.update(payments)
         .set({ 
@@ -89,7 +99,7 @@ export async function POST(request: Request) {
           and(
             eq(payments.fundId, fundId),
             eq(payments.status, 'pending'),
-            inArray(payments.id, paymentIds)
+            inArray(payments.id, finalPaymentIds)
           )
         );
     } else {

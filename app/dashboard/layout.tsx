@@ -17,7 +17,8 @@ import {
     Bell,
     Route,
     ChevronDown,
-    UploadCloud
+    UploadCloud,
+    Briefcase
 } from "lucide-react";
 
 import { getCurrentTenant } from "@/lib/data/tenant";
@@ -155,6 +156,7 @@ export default async function DashboardLayout({
                         {/* Sistem Yönetimi (Super Admin veya Admin) */}
                         {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
+                                <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
                                 <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
@@ -278,6 +280,7 @@ export default async function DashboardLayout({
                                         {/* Sistem Yönetimi (Super Admin veya Admin) */}
                                         {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
                                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
+                                                <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
                                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
                                                 <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />

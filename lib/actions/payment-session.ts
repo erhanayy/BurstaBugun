@@ -97,16 +97,35 @@ export async function createPaymentSession(fundId: string) {
       return { success: false, error: 'Size atanmış ödenecek bekleyen taksit bulunamadı' };
     }
 
-    const toplamTutar = displayedPayments.reduce((acc, p) => acc + (p.amount || 0), 0);
-    const tekilTutar = displayedPayments[0].amount || 0;
-    const taksitMi = fund.paymentMethod === 'upfront' ? false : displayedPayments.length > 1;
+    const isArdaErel = adSoyad.toLowerCase().includes('arda erel');
+    const groupedPlanMap = new Map<string, PaymentPlanItem>();
 
-    const plan: PaymentPlanItem[] = displayedPayments.map(p => ({
-      id: p.id,
-      amount: p.amount || 0,
-      date: p.paymentDate?.toISOString() || new Date().toISOString(),
-      status: p.status || 'pending'
-    }));
+    displayedPayments.forEach(p => {
+        let groupKey = p.id; // Default to no grouping
+
+        if (!isArdaErel && p.paymentDate) {
+            groupKey = `${p.paymentDate.getFullYear()}-${String(p.paymentDate.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        if (!groupedPlanMap.has(groupKey)) {
+            groupedPlanMap.set(groupKey, {
+                id: p.id,
+                amount: p.amount || 0,
+                date: p.paymentDate?.toISOString() || new Date().toISOString(),
+                status: p.status || 'pending'
+            });
+        } else {
+            const existing = groupedPlanMap.get(groupKey)!;
+            existing.amount += (p.amount || 0);
+            existing.id += `,${p.id}`; // Combine IDs with comma
+        }
+    });
+
+    const plan: PaymentPlanItem[] = Array.from(groupedPlanMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const toplamTutar = plan.reduce((acc, p) => acc + p.amount, 0);
+    const tekilTutar = plan.length > 0 ? plan[0].amount : 0;
+    const taksitMi = fund.paymentMethod === 'upfront' ? false : plan.length > 1;
 
     const isProdEnv = process.env.LIVE_ENV === 'true';
     const appDomain = isProdEnv ? 'https://burs.fbiadvakfi.org' : 'http://localhost:3000';

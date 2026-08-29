@@ -42,28 +42,65 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
         let successCount = 0;
         const results = [];
 
+        // Group the payments by userId + fundId + paymentDate (Month-Year)
+        const groups = new Map<string, { payments: typeof pendingPayments, amount: number, userId: string, fundId: string, fundTitle: string, isArdaErel: boolean }>();
+
+        // Fetch users to check for Arda Erel exception
+        const allUserIds = [...new Set(pendingPayments.map(p => p.application?.user?.id).filter(Boolean))];
+        // Wait, the sponsor is not the student. The sponsor is fetched via fundSelections.
+        // Let's fetch the selections inside the loop and get the user.
+
         for (const payment of pendingPayments) {
             if (payment.status !== 'pending') {
                 results.push({ paymentId: payment.id, success: false, error: "Bu kayıt zaten ödenmiş veya bekleyen durumunda değil." });
                 continue;
             }
 
-            // Find the sponsor for this payment
             const selection = await db.query.fundSelections.findFirst({
                 where: and(
                     eq(fundSelections.fundId, payment.fundId),
                     eq(fundSelections.applicationId, payment.applicationId),
                     eq(fundSelections.isActive, true)
-                )
+                ),
+                with: {
+                    sponsor: true
+                }
             });
 
             const userId = selection?.sponsorId;
-            if (!userId) {
+            if (!userId || !selection.sponsor) {
                 results.push({ paymentId: payment.id, success: false, error: "Bu ödemeye ait bursveren (sponsor) bulunamadı." });
                 continue;
             }
 
-            // Fetch the user's Moka Card Token dynamically from Moka
+            const sponsorName = selection.sponsor.fullName || '';
+            const isArdaErel = sponsorName.toLowerCase().includes('arda erel');
+
+            let groupKey = payment.id; // Default to no grouping for exceptions
+
+            if (!isArdaErel) {
+                const monthYear = payment.paymentDate ? `${payment.paymentDate.getFullYear()}-${payment.paymentDate.getMonth()}` : 'unknown';
+                groupKey = `${userId}-${payment.fundId}-${monthYear}`;
+            }
+
+            if (!groups.has(groupKey)) {
+                groups.set(groupKey, {
+                    payments: [payment],
+                    amount: payment.amount || 0,
+                    userId,
+                    fundId: payment.fundId,
+                    fundTitle: payment.fund?.title || 'Aylık',
+                    isArdaErel
+                });
+            } else {
+                const existing = groups.get(groupKey)!;
+                existing.payments.push(payment);
+                existing.amount += (payment.amount || 0);
+            }
+        }
+
+        // Now charge per group
+        for (const [groupKey, group] of groups.entries()) {
             let tokenCode = "";
             try {
                 const cardListPayload = {
@@ -75,7 +112,7 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
                     },
                     DealerCustomerRequest: {
                         DealerCustomerId: "",
-                        CustomerCode: userId
+                        CustomerCode: group.userId
                     }
                 };
                 const cardListRes = await fetch(`${MOKA_API_URL}/DealerCustomer/GetCardList`, {
@@ -94,7 +131,7 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
             }
 
             if (!tokenCode) {
-                results.push({ paymentId: payment.id, success: false, error: "Moka üzerinde bu kullanıcıya ait saklı kart bulunamadı." });
+                group.payments.forEach(p => results.push({ paymentId: p.id, success: false, error: "Moka üzerinde bu kullanıcıya ait saklı kart bulunamadı." }));
                 continue;
             }
 
@@ -113,17 +150,17 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
                     ExpYear: "",
                     CvcNumber: "",
                     CardToken: tokenCode,
-                    Amount: payment.amount,
+                    Amount: group.amount, // COMBINED AMOUNT
                     Currency: "TL",
                     InstallmentNumber: 1,
                     ClientIP: "127.0.0.1",
-                    OtherTrxCode: `MOKA-SUB-${payment.id}`,
+                    OtherTrxCode: group.isArdaErel ? `MOKA-SUB-${group.payments[0].id}` : `MOKA-SUB-GRP-${Date.now()}`,
                     SubMerchantName: "",
                     IsPoolPayment: 0,
-                    IsTokenized: 0, // MUST BE 0 WHEN USING A TOKEN. 1 means "Save New Card"
+                    IsTokenized: 0,
                     IntegratorId: 0,
                     Software: "BurstaBugun",
-                    Description: `${payment.fund?.title || 'Aylık'} - Burs Bagisi`,
+                    Description: group.isArdaErel ? `${group.fundTitle} - Burs Bagisi` : `${group.fundTitle} - Toplu Burs Bagisi`,
                     IsPreAuth: 0
                 }
             };
@@ -137,20 +174,20 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
             const data = await response.json();
 
             if (data.ResultCode === "Success" && data.Data && data.Data.IsSuccessful) {
-                // Payment successful
+                // Payment successful - Update ALL payments in this group
                 await db.update(payments)
                     .set({ 
                         status: 'completed',
-                        notes: `Aylık Otomatik Çekim Başarılı (Moka Non-3D). İşlem No: ${data.Data.VirtualPosOrderId || data.Data.trxCode || ''}` 
+                        notes: `Aylık Otomatik Çekim Başarılı${group.isArdaErel ? '' : ' (Toplu Çekim)'}. İşlem No: ${data.Data.VirtualPosOrderId || data.Data.trxCode || ''}` 
                     })
-                    .where(eq(payments.id, payment.id));
+                    .where(inArray(payments.id, group.payments.map(p => p.id)));
                 
                 successCount++;
-                results.push({ paymentId: payment.id, success: true });
+                group.payments.forEach(p => results.push({ paymentId: p.id, success: true }));
             } else {
                 // Payment failed
                 console.error("Moka Charge Error:", JSON.stringify(data));
-                results.push({ paymentId: payment.id, success: false, error: data.ResultMessage || data.ResultCode || "Moka işlemi reddetti." });
+                group.payments.forEach(p => results.push({ paymentId: p.id, success: false, error: data.ResultMessage || data.ResultCode || "Moka işlemi reddetti." }));
             }
         }
 

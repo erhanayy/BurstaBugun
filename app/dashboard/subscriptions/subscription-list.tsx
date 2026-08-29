@@ -55,12 +55,21 @@ export default function SubscriptionList({ initialData }: { initialData: Subscri
         }
     };
 
-    const handleCharge = async (paymentIds: string[]) => {
-        if (paymentIds.length === 0) return;
+    const handleCharge = async (groupedPaymentIds: string[]) => {
+        if (groupedPaymentIds.length === 0) return;
         
+        let allIds: string[] = [];
+        groupedPaymentIds.forEach(idStr => {
+            if (idStr.includes(',')) {
+                allIds.push(...idStr.split(','));
+            } else {
+                allIds.push(idStr);
+            }
+        });
+
         setIsCharging(true);
         try {
-            const result = await chargeSubscriptionPayments(paymentIds);
+            const result = await chargeSubscriptionPayments(allIds);
             if (result.success) {
                 alert("İşlem Başarılı: " + result.message);
                 setSelectedIds([]);
