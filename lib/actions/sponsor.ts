@@ -186,6 +186,7 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
         applicationId: applicationId,
         amount: amountToAdd,
         paymentType: 'one_time',
+        sponsorId: tenantData.userId
     });
 
     // Update application status

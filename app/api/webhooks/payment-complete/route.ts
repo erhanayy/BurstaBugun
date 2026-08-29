@@ -31,8 +31,9 @@ export async function POST(request: Request) {
       });
       
       const stableSelections = [...(fund?.selections || [])].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      const isOwner = fund?.ownerId === userId;
       const myAppIds = stableSelections
-          .filter((s: any) => s.sponsorId === userId)
+          .filter((s: any) => s.sponsorId === userId || (!s.sponsorId && isOwner))
           .map((s: any) => s.applicationId);
 
       // Find all pending payments for this fund
@@ -53,15 +54,26 @@ export async function POST(request: Request) {
       const paymentsToMark = myPendingPayments.slice(0, count).map(p => p.id);
 
       if (paymentsToMark.length > 0) {
+        const isSubscription = paymentMethod === 'subscription';
+        
         await db.update(payments)
           .set({ 
             status: isWireTransfer ? 'pending' : 'completed',
             receiptUrl: receiptUrl || null,
+            paymentMethod: isSubscription ? 'subscription' : (isWireTransfer ? 'wire_transfer' : undefined),
             notes: isWireTransfer 
               ? `Havale/EFT dekontu yüklendi. Onay bekliyor. İşlem No: ${transactionId}` 
-              : (transactionId ? `Web Sanal POS ile ödendi. İşlem No: ${transactionId}` : 'Web üzerinden ödendi')
+              : (transactionId ? `Web Sanal POS ile ${isSubscription ? '(Aylık Abonelik İlk Taksit)' : 'ödendi'}. İşlem No: ${transactionId}` : 'Web üzerinden ödendi')
           })
           .where(inArray(payments.id, paymentsToMark));
+
+        // Update the REST of the pending payments for this user's apps to have paymentMethod = 'subscription'
+        if (isSubscription && myPendingPayments.length > count) {
+             const restIds = myPendingPayments.slice(count).map(p => p.id);
+             await db.update(payments)
+               .set({ paymentMethod: 'subscription' })
+               .where(inArray(payments.id, restIds));
+        }
       }
     } else if (paymentIds && Array.isArray(paymentIds) && paymentIds.length > 0) {
       // Geriye dönük uyumluluk: Sadece gönderilen ödeme ID'lerini tamamlandı olarak işaretle

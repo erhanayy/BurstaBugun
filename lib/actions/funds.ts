@@ -50,7 +50,16 @@ export async function createFund(data: {
             inviteePhone: owner.phoneNumber || null,
             inviteeName: owner.fullName,
             role: "bursveren",
-            status: "pending"
+            status: "accepted"
+        });
+
+        // Auto-add as contributor since they created it
+        await db.insert(fundContributors).values({
+            fundId: newFund.id,
+            userId: owner.id,
+            amount: data.monthlyLimit || 0,
+            studentCount: data.targetStudentCount || 1,
+            isActive: true
         });
     }
 
