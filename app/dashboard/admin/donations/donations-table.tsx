@@ -30,7 +30,7 @@ export default function DonationsTable({ donations }: { donations: Donation[] })
         if (status === 'completed' && !window.confirm("Bu ödemenin hesaba geçtiğini onaylıyor musunuz?")) return;
 
         setProcessingId(id);
-        const res = await updateDonationStatus(parseInt(id), status);
+        const res = await updateDonationStatus(id, status);
         if (res.success) {
             toast.success(status === 'completed' ? "İşlem onaylandı." : "İşlem reddedildi.");
         } else {

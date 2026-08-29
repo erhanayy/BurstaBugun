@@ -6,7 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { revalidatePath } from "next/cache";
 
-export async function updateDonationStatus(donationId: number, status: 'completed' | 'failed' | 'pending') {
+export async function updateDonationStatus(donationId: string, status: 'completed' | 'failed' | 'pending') {
     const tenantData = await getCurrentTenant();
     if (!tenantData || !['admin', 'superadmin'].includes(tenantData.userRole) && !tenantData.isSuperAdmin) {
         return { success: false, error: "Yetkisiz işlem." };
