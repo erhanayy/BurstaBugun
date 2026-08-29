@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import DonationsTable from "./donations-table";
 
-export default async function AdminDonationsPage({ searchParams }: { searchParams: { search?: string, year?: string, month?: string, status?: string, fbiadMember?: string, wantsInfo?: string } }) {
+export default async function AdminDonationsPage({ searchParams }: { searchParams: { search?: string, year?: string, month?: string, status?: string, paymentMethod?: string, fbiadMember?: string, wantsInfo?: string } }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData || !['admin', 'superadmin'].includes(tenantData.userRole) && !tenantData.isSuperAdmin) {
         return redirect("/unauthorized");
@@ -20,6 +20,7 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
     const targetMonth = searchObj.month === "" ? null : (searchObj.month ? parseInt(searchObj.month) : null);
     const targetYear = searchObj.year === "" ? null : (searchObj.year ? parseInt(searchObj.year) : null);
     const targetStatus = searchObj.status || "all";
+    const paymentMethod = searchObj.paymentMethod || "all";
     const fbiadMember = searchObj.fbiadMember;
     const wantsInfo = searchObj.wantsInfo;
 
@@ -28,6 +29,10 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
 
     if (targetStatus !== "all") {
         conditions.push(eq(donations.status, targetStatus as any));
+    }
+
+    if (paymentMethod !== "all") {
+        conditions.push(eq(donations.paymentMethod, paymentMethod));
     }
 
     if (fbiadMember === "true") {
@@ -102,12 +107,17 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
                             className="w-full pl-9 h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 flex gap-2">
                         <select name="status" defaultValue={searchObj.status || "all"} className="w-full h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-gray-100">
                             <option value="all">Tüm İşlemler</option>
                             <option value="pending">Onay Bekleyen İşlemler</option>
                             <option value="completed">Başarılı İşlemler</option>
                             <option value="failed">Başarısız İşlemler</option>
+                        </select>
+                        <select name="paymentMethod" defaultValue={searchObj.paymentMethod || "all"} className="w-full h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-gray-100">
+                            <option value="all">Tüm Yöntemler</option>
+                            <option value="credit_card">Kredi Kartı</option>
+                            <option value="wire_transfer">Havale / EFT</option>
                         </select>
                     </div>
                     <div className="flex-1 flex gap-2">

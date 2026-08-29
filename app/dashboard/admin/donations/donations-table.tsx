@@ -1,5 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import { updateDonationStatus } from "@/lib/actions/donations";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { toast } from "sonner";
+
 interface Donation {
     id: string;
     donorName: string;
@@ -18,6 +23,22 @@ interface Donation {
 }
 
 export default function DonationsTable({ donations }: { donations: Donation[] }) {
+    const [processingId, setProcessingId] = useState<string | null>(null);
+
+    const handleAction = async (id: string, status: 'completed' | 'failed') => {
+        if (status === 'failed' && !window.confirm("Bu işlemi reddetmek istediğinize emin misiniz?")) return;
+        if (status === 'completed' && !window.confirm("Bu ödemenin hesaba geçtiğini onaylıyor musunuz?")) return;
+
+        setProcessingId(id);
+        const res = await updateDonationStatus(parseInt(id), status);
+        if (res.success) {
+            toast.success(status === 'completed' ? "İşlem onaylandı." : "İşlem reddedildi.");
+        } else {
+            toast.error(res.error || "Bir hata oluştu.");
+        }
+        setProcessingId(null);
+    };
+
     if (donations.length === 0) {
         return (
             <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-8 text-center text-gray-500">
@@ -82,9 +103,29 @@ export default function DonationsTable({ donations }: { donations: Donation[] })
                                             Başarılı
                                         </span>
                                     ) : item.status === 'pending' ? (
-                                        <span className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 px-2.5 py-1 rounded-full text-xs font-semibold">
-                                            Onay Bekliyor
-                                        </span>
+                                        <div className="flex flex-col items-center gap-2">
+                                            <span className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 px-2.5 py-1 rounded-full text-xs font-semibold">
+                                                Onay Bekliyor
+                                            </span>
+                                            <div className="flex gap-2 mt-1">
+                                                <button
+                                                    onClick={() => handleAction(item.id, 'completed')}
+                                                    disabled={processingId === item.id}
+                                                    className="p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
+                                                    title="Onayla"
+                                                >
+                                                    <CheckCircle2 className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleAction(item.id, 'failed')}
+                                                    disabled={processingId === item.id}
+                                                    className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                                                    title="Reddet"
+                                                >
+                                                    <XCircle className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     ) : (
                                         <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 px-2.5 py-1 rounded-full text-xs font-semibold">
                                             Başarısız
