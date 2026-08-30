@@ -137,10 +137,13 @@ export default function FundDetailTabs({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
-                            {payments.map(p => (
+                            {payments.map(p => {
+                                const displayDate = p.paymentDate ? new Date(p.paymentDate) : new Date(p.createdAt);
+                                return (
                                 <tr key={p.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/30">
                                     <td className="px-6 py-4 whitespace-nowrap text-gray-600 dark:text-gray-400">
-                                        {format(new Date(p.createdAt), "dd MMM yyyy", { locale: tr })}
+                                        <div className="font-medium">{format(displayDate, "MMMM yyyy", { locale: tr })}</div>
+                                        <div className="text-xs text-gray-400">{format(displayDate, "dd MMM yyyy", { locale: tr })}</div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="font-medium text-gray-900 dark:text-white">
@@ -168,7 +171,8 @@ export default function FundDetailTabs({
                                         )}
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                             {payments.length === 0 && (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Bu fona ait henüz bir ödeme kaydı bulunmuyor.</td>
