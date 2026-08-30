@@ -64,7 +64,7 @@ export default function FundsTable({ funds }: { funds: Fund[] }) {
                                     </div>
                                     <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-2">
                                         <div 
-                                            className="bg-fbiad-blue h-2 rounded-full transition-all" 
+                                            className="bg-blue-600 h-2 rounded-full transition-all" 
                                             style={{ width: `${progressPercentage}%` }}
                                         ></div>
                                     </div>
@@ -75,7 +75,7 @@ export default function FundsTable({ funds }: { funds: Fund[] }) {
                         <div className="border-t border-gray-100 dark:border-zinc-800 p-4 bg-gray-50/50 dark:bg-zinc-800/20">
                             <Link 
                                 href={`/dashboard/admin/funds/${fund.id}`}
-                                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-fbiad-blue hover:text-fbiad-dark-blue transition-colors"
+                                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
                             >
                                 Detayları Gör <ChevronRight className="w-4 h-4" />
                             </Link>

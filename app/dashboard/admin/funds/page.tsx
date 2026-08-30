@@ -92,7 +92,7 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
 
     return (
         <div className="space-y-6">
-            <div className="bg-fbiad-blue/10 border border-fbiad-blue/30 rounded-xl p-4 flex gap-3 text-sm text-fbiad-dark-blue">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 text-sm text-blue-900">
                 <Briefcase className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <p>
                     Aşağıdaki liste, sistemde tanımlı olan tüm fonları ve genel durumlarını göstermektedir.
@@ -106,7 +106,7 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
                         name="search"
                         defaultValue={searchObj.search}
                         placeholder="Fon Adı veya Kurucu Adı..."
-                        className="w-full pl-9 h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-fbiad-blue"
+                        className="w-full pl-9 h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
                 <div className="flex-1">
@@ -124,7 +124,7 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
                         <option value="completed">Kapanmış Fonlar</option>
                     </select>
                 </div>
-                <button type="submit" className="w-full md:w-auto h-10 px-8 bg-fbiad-blue text-white rounded-md text-sm font-medium hover:bg-fbiad-dark-blue whitespace-nowrap flex-shrink-0">
+                <button type="submit" className="w-full md:w-auto h-10 px-8 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 whitespace-nowrap flex-shrink-0">
                     Ara
                 </button>
             </form>
