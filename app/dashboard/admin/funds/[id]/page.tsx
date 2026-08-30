@@ -9,13 +9,14 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import FundDetailTabs from "./fund-detail-tabs";
 
-export default async function AdminFundDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminFundDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData || !['admin', 'superadmin'].includes(tenantData.userRole) && !tenantData.isSuperAdmin) {
         return redirect("/unauthorized");
     }
 
-    const fundId = params.id;
+    const resolvedParams = await params;
+    const fundId = resolvedParams.id;
 
     // 1. Fetch Fund Details
     const fund = await db.query.funds.findFirst({

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { funds } from "@/lib/db/schema";
+import { funds, parametersTenantSeasons } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, desc, and, ilike, or } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -47,18 +47,27 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
         }
     });
 
+    // Fetch seasons to map UUIDs to period text
+    const allSeasons = await db.query.parametersTenantSeasons.findMany({
+        where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+    });
+    const seasonMap = new Map<string, string>();
+    allSeasons.forEach(s => seasonMap.set(s.id, s.period));
+
     const uiFunds = fundsList.map(f => {
-        // Fon araması owner ismi ile de eşleşmeli (ilike yukarda owner'da join yapmadığı için burada filter yapıyoruz)
+        // Fon araması owner ismi ile de eşleşmeli
         const matchSearch = searchObj.search ? (
             f.title.toLowerCase().includes(searchObj.search.toLowerCase()) || 
             (f.owner?.name || "").toLowerCase().includes(searchObj.search.toLowerCase())
         ) : true;
 
+        const periodDisplay = f.period ? (seasonMap.get(f.period) || f.period) : "-";
+
         return {
             id: f.id,
             title: f.title,
             ownerName: f.owner?.name || "Bilinmiyor",
-            period: f.period || "-",
+            period: periodDisplay,
             targetStudentCount: f.targetStudentCount || 0,
             matchedStudentCount: f.selections.length,
             isActive: f.isActive,
@@ -67,12 +76,19 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
     }).filter(f => f.matchSearch);
 
     // Get unique periods for filter
+    // Get unique periods for filter using the season mapping
     const allPeriods = await db.query.funds.findMany({
         where: eq(funds.tenantId, tenantData.tenantId),
         columns: { period: true }
     });
-    const uniquePeriods = Array.from(new Set(allPeriods.map(p => p.period).filter(Boolean)));
-    uniquePeriods.sort((a, b) => (b || "").localeCompare(a || ""));
+    
+    // We create a list of {id, text} for the dropdown
+    const uniquePeriodIds = Array.from(new Set(allPeriods.map(p => p.period).filter(Boolean)));
+    const uniquePeriods = uniquePeriodIds.map(id => ({
+        id: id as string,
+        text: seasonMap.get(id as string) || id as string
+    }));
+    uniquePeriods.sort((a, b) => b.text.localeCompare(a.text));
 
     return (
         <div className="space-y-6">
@@ -97,7 +113,7 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
                     <select name="period" defaultValue={targetPeriod} className="w-full h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-gray-100">
                         <option value="all">Tüm Dönemler</option>
                         {uniquePeriods.map(p => (
-                            <option key={p} value={p!}>{p}</option>
+                            <option key={p.id} value={p.id}>{p.text}</option>
                         ))}
                     </select>
                 </div>
