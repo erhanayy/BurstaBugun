@@ -50,8 +50,33 @@ export async function POST(request: Request) {
           ? fundPayments.filter(p => myAppIds.includes(p.applicationId))
           : fundPayments; // Fallback if no specific apps (e.g. general contributor)
 
-      // Take only the first `count` items
-      const paymentsToMark = myPendingPayments.slice(0, count).map(p => p.id);
+      // Group pending payments by month to handle multi-student grouped payments correctly
+      const groupedByMonth = new Map<string, typeof myPendingPayments>();
+      
+      myPendingPayments.forEach(p => {
+          let groupKey = p.id;
+          if (p.paymentDate) {
+              groupKey = `${p.paymentDate.getFullYear()}-${String(p.paymentDate.getMonth() + 1).padStart(2, '0')}`;
+          }
+          if (!groupedByMonth.has(groupKey)) {
+              groupedByMonth.set(groupKey, []);
+          }
+          groupedByMonth.get(groupKey)!.push(p);
+      });
+
+      // Sort the groups chronologically
+      const sortedGroups = Array.from(groupedByMonth.entries()).sort((a, b) => {
+          // If the key is just an ID (no date), we can't reliably sort by month, so just leave it at the end
+          if (!a[0].includes('-')) return 1;
+          if (!b[0].includes('-')) return -1;
+          return a[0].localeCompare(b[0]);
+      });
+
+      // Take only the first `count` GROUPS
+      const groupsToMark = sortedGroups.slice(0, count);
+      
+      // Flatten the payments from these groups
+      const paymentsToMark = groupsToMark.flatMap(g => g[1]).map(p => p.id);
 
       if (paymentsToMark.length > 0) {
         const isSubscription = paymentMethod === 'subscription';
@@ -68,11 +93,15 @@ export async function POST(request: Request) {
           .where(inArray(payments.id, paymentsToMark));
 
         // Update the REST of the pending payments for this user's apps to have paymentMethod = 'subscription'
-        if (isSubscription && myPendingPayments.length > count) {
-             const restIds = myPendingPayments.slice(count).map(p => p.id);
-             await db.update(payments)
-               .set({ paymentMethod: 'subscription' })
-               .where(inArray(payments.id, restIds));
+        if (isSubscription && sortedGroups.length > count) {
+             const restGroups = sortedGroups.slice(count);
+             const restIds = restGroups.flatMap(g => g[1]).map(p => p.id);
+             
+             if (restIds.length > 0) {
+                 await db.update(payments)
+                   .set({ paymentMethod: 'subscription' })
+                   .where(inArray(payments.id, restIds));
+             }
         }
       }
     } else if (paymentIds && Array.isArray(paymentIds) && paymentIds.length > 0) {
