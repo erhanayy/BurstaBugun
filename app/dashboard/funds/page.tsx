@@ -70,9 +70,9 @@ export default async function SponsorFundsPage() {
 
                             <div className="p-6 flex-1 flex flex-col">
                                 <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-2 line-clamp-2">{fund.title}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-4 flex-1">
+                                <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-4 flex-1">
                                     {fund.description || "Bu fon hakkında herhangi bir açıklama bulunmuyor."}
-                                </p>
+                                </div>
 
                                 {(() => {
                                     const parsedDuration = fund.durationMonths || (fund.startDate && fund.endDate ? Math.round(differenceInMonths(new Date(fund.endDate), new Date(fund.startDate))) : null);
