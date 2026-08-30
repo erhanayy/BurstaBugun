@@ -51,11 +51,13 @@ export async function getSponsorFunds() {
     ownedFunds.forEach(f => fundsMap.set(f.id, f));
     contributed.forEach(c => fundsMap.set(c.fund.id, c.fund));
 
-    return Array.from(fundsMap.values()).sort((a, b) => {
-        const dateA = a.createdAt ? a.createdAt.getTime() : 0;
-        const dateB = b.createdAt ? b.createdAt.getTime() : 0;
-        return dateB - dateA;
-    });
+    return Array.from(fundsMap.values())
+        .filter(f => f.isActive !== false)
+        .sort((a, b) => {
+            const dateA = a.createdAt ? a.createdAt.getTime() : 0;
+            const dateB = b.createdAt ? b.createdAt.getTime() : 0;
+            return dateB - dateA;
+        });
 }
 
 export async function getApplicationPool(fundPeriod?: string | null) {
