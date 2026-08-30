@@ -62,7 +62,9 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
     const selections = await db.query.fundSelections.findMany({
         where: eq(fundSelections.fundId, fundId),
         with: {
-            application: true,
+            application: {
+                with: { user: true }
+            },
             sponsor: true
         },
         orderBy: [desc(fundSelections.createdAt)]
@@ -72,7 +74,9 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
     const fundPayments = await db.query.payments.findMany({
         where: eq(payments.fundId, fundId),
         with: {
-            application: true
+            application: {
+                with: { user: true }
+            }
         },
         orderBy: [desc(payments.createdAt)]
     });

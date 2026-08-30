@@ -85,7 +85,6 @@ export default function FundDetailTabs({
                         <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-zinc-800/50">
                             <tr>
                                 <th className="px-6 py-4 font-medium">Bursiyer Adı</th>
-                                <th className="px-6 py-4 font-medium">Eğitim Bilgisi</th>
                                 <th className="px-6 py-4 font-medium">Bağlanan Tutar</th>
                                 <th className="px-6 py-4 font-medium text-center">Sponsoru</th>
                             </tr>
@@ -95,13 +94,8 @@ export default function FundDetailTabs({
                                 <tr key={sel.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/30">
                                     <td className="px-6 py-4">
                                         <div className="font-semibold text-gray-900 dark:text-white">
-                                            {sel.application?.firstName} {sel.application?.lastName}
+                                            {sel.application?.user?.fullName || "İsimsiz Bursiyer"}
                                         </div>
-                                        <td className="text-xs text-gray-500 mt-0.5 border-none p-0">TC: {sel.application?.tcNo}</td>
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                        <div className="line-clamp-1">{sel.application?.university}</div>
-                                        <div className="text-xs mt-0.5">{sel.application?.grade}. Sınıf</div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="font-semibold text-blue-600">{sel.amount.toLocaleString('tr-TR')} ₺</div>
@@ -137,6 +131,7 @@ export default function FundDetailTabs({
                             <tr>
                                 <th className="px-6 py-4 font-medium">Tarih</th>
                                 <th className="px-6 py-4 font-medium">Öğrenci</th>
+                                <th className="px-6 py-4 font-medium text-center">Sponsoru</th>
                                 <th className="px-6 py-4 font-medium">Tutar / Yöntem</th>
                                 <th className="px-6 py-4 font-medium text-center">Durum</th>
                             </tr>
@@ -149,8 +144,13 @@ export default function FundDetailTabs({
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="font-medium text-gray-900 dark:text-white">
-                                            {p.application?.firstName} {p.application?.lastName}
+                                            {p.application?.user?.fullName || "İsimsiz Bursiyer"}
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className="bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-gray-300 px-3 py-1.5 rounded-md text-xs font-medium">
+                                            {selections.find(s => s.applicationId === p.applicationId)?.sponsor?.fullName || "Genel Havuz"}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="font-semibold text-gray-900 dark:text-white">{p.amount.toLocaleString('tr-TR')} ₺</div>
@@ -171,7 +171,7 @@ export default function FundDetailTabs({
                             ))}
                             {payments.length === 0 && (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">Bu fona ait henüz bir ödeme kaydı bulunmuyor.</td>
+                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Bu fona ait henüz bir ödeme kaydı bulunmuyor.</td>
                                 </tr>
                             )}
                         </tbody>
