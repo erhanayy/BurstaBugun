@@ -8,6 +8,7 @@ import { ArrowLeft, Users, Calendar, CreditCard, ShieldCheck, Mail, Phone, Exter
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import FundDetailTabs from "./fund-detail-tabs";
+import BackButton from "./back-button";
 
 export default async function AdminFundDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const tenantData = await getCurrentTenant();
@@ -66,12 +67,7 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
         <div className="space-y-6 max-w-6xl mx-auto">
             {/* Header / Breadcrumb */}
             <div className="flex items-center gap-4">
-                <Link 
-                    href="/dashboard/admin/funds" 
-                    className="w-10 h-10 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-full flex items-center justify-center text-gray-500 hover:text-fbiad-blue hover:border-fbiad-blue transition-colors"
-                >
-                    <ArrowLeft className="w-5 h-5" />
-                </Link>
+                <BackButton />
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                         {fund.title}

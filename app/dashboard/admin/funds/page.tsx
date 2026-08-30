@@ -58,7 +58,7 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
         // Fon araması owner ismi ile de eşleşmeli
         const matchSearch = searchObj.search ? (
             f.title.toLowerCase().includes(searchObj.search.toLowerCase()) || 
-            (f.owner?.name || "").toLowerCase().includes(searchObj.search.toLowerCase())
+            (f.owner?.fullName || "").toLowerCase().includes(searchObj.search.toLowerCase())
         ) : true;
 
         const periodDisplay = f.period ? (seasonMap.get(f.period) || f.period) : "-";
@@ -66,7 +66,7 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
         return {
             id: f.id,
             title: f.title,
-            ownerName: f.owner?.name || "Bilinmiyor",
+            ownerName: f.owner?.fullName || "Bilinmiyor",
             period: periodDisplay,
             targetStudentCount: f.targetStudentCount || 0,
             matchedStudentCount: f.selections.length,
@@ -124,8 +124,8 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
                         <option value="completed">Kapanmış Fonlar</option>
                     </select>
                 </div>
-                <button type="submit" className="w-full md:w-auto h-10 px-8 bg-fbiad-blue text-white rounded-md text-sm font-medium hover:bg-fbiad-dark-blue whitespace-nowrap">
-                    Filtrele
+                <button type="submit" className="w-full md:w-auto h-10 px-8 bg-fbiad-blue text-white rounded-md text-sm font-medium hover:bg-fbiad-dark-blue whitespace-nowrap flex-shrink-0">
+                    Ara
                 </button>
             </form>
 
