@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { funds, fundContributors, fundInvitations, fundSelections, applications, payments, users } from "@/lib/db/schema";
+import { funds, fundContributors, fundInvitations, fundSelections, applications, payments, users, parametersTenantSeasons } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, desc, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -29,6 +29,20 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
 
     if (!fund) {
         return redirect("/dashboard/admin/funds");
+    }
+
+    // Get period name
+    let periodName = fund.period || "Belirtilmemiş";
+    if (fund.period) {
+        const season = await db.query.parametersTenantSeasons.findFirst({
+            where: and(
+                eq(parametersTenantSeasons.id, fund.period),
+                eq(parametersTenantSeasons.tenantId, tenantData.tenantId)
+            )
+        });
+        if (season) {
+            periodName = season.period;
+        }
     }
 
     // 2. Fetch Contributors and Invitations
@@ -80,7 +94,7 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
                         </span>
                     </h1>
                     <p className="text-sm text-gray-500 mt-1">
-                        Sponsor: {fund.owner?.name || "Bilinmiyor"} • Dönem: {fund.period || "Belirtilmemiş"}
+                        Kurucu: {fund.owner?.fullName || "Bilinmiyor"} • Dönem: {periodName}
                     </p>
                 </div>
             </div>
@@ -90,7 +104,7 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
                 <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-gray-200 dark:border-zinc-800">
                     <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 mb-2">
                         <Users className="w-5 h-5 text-blue-500" />
-                        <span className="text-sm font-medium">Hedef / Eşleşen</span>
+                        <span className="text-sm font-medium">Öğrenci (Eşleşen / Hedef)</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
                         {selections.length} <span className="text-gray-400 text-lg">/ {fund.targetStudentCount}</span>

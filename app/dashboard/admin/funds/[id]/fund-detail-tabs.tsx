@@ -42,17 +42,17 @@ export default function FundDetailTabs({
                     onClick={() => setActiveTab('contributors')}
                     className={`flex-1 py-4 text-sm font-medium flex items-center justify-center gap-2 border-b-2 transition-colors ${
                         activeTab === 'contributors' 
-                        ? "border-fbiad-blue text-fbiad-blue bg-blue-50/50 dark:bg-blue-900/10" 
+                        ? "border-blue-600 text-blue-600 bg-blue-50/50 dark:bg-blue-900/10" 
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-zinc-800/50"
                     }`}
                 >
-                    <Users className="w-4 h-4" /> Burs Verenler ({contributors.length + invitations.length})
+                    <Users className="w-4 h-4" /> Bursveren Bilgileri ({contributors.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('students')}
                     className={`flex-1 py-4 text-sm font-medium flex items-center justify-center gap-2 border-b-2 transition-colors ${
                         activeTab === 'students' 
-                        ? "border-fbiad-blue text-fbiad-blue bg-blue-50/50 dark:bg-blue-900/10" 
+                        ? "border-blue-600 text-blue-600 bg-blue-50/50 dark:bg-blue-900/10" 
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-zinc-800/50"
                     }`}
                 >
@@ -62,7 +62,7 @@ export default function FundDetailTabs({
                     onClick={() => setActiveTab('payments')}
                     className={`flex-1 py-4 text-sm font-medium flex items-center justify-center gap-2 border-b-2 transition-colors ${
                         activeTab === 'payments' 
-                        ? "border-fbiad-blue text-fbiad-blue bg-blue-50/50 dark:bg-blue-900/10" 
+                        ? "border-blue-600 text-blue-600 bg-blue-50/50 dark:bg-blue-900/10" 
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-zinc-800/50"
                     }`}
                 >
@@ -77,10 +77,9 @@ export default function FundDetailTabs({
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-zinc-800/50">
                                 <tr>
-                                    <th className="px-6 py-4 font-medium">Katılımcı</th>
-                                    <th className="px-6 py-4 font-medium">İletişim</th>
+                                    <th className="px-6 py-4 font-medium">Bursveren Adı</th>
+                                    <th className="px-6 py-4 font-medium">İletişim Bilgileri</th>
                                     <th className="px-6 py-4 font-medium text-center">Öğrenci Adedi</th>
-                                    <th className="px-6 py-4 font-medium text-center">Durum</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
@@ -88,7 +87,7 @@ export default function FundDetailTabs({
                                 {contributors.map(c => (
                                     <tr key={`c-${c.id}`} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/30">
                                         <td className="px-6 py-4">
-                                            <div className="font-semibold text-gray-900 dark:text-white">{c.user?.name || "İsimsiz"}</div>
+                                            <div className="font-semibold text-gray-900 dark:text-white">{c.user?.fullName || "İsimsiz"}</div>
                                         </td>
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
                                             <div className="flex items-center gap-2"><Mail className="w-3 h-3"/> {c.user?.email}</div>
@@ -97,34 +96,11 @@ export default function FundDetailTabs({
                                         <td className="px-6 py-4 text-center font-medium">
                                             {c.studentCount}
                                         </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">Aktif</span>
-                                        </td>
                                     </tr>
                                 ))}
-                                {/* Davet Edilmiş Ama Bekleyen Katılımcılar */}
-                                {invitations.map(inv => (
-                                    <tr key={`inv-${inv.id}`} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/30 opacity-75">
-                                        <td className="px-6 py-4">
-                                            <div className="font-semibold text-gray-900 dark:text-white">{inv.inviteeName}</div>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                            <div className="flex items-center gap-2"><Mail className="w-3 h-3"/> {inv.inviteeEmail}</div>
-                                            <div className="flex items-center gap-2 mt-1"><Phone className="w-3 h-3"/> {inv.inviteePhone || "-"}</div>
-                                        </td>
-                                        <td className="px-6 py-4 text-center font-medium">-</td>
-                                        <td className="px-6 py-4 text-center">
-                                            {inv.status === 'pending' ? (
-                                                <span className="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-full text-xs font-semibold">Davet Bekliyor</span>
-                                            ) : (
-                                                <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold">Reddetti</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                                {contributors.length === 0 && invitations.length === 0 && (
+                                {contributors.length === 0 && (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">Bu fonda henüz bir katılımcı veya davet bulunmuyor.</td>
+                                        <td colSpan={3} className="px-6 py-8 text-center text-gray-500">Bu fonda henüz bir bursveren bulunmuyor.</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -164,7 +140,7 @@ export default function FundDetailTabs({
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <span className="bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-gray-300 px-3 py-1.5 rounded-md text-xs font-medium">
-                                                {sel.sponsor?.name || "Genel Havuz"}
+                                                {sel.sponsor?.fullName || "Genel Havuz"}
                                             </span>
                                         </td>
                                     </tr>
