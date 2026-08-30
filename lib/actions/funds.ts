@@ -127,3 +127,19 @@ export async function increaseFundSponsorship(fundId: string, additionalCount: n
     
     return { success: true };
 }
+
+export async function toggleFundStatus(fundId: string, isActive: boolean) {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData || !['admin', 'superadmin'].includes(tenantData.userRole) && !tenantData.isSuperAdmin) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    await db.update(funds)
+        .set({ isActive })
+        .where(eq(funds.id, fundId));
+
+    revalidatePath(`/dashboard/admin/funds/${fundId}`);
+    revalidatePath(`/dashboard/admin/funds`);
+    
+    return { success: true };
+}

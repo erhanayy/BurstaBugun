@@ -16,7 +16,7 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
     const searchObj = resolvedParams;
 
     const targetPeriod = searchObj.period || "all";
-    const targetStatus = searchObj.status || "all";
+    const targetStatus = searchObj.status || "active";
 
     const conditions = [];
     conditions.push(eq(funds.tenantId, tenantData.tenantId));

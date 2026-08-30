@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import FundDetailTabs from "./fund-detail-tabs";
 import BackButton from "./back-button";
+import { toggleFundStatus } from "@/lib/actions/funds";
 
 export default async function AdminFundDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const tenantData = await getCurrentTenant();
@@ -96,6 +97,15 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
                         }`}>
                             {fund.isActive ? "Aktif Fon" : "Tamamlanmış Fon"}
                         </span>
+                        <form action={toggleFundStatus.bind(null, fund.id, !fund.isActive)}>
+                            <button type="submit" className={`text-xs px-3 py-1 rounded-md font-medium border transition-colors ${
+                                fund.isActive 
+                                ? "bg-white text-gray-600 border-gray-300 hover:bg-gray-50 dark:bg-zinc-900 dark:border-zinc-700 dark:text-gray-400 dark:hover:bg-zinc-800"
+                                : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40"
+                            }`}>
+                                {fund.isActive ? "Fonu Pasife Al" : "Fonu Aktife Al"}
+                            </button>
+                        </form>
                     </h1>
                     <p className="text-sm text-gray-500 mt-1">
                         Kurucu: {fund.owner?.fullName || "Bilinmiyor"} • Dönem: {periodName}
