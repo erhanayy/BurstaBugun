@@ -1,9 +1,9 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { fundInvitations, users, fundContributors, fundSelections, funds } from "@/lib/db/schema";
+import { fundInvitations, users, fundContributors, funds, payments } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
-import { eq, or, and } from "drizzle-orm";
+import { eq, or, and, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { sendEmail, EMAIL_CODES } from "@/lib/email";
 
@@ -38,7 +38,7 @@ export async function sendFundInvitation(data: {
     const fundObj = await db.query.funds.findFirst({
         where: eq(funds.id, data.fundId)
     });
-    const fundNameText = fundObj?.name ? `<strong>"${fundObj.name}"</strong> isimli ` : "bir ";
+    const fundNameText = fundObj?.title ? `<strong>"${fundObj.title}"</strong> isimli ` : "bir ";
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://burs.fbiadvakfi.org";
 
@@ -94,29 +94,19 @@ export async function respondToInvitation(invitationId: string, status: "accepte
         });
 
         const ext = contributors.find(c => c.userId === tenantData.userId);
-        
-        let currentTotal = contributors.reduce((sum, c) => sum + (c.studentCount || 1), 0);
-        if (ext) {
-            currentTotal -= (ext.studentCount || 1);
-        }
-
-        const targetCount = inv.fund.targetStudentCount;
-
-        if (targetCount !== null && targetCount !== undefined && targetCount > 0) {
-            if (currentTotal + studentCount > targetCount) {
-                const available = targetCount - currentTotal;
-                if (available <= 0) {
-                    throw new Error("Bu fonun kapasitesi dolmuştur.");
-                } else {
-                    throw new Error(`Bu fonda sadece ${available} kişilik açık kontenjan kalmıştır.`);
-                }
-            }
-        }
 
         if (ext) {
             await db.update(fundContributors)
                 .set({ studentCount: studentCount })
                 .where(eq(fundContributors.id, ext.id));
+            
+            // Difference in student count if they are changing it
+            const diff = studentCount - (ext.studentCount || 1);
+            if (diff !== 0) {
+                await db.update(funds)
+                    .set({ targetStudentCount: sql`${funds.targetStudentCount} + ${diff}` })
+                    .where(eq(funds.id, inv.fundId));
+            }
         } else {
             await db.insert(fundContributors).values({
                 fundId: inv.fundId,
@@ -124,42 +114,11 @@ export async function respondToInvitation(invitationId: string, status: "accepte
                 amount: inv.fund.monthlyLimit || 0,
                 studentCount: studentCount
             });
-        }
-
-        // Assign students to this sponsor permanently
-        const userSelections = await db.query.fundSelections.findMany({
-            where: (fs, { and, eq }) => and(
-                eq(fs.fundId, inv.fundId),
-                eq(fs.sponsorId, tenantData.userId)
-            ),
-            orderBy: (fs, { asc }) => [asc(fs.createdAt)]
-        });
-
-        const currentAssignedCount = userSelections.length;
-        const diff = studentCount - currentAssignedCount;
-
-        if (diff > 0) {
-            const availableSelections = await db.query.fundSelections.findMany({
-                where: (fs, { and, eq, isNull }) => and(
-                    eq(fs.fundId, inv.fundId),
-                    isNull(fs.sponsorId)
-                ),
-                orderBy: (fs, { asc }) => [asc(fs.createdAt)],
-                limit: diff
-            });
-
-            for (const sel of availableSelections) {
-                await db.update(fundSelections)
-                    .set({ sponsorId: tenantData.userId })
-                    .where(eq(fundSelections.id, sel.id));
-            }
-        } else if (diff < 0) {
-            const toUnassign = userSelections.slice(0, Math.abs(diff));
-            for (const sel of toUnassign) {
-                await db.update(fundSelections)
-                    .set({ sponsorId: null })
-                    .where(eq(fundSelections.id, sel.id));
-            }
+            
+            // Increase total capacity of the fund by the new studentCount
+            await db.update(funds)
+                .set({ targetStudentCount: sql`${funds.targetStudentCount} + ${studentCount}` })
+                .where(eq(funds.id, inv.fundId));
         }
     }
 
@@ -174,46 +133,37 @@ export async function cancelFundSelectionAndResetInvitation(fundId: string) {
     if (!tenantData) throw new Error("Oturum bulunamadı");
 
     // Check if any payments are already completed for this user in this fund
-    const userSelections = await db.query.fundSelections.findMany({
-        where: (fs, { and, eq }) => and(
-            eq(fs.fundId, fundId),
-            eq(fs.sponsorId, tenantData.userId)
-        )
-    });
-
-    if (userSelections.length === 0) {
-        throw new Error("İptal edilecek bir seçim bulunamadı.");
-    }
-
-    const appIds = userSelections.map(s => s.applicationId);
-
     const completedPayments = await db.query.payments.findFirst({
-        where: (p, { and, eq, inArray }) => and(
+        where: (p, { and, eq }) => and(
             eq(p.fundId, fundId),
-            inArray(p.applicationId, appIds),
+            eq(p.userId, tenantData.userId),
             eq(p.status, "completed")
         )
     });
 
     if (completedPayments) {
-        throw new Error("Ödemesi başlamış veya tamamlanmış seçimler iptal edilemez. Lütfen yönetici ile iletişime geçin.");
+        throw new Error("Ödemesi başlamış veya tamamlanmış katılımlar iptal edilemez. Lütfen yönetici ile iletişime geçin.");
     }
 
-    // 1. Release the locked students back to the pool
-    for (const sel of userSelections) {
-        await db.update(fundSelections)
-            .set({ sponsorId: null })
-            .where(eq(fundSelections.id, sel.id));
-    }
-
-    // 2. Remove from contributors
-    await db.delete(fundContributors)
-        .where(and(
+    const contributor = await db.query.fundContributors.findFirst({
+        where: and(
             eq(fundContributors.fundId, fundId),
             eq(fundContributors.userId, tenantData.userId)
-        ));
+        )
+    });
 
-    // 3. Reset the invitation status back to pending
+    if (contributor) {
+        // Remove from contributors
+        await db.delete(fundContributors)
+            .where(eq(fundContributors.id, contributor.id));
+
+        // Decrease the fund's targetStudentCount
+        await db.update(funds)
+            .set({ targetStudentCount: sql`${funds.targetStudentCount} - ${contributor.studentCount}` })
+            .where(eq(funds.id, fundId));
+    }
+
+    // Reset the invitation status back to pending
     const invitation = await db.query.fundInvitations.findFirst({
         where: (inv, { and, eq }) => and(
             eq(inv.fundId, fundId),
@@ -227,6 +177,13 @@ export async function cancelFundSelectionAndResetInvitation(fundId: string) {
             .set({ status: "pending", updatedAt: new Date() })
             .where(eq(fundInvitations.id, invitation.id));
     }
+
+    // Optional: Delete pending payments
+    await db.delete(payments).where(and(
+        eq(payments.fundId, fundId),
+        eq(payments.userId, tenantData.userId),
+        eq(payments.status, "pending")
+    ));
 
     revalidatePath("/dashboard/invitations");
     revalidatePath(`/dashboard/funds/${fundId}/payment`);

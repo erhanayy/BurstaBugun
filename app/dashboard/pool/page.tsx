@@ -27,9 +27,9 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
 
     const poolData = await getApplicationPool(fundPeriod);
     const sortedPoolData = [...poolData].sort((a, b) => {
-        const nameA = a.user?.fullName?.toLowerCase() || "";
-        const nameB = b.user?.fullName?.toLowerCase() || "";
-        return nameA.localeCompare(nameB, 'tr');
+        const nameA = (a.user?.fullName || "").toLocaleLowerCase('tr-TR');
+        const nameB = (b.user?.fullName || "").toLocaleLowerCase('tr-TR');
+        return nameA.localeCompare(nameB, 'tr-TR');
     });
 
     const userIds = Array.from(new Set(sortedPoolData.map((a: any) => a.userId)));
@@ -182,7 +182,9 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
                                 </div>
 
                                 <div className="bg-gray-50/50 dark:bg-zinc-800/50 p-6 flex flex-col justify-center items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 dark:border-zinc-800 md:w-64">
-                                    <SelectionButton applicationId={app.id} fundId={specificFundId || app.fundId || ""} defaultSelected={isSelected} disabled={isFundFull} />
+                                    { (tenantData?.userRole === 'admin' || tenantData?.canSponsorSelectFromPool) && (
+                                        <SelectionButton applicationId={app.id} fundId={specificFundId || app.fundId || ""} defaultSelected={isSelected} disabled={isFundFull} />
+                                    )}
                                     <Link href={`/dashboard/applications/${app.id}`} className="mt-3 text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline flex items-center">
                                         <FileText className="w-4 h-4 mr-1" />
                                         Tüm Detayları Gör

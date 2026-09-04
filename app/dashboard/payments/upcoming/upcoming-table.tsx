@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { markAsPaid } from "@/lib/actions/payments";
+import { addMultipleStudentPaymentLogs } from "@/lib/actions/student-payments";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2, Link as LinkIcon, Download } from "lucide-react";
 
@@ -33,9 +33,23 @@ export default function UpcomingTable({
         if (selectedIds.length === 0) return;
         setIsSaving(true);
         try {
-            await markAsPaid(selectedIds);
-            toast.success(`${selectedIds.length} adet ödeme başarıyla "Tamamlandı" olarak işaretlendi ve geçmişe aktarıldı.`);
-            setSelectedIds([]);
+            const payloads = selectedIds.map(id => {
+                const u = upcoming.find(x => x.id === id)!;
+                return {
+                    applicationId: u.applicationId,
+                    fundId: u.fundId,
+                    amount: u.amount,
+                    paymentDateStr: new Date(u.year, u.month - 1, 1).toISOString()
+                };
+            });
+
+            const res = await addMultipleStudentPaymentLogs(payloads);
+            if (res.success) {
+                toast.success(`${res.successCount} adet ödeme başarıyla "Tamamlandı" olarak işaretlendi ve geçmişe aktarıldı.${res.failCount > 0 ? ` ${res.failCount} adet hata oluştu.` : ''}`);
+                setSelectedIds([]);
+            } else {
+                toast.error("Ödeme işlenirken bir hata oluştu.");
+            }
         } catch (e: any) {
             toast.error(e.message || "Ödeme işlenirken bir hata oluştu.");
         }

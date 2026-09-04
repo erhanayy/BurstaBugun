@@ -2,7 +2,7 @@
 
 import { SignJWT } from 'jose';
 import { db } from '@/lib/db';
-import { payments, funds, fundContributors, fundSelections, users } from '@/lib/db/schema';
+import { payments, funds, fundContributors, users } from '@/lib/db/schema';
 import { eq, asc, and } from 'drizzle-orm';
 import { auth } from '@/auth';
 import { getCurrentTenant } from '@/lib/data/tenant';
@@ -41,87 +41,89 @@ export async function createPaymentSession(fundId: string) {
     
     const adSoyad = dbUser?.fullName || session?.user?.name || 'Bilinmeyen Kullanıcı';
 
-    // Fetch the fund and pending payments
+    // Fetch the fund
     const fund = await db.query.funds.findFirst({
       where: eq(funds.id, fundId),
-      with: {
-        selections: {
-            where: eq(fundSelections.isActive, true)
-        }
-      }
     });
 
     if (!fund) {
       return { success: false, error: 'Fon bulunamadı' };
     }
 
-    const fundPayments = await db.query.payments.findMany({
+    // Determine the user's student count responsibility
+    const contributors = await db.query.fundContributors.findMany({
+        where: eq(fundContributors.fundId, fundId)
+    });
+    
+    const isOwner = fund.ownerId === tenantData.userId;
+    const myContribution = contributors.find(c => c.userId === tenantData.userId);
+    let myCount = 1;
+
+    if (myContribution) {
+        myCount = myContribution.studentCount || 1;
+    } else if (isOwner) {
+        // Fallback for owner if no contributor record exists
+        myCount = fund.targetStudentCount || 1;
+    } else {
+        return { success: false, error: 'Bu fona katkı yetkiniz bulunmuyor' };
+    }
+
+    // Check if there are already pending payments for this user
+    let fundPayments = await db.query.payments.findMany({
       where: and(
         eq(payments.fundId, fundId),
+        eq(payments.userId, tenantData.userId),
         eq(payments.status, 'pending')
       ),
       orderBy: [asc(payments.paymentDate)]
     });
 
+    // If none exist, we generate the payment plan dynamically!
+    if (fundPayments.length === 0) {
+        const numMonths = fund.durationMonths || 10;
+        const amountPerMonth = (fund.monthlyLimit || 0) * myCount;
+        
+        const newPayments = [];
+        let currentDate = fund.startDate ? new Date(fund.startDate) : new Date();
+        
+        if (fund.paymentMethod === 'upfront') {
+            newPayments.push({
+                tenantId: tenantData.tenantId,
+                fundId: fundId,
+                userId: tenantData.userId,
+                amount: amountPerMonth * numMonths,
+                status: 'pending' as const,
+                paymentDate: new Date(currentDate),
+            });
+        } else {
+            for (let i = 0; i < numMonths; i++) {
+                newPayments.push({
+                    tenantId: tenantData.tenantId,
+                    fundId: fundId,
+                    userId: tenantData.userId,
+                    amount: amountPerMonth,
+                    status: 'pending' as const,
+                    paymentDate: new Date(currentDate),
+                });
+                // Add 1 month for next payment
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+        }
+        
+        const inserted = await db.insert(payments).values(newPayments).returning();
+        fundPayments = inserted;
+    }
+
     if (fundPayments.length === 0) {
       return { success: false, error: 'Ödenecek bekleyen taksit bulunamadı' };
     }
 
-    // Filter to user's share
-    const contributors = await db.query.fundContributors.findMany({
-        where: eq(fundContributors.fundId, fundId)
-    });
-    
-    const selectionsCount = fund.selections?.length || 0;
-    const othersCount = contributors.reduce((acc, c) => acc + (c.studentCount || 1), 0);
-    const ownerRemaining = Math.max(0, selectionsCount - othersCount);
-
-    // Check if user is a contributor
-    const isContributor = contributors.some(c => c.userId === tenantData.userId);
-    const isOwner = fund.ownerId === tenantData.userId;
-
-    // Use fund.selections for STABLE order of students
-    const stableSelections = [...(fund.selections || [])].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-    
-    // Explicitly assigned students ONLY (for everyone, including owner)
-    let myAppIds: string[] = stableSelections
-        .filter(s => s.sponsorId === tenantData.userId || (!s.sponsorId && isOwner))
-        .map(s => s.applicationId);
-
-    // If this is a general fund (no selections), owner should see ALL pending payments 
-    // (Wait, if there are no selections, then there are no payments because payments are tied to applications)
-    
-    const displayedPayments = fundPayments.filter(p => myAppIds.includes(p.applicationId));
-
-    if (displayedPayments.length === 0) {
-      return { success: false, error: 'Size atanmış ödenecek bekleyen taksit bulunamadı' };
-    }
-
-    const isArdaErel = adSoyad.toLowerCase().includes('arda erel');
-    const groupedPlanMap = new Map<string, PaymentPlanItem>();
-
-    displayedPayments.forEach(p => {
-        let groupKey = p.id; // Default to no grouping
-
-        if (!isArdaErel && p.paymentDate) {
-            groupKey = `${p.paymentDate.getFullYear()}-${String(p.paymentDate.getMonth() + 1).padStart(2, '0')}`;
-        }
-
-        if (!groupedPlanMap.has(groupKey)) {
-            groupedPlanMap.set(groupKey, {
-                id: p.id,
-                amount: p.amount || 0,
-                date: p.paymentDate?.toISOString() || new Date().toISOString(),
-                status: p.status || 'pending'
-            });
-        } else {
-            const existing = groupedPlanMap.get(groupKey)!;
-            existing.amount += (p.amount || 0);
-            existing.id += `,${p.id}`; // Combine IDs with comma
-        }
-    });
-
-    const plan: PaymentPlanItem[] = Array.from(groupedPlanMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const plan: PaymentPlanItem[] = fundPayments.map(p => ({
+        id: p.id,
+        amount: p.amount,
+        date: p.paymentDate?.toISOString() || new Date().toISOString(),
+        status: p.status || 'pending'
+    }));
 
     const toplamTutar = plan.reduce((acc, p) => acc + p.amount, 0);
     const tekilTutar = plan.length > 0 ? plan[0].amount : 0;
@@ -131,13 +133,11 @@ export async function createPaymentSession(fundId: string) {
     const appDomain = isProdEnv ? 'https://burs.fbiadvakfi.org' : 'http://localhost:3000';
     
     const headersList = await headers();
-    // Prefer origin if it's there and valid, otherwise fallback to environment domain
     let origin = headersList.get('origin');
     if (!origin || origin === 'null') {
         origin = process.env.NEXT_PUBLIC_APP_URL || appDomain;
     }
     
-    // Safety check: if in production, force the production domain if origin is somehow localhost
     if (isProdEnv && origin.includes('localhost')) {
         origin = appDomain;
     }
@@ -158,22 +158,19 @@ export async function createPaymentSession(fundId: string) {
     const secretKey = process.env.AUTH_SECRET || 'super_secret_generated_key_for_local_dev';
     const secret = new TextEncoder().encode(secretKey);
     
-    // Create JWT valid for 15 minutes
     const token = await new SignJWT(payload as any)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('15m')
       .sign(secret);
     
-    // The web app URL should be mapped. For production, we use the public URL.
-    // If we are on localhost, we can fallback to localhost:3005 for local testing.
     const isProd = process.env.LIVE_ENV === 'true' || process.env.NODE_ENV === 'production';
     console.log("PAYMENT SESSION DEBUG:", { 
         NODE_ENV: process.env.NODE_ENV, 
         LIVE_ENV: process.env.LIVE_ENV, 
         isProd 
     });
-    // Use the main website URL where the payment component lives
+    
     const webAppUrl = isProd ? 'https://www.fbiadvakfi.org' : 'http://localhost:3005';
     const paymentUrl = `${webAppUrl}/app-payment?token=${token}`;
     
@@ -183,3 +180,4 @@ export async function createPaymentSession(fundId: string) {
     return { success: false, error: 'Oturum oluşturulamadı' };
   }
 }
+

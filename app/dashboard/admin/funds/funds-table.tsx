@@ -10,6 +10,8 @@ interface Fund {
     period: string;
     targetStudentCount: number;
     matchedStudentCount: number;
+    collectedAmount: number;
+    expectedTotalAmount: number;
     isActive: boolean;
 }
 
@@ -28,6 +30,8 @@ export default function FundsTable({ funds }: { funds: Fund[] }) {
                 const progressPercentage = fund.targetStudentCount > 0 
                     ? Math.min(100, Math.round((fund.matchedStudentCount / fund.targetStudentCount) * 100))
                     : 0;
+                
+                const kalanBakiye = (fund.expectedTotalAmount || 0) - (fund.collectedAmount || 0);
                 
                 return (
                     <div key={fund.id} className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden">
@@ -62,11 +66,29 @@ export default function FundsTable({ funds }: { funds: Fund[] }) {
                                             {fund.matchedStudentCount} / {fund.targetStudentCount}
                                         </span>
                                     </div>
-                                    <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-2">
+                                    <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-2 mb-4">
                                         <div 
                                             className="bg-blue-600 h-2 rounded-full transition-all" 
                                             style={{ width: `${progressPercentage}%` }}
                                         ></div>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 border-t border-gray-100 dark:border-zinc-800 pt-4">
+                                    <div>
+                                        <div className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1">
+                                            Toplanan Bakiye
+                                        </div>
+                                        <div className="font-bold text-green-600 dark:text-green-400 text-sm">
+                                            {(fund.collectedAmount || 0).toLocaleString('tr-TR')} ₺
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1">
+                                            Kalan Bakiye
+                                        </div>
+                                        <div className={`font-bold text-sm ${kalanBakiye < 0 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                                            {kalanBakiye.toLocaleString('tr-TR')} ₺
+                                        </div>
                                     </div>
                                 </div>
                             </div>

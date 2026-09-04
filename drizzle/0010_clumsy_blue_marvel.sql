@@ -1,0 +1,1 @@
+ALTER TABLE "tenants" ADD COLUMN "can_sponsor_select_from_pool" boolean DEFAULT false NOT NULL;

@@ -11,6 +11,7 @@ export const tenants = pgTable('tenants', {
     logoUrl: text('logo_url'),
     websiteUrl: text('website_url'),
     primaryColor: text('primary_color').default('#2563EB'), // Default blue
+    canSponsorSelectFromPool: boolean('can_sponsor_select_from_pool').default(false).notNull(),
     features: jsonb('features').default({}), // Feature flags like { hasCustomForm: true }
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -125,6 +126,8 @@ export const funds = pgTable('funds', {
     durationMonths: integer('duration_months'),
     targetStudentCount: integer('target_student_count'),
     paymentMethod: text('payment_method').default('monthly'), // 'upfront' | 'monthly'
+    collectedAmount: integer('collected_amount').default(0).notNull(),
+    distributedAmount: integer('distributed_amount').default(0).notNull(),
     photoUrl: text('photo_url'),
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -209,7 +212,8 @@ export const payments = pgTable('payments', {
     id: uuid('id').defaultRandom().primaryKey(),
     tenantId: varchar('tenant_id').notNull(),
     fundId: uuid('fund_id').references(() => funds.id).notNull(),
-    applicationId: uuid('application_id').references(() => applications.id).notNull(),
+    applicationId: uuid('application_id').references(() => applications.id),
+    userId: uuid('user_id').references(() => users.id),
     amount: integer('amount').notNull(),
     status: paymentStatusEnum('status').default('pending').notNull(),
     paymentMethod: text('payment_method').default('wire_transfer'), // 'wire_transfer' | 'subscription'
@@ -220,6 +224,18 @@ export const payments = pgTable('payments', {
 });
 
 // End of Payments table
+
+// Student Payment Logs (Vakıf'tan öğrenciye yapılan ödemeler)
+export const studentPaymentLogs = pgTable('student_payment_logs', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    applicationId: uuid('application_id').references(() => applications.id).notNull(),
+    fundId: uuid('fund_id').references(() => funds.id).notNull(),
+    amount: integer('amount').notNull(),
+    paymentDate: timestamp('payment_date').defaultNow().notNull(),
+    notes: text('notes'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
 
 // Fund Invitations (Davetler)
 export const fundInvitations = pgTable('fund_invitations', {
@@ -383,6 +399,7 @@ export const fundsRelations = relations(funds, ({ one, many }) => ({
     applications: many(applications),
     selections: many(fundSelections),
     invitations: many(fundInvitations),
+    payments: many(payments),
 }));
 
 export const fundContributorsRelations = relations(fundContributors, ({ one }) => ({
@@ -475,6 +492,25 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
     }),
     application: one(applications, {
         fields: [payments.applicationId],
+        references: [applications.id],
+    }),
+    user: one(users, {
+        fields: [payments.userId],
+        references: [users.id],
+    }),
+}));
+
+export const studentPaymentLogsRelations = relations(studentPaymentLogs, ({ one }) => ({
+    tenant: one(tenants, {
+        fields: [studentPaymentLogs.tenantId],
+        references: [tenants.id],
+    }),
+    fund: one(funds, {
+        fields: [studentPaymentLogs.fundId],
+        references: [funds.id],
+    }),
+    application: one(applications, {
+        fields: [studentPaymentLogs.applicationId],
         references: [applications.id],
     }),
 }));

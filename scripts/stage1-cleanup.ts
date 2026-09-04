@@ -67,7 +67,7 @@ async function runStage1() {
     });
 
     const userIdsToDelete = fbiadTenantUsers
-        .filter(tu => tu.user && !keepEmails.includes(tu.user.email))
+        .filter(tu => tu.user && !keepEmails.includes(tu.user.email!))
         .map(tu => tu.userId);
 
     if (userIdsToDelete.length > 0) {

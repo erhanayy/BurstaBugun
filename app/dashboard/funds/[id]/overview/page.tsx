@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { funds, fundSelections } from "@/lib/db/schema";
+import { funds, fundSelections, fundContributors } from "@/lib/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { redirect } from "next/navigation";
@@ -40,9 +40,16 @@ export default async function FundOverviewPage(props: { params: Promise<{ id: st
 
     const selections = fund.selections || [];
     
-    // Toplam öğrenci ve üstlenilen öğrenci sayısı
-    const totalStudents = selections.length;
-    const claimedStudents = selections.filter(s => s.sponsorId !== null).length;
+    const totalStudents = fund.targetStudentCount || 0;
+    
+    const contributors = await db.query.fundContributors.findMany({
+        where: eq(fundContributors.fundId, fundId)
+    });
+    
+    const claimedStudents = contributors
+        .filter(c => c.isPaid)
+        .reduce((sum, c) => sum + (c.studentCount || 1), 0);
+        
     const unclaimedStudents = totalStudents - claimedStudents;
 
     return (

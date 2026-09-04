@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { funds, fundSelections, payments } from "@/lib/db/schema";
+import { funds, fundSelections, studentPaymentLogs } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, and, like } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -30,51 +30,49 @@ export default async function UpcomingPaymentsPage({ searchParams }: { searchPar
         }
     });
 
-    const nextMonthDate = addMonths(new Date(), 1);
-    const defaultNextMonth = nextMonthDate.getMonth() + 1;
-    const defaultNextYear = nextMonthDate.getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
 
-    const targetMonth = searchObj.month === "" ? null : (searchObj.month ? parseInt(searchObj.month) : null);
-    const targetYear = searchObj.year === "" ? null : (searchObj.year ? parseInt(searchObj.year) : null);
+    const targetMonth = searchObj.month === "" ? null : (searchObj.month ? parseInt(searchObj.month) : currentMonth);
+    const targetYear = searchObj.year === "" ? null : (searchObj.year ? parseInt(searchObj.year) : currentYear);
 
-    // Fetch actual pending payments from DB (Ödeme Emirleri)
-    const conditions = [];
-    conditions.push(eq(payments.tenantId, tenantData.tenantId));
-    conditions.push(eq(payments.status, 'pending'));
-
-    if (searchObj.fundId) {
-        conditions.push(eq(payments.fundId, searchObj.fundId));
-    }
-
-    const pendingPayments = await db.query.payments.findMany({
-        where: and(...conditions),
-        with: {
-            fund: true,
-            application: {
-                with: { user: true }
-            }
-        }
+    // Fetch existing payment logs for the target month/year
+    const logs = await db.query.studentPaymentLogs.findMany({
+        where: and(
+            eq(studentPaymentLogs.tenantId, tenantData.tenantId),
+            // We can fetch all logs and filter in memory, or use SQL, but in memory is fine for small amounts, or we filter later.
+        )
     });
 
-    let upcoming = pendingPayments.map(payment => ({
-        id: payment.id,
-        fundTitle: payment.fund?.title || "Genel Fon",
-        fundId: payment.fundId,
-        applicationId: payment.applicationId || "",
-        studentName: payment.application?.user?.fullName || "-",
-        amount: payment.amount,
-        month: payment.paymentDate ? new Date(payment.paymentDate).getMonth() + 1 : 0,
-        year: payment.paymentDate ? new Date(payment.paymentDate).getFullYear() : 0,
-        dateString: payment.paymentDate ? format(new Date(payment.paymentDate), "MMMM yyyy", { locale: tr }) : "Bilinmiyor"
-    }));
+    // Create upcoming list dynamically from active selections
+    let upcoming = activeSelections
+        .filter(selection => {
+            if (searchObj.fundId && selection.fundId !== searchObj.fundId) return false;
+            return true;
+        })
+        .map(selection => {
+            const hasPaid = logs.some(log => {
+                const logDate = new Date(log.paymentDate);
+                return log.applicationId === selection.applicationId &&
+                       logDate.getMonth() + 1 === targetMonth &&
+                       logDate.getFullYear() === targetYear;
+            });
 
-    // Filter by explicitly selected month and year
-    if (targetYear !== null) {
-        upcoming = upcoming.filter(u => u.year === targetYear);
-    }
-    if (targetMonth !== null) {
-        upcoming = upcoming.filter(u => u.month === targetMonth);
-    }
+            if (hasPaid) return null; // Zaten ödenmiş
+
+            return {
+                id: `${selection.applicationId}-${targetMonth}-${targetYear}`, // unique fake id for UI
+                fundTitle: selection.fund?.title || "Genel Fon",
+                fundId: selection.fundId,
+                applicationId: selection.applicationId,
+                studentName: selection.application?.user?.fullName || "-",
+                amount: selection.fund?.monthlyLimit || 0,
+                month: targetMonth || currentMonth,
+                year: targetYear || currentYear,
+                dateString: format(new Date(targetYear || currentYear, (targetMonth || currentMonth) - 1, 1), "MMMM yyyy", { locale: tr })
+            };
+        })
+        .filter(Boolean) as any[];
 
     if (searchObj.search) {
         const lowerSearch = searchObj.search.toLowerCase();

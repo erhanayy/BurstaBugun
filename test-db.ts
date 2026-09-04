@@ -1,8 +1,8 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 config({ path: ".env" });
-import { db } from "./lib/db/index.ts";
-import { funds, payments } from "./lib/db/schema.ts";
+import { db } from "./lib/db/index";
+import { funds, payments } from "./lib/db/schema";
 import { like, desc } from "drizzle-orm";
 
 async function run() {

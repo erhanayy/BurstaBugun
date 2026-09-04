@@ -4,7 +4,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { CheckCircle2, AlertCircle, Clock, Loader2, XCircle } from "lucide-react";
-import { removePayments } from "@/lib/actions/payments";
+import { cancelMultipleStudentPaymentLogs } from "@/lib/actions/student-payments";
 import { toast } from "sonner";
 
 export default function HistoryTable({
@@ -40,9 +40,13 @@ export default function HistoryTable({
 
         setIsSaving(true);
         try {
-            await removePayments(selectedIds);
-            toast.success(`${selectedIds.length} adet ödeme başarıyla iptal edildi ve "Bekliyor" ekranına geri gönderildi.`);
-            setSelectedIds([]);
+            const res = await cancelMultipleStudentPaymentLogs(selectedIds);
+            if (res.success) {
+                toast.success(`${res.successCount} adet ödeme başarıyla iptal edildi ve "Bekliyor" ekranına geri gönderildi.${res.failCount > 0 ? ` ${res.failCount} adet hata oluştu.` : ''}`);
+                setSelectedIds([]);
+            } else {
+                toast.error("İşlem sırasında bir hata oluştu.");
+            }
         } catch (e: any) {
             toast.error(e.message || "İşlem sırasında bir hata oluştu.");
         }
@@ -119,13 +123,7 @@ export default function HistoryTable({
                                         {payment.amount.toLocaleString('tr-TR')} ₺
                                     </td>
                                     <td className="px-6 py-4 text-right flex justify-end">
-                                        {payment.status === 'completed' ? (
-                                            <span className="inline-flex items-center text-emerald-600"><CheckCircle2 className="w-4 h-4 mr-1" /> Tamamlandı</span>
-                                        ) : payment.status === 'failed' ? (
-                                            <span className="inline-flex items-center text-red-600"><AlertCircle className="w-4 h-4 mr-1" /> Başarısız</span>
-                                        ) : (
-                                            <span className="inline-flex items-center text-amber-600"><Clock className="w-4 h-4 mr-1" /> Bekliyor</span>
-                                        )}
+                                        <span className="inline-flex items-center text-emerald-600"><CheckCircle2 className="w-4 h-4 mr-1" /> Tamamlandı</span>
                                     </td>
                                 </tr>
                             ))

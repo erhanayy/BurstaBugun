@@ -43,37 +43,12 @@ export default async function SummaryPage({ fundId }: { fundId: string }) {
         );
     }
 
-    const selections = await db.select({
-        selection: fundSelections,
-        application: applications,
-        student: users
-    })
-    .from(fundSelections)
-    .innerJoin(applications, eq(fundSelections.applicationId, applications.id))
-    .innerJoin(users, eq(applications.userId, users.id))
-    .where(
-        and(
-            eq(fundSelections.fundId, fundId),
-            eq(fundSelections.isActive, true)
-        )
-    );
-
-    // If there are specific selections, the total amount is sum of selection amounts.
-    // If no selections, it's just the fund monthly limit (general fund).
-    const isGeneralFund = selections.length === 0;
-    const totalMonthlyAmount = isGeneralFund 
-        ? (fund.monthlyLimit || 0) 
-        : selections.reduce((acc, curr) => acc + curr.selection.amount, 0);
-
-    const maskNamesStr = await getSystemParameter("MASK_STUDENT_NAMES", "false");
-    const shouldMask = maskNamesStr === "true" && tenantData.userRole !== 'admin';
-
-    const maskName = (name: string | null) => {
-        if (!name) return "";
-        if (!shouldMask) return name;
-        const parts = name.split(" ");
-        return parts.map(p => p.charAt(0) + "***").join(" ");
-    };
+    // Decoupled architecture: We use targetStudentCount directly
+    const studentCount = fund.targetStudentCount || 1;
+    const totalMonthlyAmount = (fund.monthlyLimit || 0) * studentCount;
+    const displayAmount = fund.paymentMethod === 'upfront' 
+        ? totalMonthlyAmount * (fund.durationMonths || 1)
+        : totalMonthlyAmount;
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -82,7 +57,7 @@ export default async function SummaryPage({ fundId }: { fundId: string }) {
                     <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                         <Wallet className="text-blue-600" /> Bağış Özeti
                     </h2>
-                    <p className="text-gray-500 mt-1">Fonunuz oluşturuldu ve öğrenci eşleştirmeleriniz yapıldı. Son bir kontrol yapıp ödeme adımına geçebilirsiniz.</p>
+                    <p className="text-gray-500 mt-1">Fonunuz oluşturuldu ve öğrenci kapasiteniz belirlendi. Son bir kontrol yapıp ödeme adımına geçebilirsiniz.</p>
                 </div>
 
                 <div className="p-6 md:p-8 bg-gray-50/50">
@@ -106,40 +81,31 @@ export default async function SummaryPage({ fundId }: { fundId: string }) {
                         </div>
 
                         <div>
-                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Seçilen Öğrenciler</h3>
-                            {isGeneralFund ? (
-                                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-amber-800 flex items-start gap-3">
-                                    <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                                    <div className="text-sm">
-                                        <p className="font-bold mb-1">Genel Fon Bağışı</p>
-                                        <p>Özel bir öğrenci seçmediniz. Bağışınız genel havuza aktarılacak ve vakıf yönetimi tarafından uygun öğrencilere paylaştırılacaktır.</p>
-                                    </div>
+                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Fon Kapasitesi</h3>
+                            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-amber-800 flex items-start gap-3">
+                                <Users className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-600" />
+                                <div className="text-sm">
+                                    <p className="font-bold mb-1">{studentCount} Öğrenci</p>
+                                    {tenantData.userRole === 'admin' ? (
+                                        <p>Havuzdaki uygun öğrencileri yönetim paneli üzerinden doğrudan bu fona atayabilirsiniz.</p>
+                                    ) : (
+                                        <p>
+                                            Bağışınız vakıf yönetimi tarafından havuzdaki {studentCount} uygun öğrenciye burs olarak aktarılacaktır. Öğrenci atamaları sonradan yapılacaktır.
+                                            {tenantData.canSponsorSelectFromPool && " Veya isterseniz siz de ödeme sonrası havuzdan öğrencilerinizi seçebilirsiniz."}
+                                        </p>
+                                    )}
                                 </div>
-                            ) : (
-                                <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                                    {selections.map((item, idx) => (
-                                        <div key={item.selection.id} className={`p-3 flex justify-between items-center ${idx !== selections.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                                                    <Users className="w-4 h-4" />
-                                                </div>
-                                                <span className="font-medium text-sm text-gray-900">{maskName(item.student.fullName)}</span>
-                                            </div>
-                                            <span className="font-bold text-gray-900">{item.selection.amount.toLocaleString('tr-TR')} ₺</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            </div>
                         </div>
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div>
                             <span className="text-sm text-gray-500 font-medium block">Toplam {fund.paymentMethod === 'monthly' ? 'Aylık' : ''} Bağış Tutarı</span>
-                            <span className="text-3xl font-bold text-gray-900">{totalMonthlyAmount.toLocaleString('tr-TR')} ₺</span>
+                            <span className="text-3xl font-bold text-gray-900">{displayAmount.toLocaleString('tr-TR')} ₺</span>
                         </div>
                         
-                        {totalMonthlyAmount > 0 ? (
+                        {displayAmount > 0 ? (
                             <div className="w-full md:w-auto scale-110 origin-right">
                                 <AppPaymentButton fundId={fund.id} />
                             </div>

@@ -46,6 +46,7 @@ export async function getCurrentTenant() {
             userName: currentUser?.fullName || session.user.name || "Uygulama Yöneticisi",
             availableTenants: envTenantId ? [selectedTenant] : allTenants, // Lock if Strict Mode
             forcePasswordChange: currentUser?.forcePasswordChange ?? false,
+            canSponsorSelectFromPool: selectedTenant.canSponsorSelectFromPool ?? false,
             isSuperAdmin: true,
         };
     }
@@ -98,6 +99,7 @@ export async function getCurrentTenant() {
         userName: activeMembership.user.fullName || session.user.name || "Kullanıcı",
         availableTenants: envTenantId ? [activeMembership.tenant] : memberships.map(m => m.tenant),
         forcePasswordChange: activeMembership.user.forcePasswordChange,
+        canSponsorSelectFromPool: activeMembership.tenant.canSponsorSelectFromPool ?? false,
         isSuperAdmin: false,
     };
 }

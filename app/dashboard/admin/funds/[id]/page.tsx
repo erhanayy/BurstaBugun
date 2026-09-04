@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { funds, fundContributors, fundInvitations, fundSelections, applications, payments, users, parametersTenantSeasons } from "@/lib/db/schema";
+import { funds, fundContributors, fundInvitations, fundSelections, applications, payments, studentPaymentLogs, users, parametersTenantSeasons } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, desc, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -77,9 +77,21 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
         with: {
             application: {
                 with: { user: true }
-            }
+            },
+            user: true
         },
         orderBy: [desc(payments.createdAt)]
+    });
+
+    // 5. Fetch Student Payments (Vakıftan Öğrenciye)
+    const studentPayments = await db.query.studentPaymentLogs.findMany({
+        where: eq(studentPaymentLogs.fundId, fundId),
+        with: {
+            application: {
+                with: { user: true }
+            }
+        },
+        orderBy: [desc(studentPaymentLogs.createdAt)]
     });
 
     return (
@@ -97,7 +109,7 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
                         }`}>
                             {fund.isActive ? "Aktif Fon" : "Tamamlanmış Fon"}
                         </span>
-                        <form action={toggleFundStatus.bind(null, fund.id, !fund.isActive)}>
+                        <form action={async () => { "use server"; await toggleFundStatus(fund.id, !fund.isActive); }}>
                             <button type="submit" className={`text-xs px-3 py-1 rounded-md font-medium border transition-colors ${
                                 fund.isActive 
                                 ? "bg-white text-gray-600 border-gray-300 hover:bg-gray-50 dark:bg-zinc-900 dark:border-zinc-700 dark:text-gray-400 dark:hover:bg-zinc-800"
@@ -155,10 +167,12 @@ export default async function AdminFundDetailPage({ params }: { params: Promise<
 
             {/* Tabbed Content */}
             <FundDetailTabs 
+                fund={fund}
                 contributors={contributors} 
                 invitations={invitations} 
                 selections={selections} 
-                payments={fundPayments} 
+                payments={fundPayments}
+                studentPayments={studentPayments} 
             />
         </div>
     );

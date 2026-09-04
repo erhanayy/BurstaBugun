@@ -1,9 +1,9 @@
 import { db } from "@/lib/db";
-import { funds, payments, fundContributors, fundSelections } from "@/lib/db/schema";
+import { funds, payments, fundContributors } from "@/lib/db/schema";
 import { eq, asc, and } from "drizzle-orm";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { redirect } from "next/navigation";
-import { CreditCard, Calendar, CheckCircle2, Clock, Users } from "lucide-react";
+import { CreditCard, Calendar, CheckCircle2, Clock } from "lucide-react";
 import { tr } from "date-fns/locale";
 import { format } from "date-fns";
 import { auth } from "@/auth";
@@ -20,9 +20,6 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
     const fund = await db.query.funds.findFirst({
         where: eq(funds.id, fundId),
         with: {
-            selections: {
-                where: eq(fundSelections.isActive, true)
-            },
             invitations: {
                 where: (invitations, { eq }) => eq(invitations.inviteeId, tenantData.userId)
             }
@@ -33,16 +30,12 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
 
     const isPendingInvite = fund.invitations?.some(inv => inv.status === 'pending');
 
-    // Fetch payments assigned to this schedule
-    const fundPayments = await db.query.payments.findMany({
-        where: eq(payments.fundId, fundId),
-        with: {
-            application: {
-                with: {
-                    user: true
-                }
-            }
-        },
+    // Fetch payments assigned to this schedule for THIS user
+    const displayedPayments = await db.query.payments.findMany({
+        where: and(
+            eq(payments.fundId, fundId),
+            eq(payments.userId, tenantData.userId)
+        ),
         orderBy: [asc(payments.paymentDate)]
     });
 
@@ -51,35 +44,28 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
         where: eq(fundContributors.fundId, fundId)
     });
     
-    const selectionsCount = fund.selections?.length || 0;
-    const othersCount = contributors.reduce((acc, c) => acc + (c.studentCount || 1), 0);
-    const ownerRemaining = Math.max(0, selectionsCount - othersCount);
-
-    // Check if user is a contributor
-    const isContributor = contributors.some(c => c.userId === tenantData.userId);
     const isOwner = fund.ownerId === tenantData.userId;
+    const myContribution = contributors.find(c => c.userId === tenantData.userId);
+    let myCount = 1;
 
-    // Use fund.selections for STABLE order of students
-    const stableSelections = [...(fund.selections || [])].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-    
-    // Explicitly assigned students ONLY (for everyone, including owner)
-    let myAppIds: string[] = stableSelections
-        .filter(s => s.sponsorId === tenantData.userId)
-        .map(s => s.applicationId);
+    if (myContribution) {
+        myCount = myContribution.studentCount || 1;
+    } else if (isOwner) {
+        myCount = fund.targetStudentCount || 1;
+    }
 
-    const displayedPayments = fundPayments.filter(p => myAppIds.includes(p.applicationId));
+    const expectedTotalAmount = (fund.monthlyLimit || 0) * myCount * (fund.durationMonths || 10);
+    const hasGeneratedPayments = displayedPayments.length > 0;
+    const isUpfront = fund.paymentMethod === 'upfront';
 
-    const isFullyPaid = displayedPayments.length > 0 && displayedPayments.every(p => p.status === 'completed');
-    const totalPayments = displayedPayments.length;
-    const paidPayments = displayedPayments.filter(p => p.status === 'completed').length;
+    const totalPayments = hasGeneratedPayments ? displayedPayments.length : (isUpfront ? 1 : (fund.durationMonths || 10));
+    const paidPayments = hasGeneratedPayments ? displayedPayments.filter(p => p.status === 'completed').length : 0;
+    const totalAmount = hasGeneratedPayments 
+        ? displayedPayments.reduce((acc, p) => acc + (p.amount || 0), 0)
+        : expectedTotalAmount;
     
-    // Count unassigned selections
-    const unassignedCount = fund.selections?.filter(s => s.sponsorId === null).length || 0;
-    
-    // Total amount remaining and logic
     const session = await auth();
     const adSoyad = session?.user?.name || "Bilinmeyen Kullanıcı";
-    const totalAmount = displayedPayments.reduce((acc, p) => acc + (p.amount || 0), 0);
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pt-6">
@@ -119,7 +105,7 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
             {/* Summary Block */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
-                    <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">Toplam Taksit</div>
+                    <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">{isUpfront ? 'Toplam İşlem' : 'Toplam Taksit'}</div>
                     <div className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{totalPayments} Ödeme</div>
                 </div>
                 <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
@@ -136,14 +122,16 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
             {totalPayments > paidPayments && (
                 <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50 flex flex-col items-center justify-between gap-4 md:flex-row">
                     <div className="flex-1">
-                        <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">Kalan Tüm Taksitleri Öde</h3>
-                        <p className="text-blue-700 dark:text-blue-300 text-sm mt-1 mb-3">Gelecek aylara ait tüm taksit tutarlarınızı (toplam {totalAmount.toLocaleString('tr-TR')} ₺) kredi kartınızdan tek seferde provizyon olarak çekebilir ve ödeme planını kapatabilirsiniz.</p>
-                        
-                        {unassignedCount > 0 && (
-                            <div className="pt-2 border-t border-blue-200/50 dark:border-blue-800/30">
-                                <IncreaseSponsorshipButton fundId={fundId} unassignedCount={unassignedCount} />
-                            </div>
-                        )}
+                        <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                            {isUpfront ? 'Fon Ödemesini Gerçekleştir' : 'Kalan Tüm Taksitleri Öde'}
+                        </h3>
+                        <p className="text-blue-700 dark:text-blue-300 text-sm mt-1 mb-3">
+                            <span suppressHydrationWarning>
+                            {isUpfront 
+                                ? `Fon taahhüdünüz olan toplam ${totalAmount.toLocaleString('tr-TR')} ₺ tutarı kredi kartınızdan tek seferde çekerek ödemenizi tamamlayabilirsiniz.`
+                                : `Gelecek aylara ait tüm taksit tutarlarınızı (toplam ${totalAmount.toLocaleString('tr-TR')} ₺) kredi kartınızdan tek seferde provizyon olarak çekebilir ve ödeme planını kapatabilirsiniz.`}
+                            </span>
+                        </p>
                     </div>
                     <div className="flex-shrink-0 w-full md:w-auto">
                         <AppPaymentButton fundId={fundId} />
@@ -159,7 +147,7 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
                 <div className="divide-y divide-gray-100 dark:divide-zinc-800">
                     {displayedPayments.length === 0 ? (
                         <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                            Henüz bu fon için oluşturulmuş bir ödeme planı (taksit) bulunmuyor. <br /> Fon havuzundan bursiyer seçtiğinizde taksitler otomatik oluşacaktır.
+                            Henüz bu fon için oluşturulmuş bir ödeme planı (taksit) bulunmuyor. <br /> "Ödeme Yap" butonuna tıkladığınızda kapasiteniz doğrultusunda ({myCount} Öğrenci) ödeme planınız otomatik oluşacaktır.
                         </div>
                     ) : (
                         displayedPayments.map((payment, i) => (
@@ -174,15 +162,10 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
                                             <span className="font-semibold text-gray-900 dark:text-white text-lg">
                                                 {payment.amount} ₺
                                             </span>
-                                            {payment.application && payment.application.user && (
-                                                <span className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs px-2 py-0.5 rounded flex items-center gap-1 font-medium">
-                                                    <Users className="w-3 h-3" /> {payment.application.user.fullName}
-                                                </span>
-                                            )}
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                            <span suppressHydrationWarning className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />
-                                                {payment.paymentDate ? format(new Date(payment.paymentDate), "MMMM yyyy", { locale: tr }) : "Bilinmeyen Tarih"}
+                                            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />
+                                                <span suppressHydrationWarning>{payment.paymentDate ? format(new Date(payment.paymentDate), "MMMM yyyy", { locale: tr }) : "Bilinmeyen Tarih"}</span>
                                             </span>
                                             <span className="text-gray-300 dark:text-zinc-700">•</span>
                                             <span>{payment.notes || "Aylık Ödeme Taksiti"}</span>

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { payments, funds, fundContributors, fundSelections, mokaTokens, applications } from '@/lib/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
-import { createNotification } from '@/lib/actions/notification';
+import { payments, funds, fundContributors, mokaTokens } from '@/lib/db/schema';
+import { eq, inArray, sql } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
@@ -15,98 +14,17 @@ export async function POST(request: Request) {
 
     const payload = await request.json();
     console.log("PAYMENT COMPLETE WEBHOOK RECEIVED:", JSON.stringify(payload));
-    const { fundId, transactionId, paymentIds, count, userId, tokenCode, paymentMethod, receiptUrl } = payload;
+    const { fundId, transactionId, paymentIds, userId, tokenCode, paymentMethod, receiptUrl } = payload;
 
     const isWireTransfer = paymentMethod === 'wire_transfer';
+    console.log(`WEBHOOK DEBUG: paymentMethod="${paymentMethod}", isWireTransfer=${isWireTransfer}, type=${typeof paymentMethod}`);
 
     if (!fundId) {
       return NextResponse.json({ success: false, error: 'fundId gerekli' }, { status: 400 });
     }
 
-    if (count && userId) {
-      // Find the user's explicit selections
-      const fund = await db.query.funds.findFirst({
-        where: eq(funds.id, fundId),
-        with: { selections: { where: eq(fundSelections.isActive, true) } } // Assuming selections exist, fallback to general if needed
-      });
-      
-      const stableSelections = [...(fund?.selections || [])].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-      const isOwner = fund?.ownerId === userId;
-      const myAppIds = stableSelections
-          .filter((s: any) => s.sponsorId === userId || (!s.sponsorId && isOwner))
-          .map((s: any) => s.applicationId);
-
-      // Find all pending payments for this fund
-      const fundPayments = await db.query.payments.findMany({
-        where: and(
-          eq(payments.fundId, fundId),
-          eq(payments.status, 'pending')
-        ),
-        orderBy: [payments.paymentDate]
-      });
-
-      // Filter to just this user's payments
-      const myPendingPayments = myAppIds.length > 0 
-          ? fundPayments.filter(p => myAppIds.includes(p.applicationId))
-          : fundPayments; // Fallback if no specific apps (e.g. general contributor)
-
-      // Group pending payments by month to handle multi-student grouped payments correctly
-      const groupedByMonth = new Map<string, typeof myPendingPayments>();
-      
-      myPendingPayments.forEach(p => {
-          let groupKey = p.id;
-          if (p.paymentDate) {
-              groupKey = `${p.paymentDate.getFullYear()}-${String(p.paymentDate.getMonth() + 1).padStart(2, '0')}`;
-          }
-          if (!groupedByMonth.has(groupKey)) {
-              groupedByMonth.set(groupKey, []);
-          }
-          groupedByMonth.get(groupKey)!.push(p);
-      });
-
-      // Sort the groups chronologically
-      const sortedGroups = Array.from(groupedByMonth.entries()).sort((a, b) => {
-          // If the key is just an ID (no date), we can't reliably sort by month, so just leave it at the end
-          if (!a[0].includes('-')) return 1;
-          if (!b[0].includes('-')) return -1;
-          return a[0].localeCompare(b[0]);
-      });
-
-      // Take only the first `count` GROUPS
-      const groupsToMark = sortedGroups.slice(0, count);
-      
-      // Flatten the payments from these groups
-      const paymentsToMark = groupsToMark.flatMap(g => g[1]).map(p => p.id);
-
-      if (paymentsToMark.length > 0) {
-        const isSubscription = paymentMethod === 'subscription';
-        
-        await db.update(payments)
-          .set({ 
-            status: isWireTransfer ? 'pending' : 'completed',
-            receiptUrl: receiptUrl || null,
-            paymentMethod: isSubscription ? 'subscription' : (isWireTransfer ? 'wire_transfer' : undefined),
-            notes: isWireTransfer 
-              ? `Havale/EFT dekontu yüklendi. Onay bekliyor. İşlem No: ${transactionId}` 
-              : (transactionId ? `Web Sanal POS ile ${isSubscription ? '(Aylık Abonelik İlk Taksit)' : 'ödendi'}. İşlem No: ${transactionId}` : 'Web üzerinden ödendi')
-          })
-          .where(inArray(payments.id, paymentsToMark));
-
-        // Update the REST of the pending payments for this user's apps to have paymentMethod = 'subscription'
-        if (isSubscription && sortedGroups.length > count) {
-             const restGroups = sortedGroups.slice(count);
-             const restIds = restGroups.flatMap(g => g[1]).map(p => p.id);
-             
-             if (restIds.length > 0) {
-                 await db.update(payments)
-                   .set({ paymentMethod: 'subscription' })
-                   .where(inArray(payments.id, restIds));
-             }
-        }
-      }
-    } else if (paymentIds && Array.isArray(paymentIds) && paymentIds.length > 0) {
-      // Flatten comma-separated IDs if any
-      let finalPaymentIds: string[] = [];
+    let finalPaymentIds: string[] = [];
+    if (paymentIds && Array.isArray(paymentIds) && paymentIds.length > 0) {
       paymentIds.forEach((pid: string) => {
           if (pid.includes(',')) {
               finalPaymentIds.push(...pid.split(','));
@@ -114,58 +32,33 @@ export async function POST(request: Request) {
               finalPaymentIds.push(pid);
           }
       });
+    }
 
-      // Geriye dönük uyumluluk: Sadece gönderilen ödeme ID'lerini tamamlandı olarak işaretle
-      await db.update(payments)
+    if (finalPaymentIds.length > 0) {
+      const isSubscription = paymentMethod === 'subscription';
+      const statusToSet = isWireTransfer ? 'pending' : 'completed';
+
+      // Mark the selected payments
+      const updatedPayments = await db.update(payments)
         .set({ 
-          status: isWireTransfer ? 'pending' : 'completed',
+          status: statusToSet,
           receiptUrl: receiptUrl || null,
+          paymentMethod: isSubscription ? 'subscription' : (isWireTransfer ? 'wire_transfer' : undefined),
           notes: isWireTransfer 
             ? `Havale/EFT dekontu yüklendi. Onay bekliyor. İşlem No: ${transactionId}` 
-            : (transactionId ? `Web Sanal POS ile ödendi. İşlem No: ${transactionId}` : 'Web üzerinden ödendi')
+            : (transactionId ? `Web Sanal POS ile ${isSubscription ? '(Aylık Abonelik İlk Taksit)' : 'ödendi'}. İşlem No: ${transactionId}` : 'Web üzerinden ödendi')
         })
-        .where(
-          and(
-            eq(payments.fundId, fundId),
-            eq(payments.status, 'pending'),
-            inArray(payments.id, finalPaymentIds)
-          )
-        );
-    } else {
-      // Fallback: eski sistem çalışıyorsa veya tüm fon ödeniyorsa
-      const allPendingPayments = await db.query.payments.findMany({
-        where: and(
-            eq(payments.fundId, fundId),
-            eq(payments.status, 'pending')
-        ),
-        orderBy: (p, { asc }) => [asc(p.paymentDate)]
-      });
+        .where(inArray(payments.id, finalPaymentIds))
+        .returning();
 
-      if (allPendingPayments.length > 0) {
-          const isSubscription = paymentMethod === 'subscription';
-          // If it's a subscription, only mark the FIRST payment as completed
-          const paymentsToUpdate = isSubscription ? [allPendingPayments[0]] : allPendingPayments;
-
-          await db.update(payments)
-            .set({ 
-              status: isWireTransfer ? 'pending' : 'completed',
-              receiptUrl: receiptUrl || null,
-              paymentMethod: isSubscription ? 'subscription' : 'wire_transfer',
-              notes: isWireTransfer 
-                ? `Havale/EFT dekontu yüklendi. Onay bekliyor. İşlem No: ${transactionId}` 
-                : (transactionId ? `Web Sanal POS ile ${isSubscription ? '(Aylık Abonelik İlk Taksit)' : '(Tüm Kalan)'} ödendi. İşlem No: ${transactionId}` : `Web üzerinden ${isSubscription ? '(Aylık Abonelik)' : '(Tüm Kalan)'} ödendi`)
-            })
-            .where(
-              inArray(payments.id, paymentsToUpdate.map(p => p.id))
-            );
-
-          // Update the REST of the pending payments for this fund to have paymentMethod = 'subscription'
-          if (isSubscription && allPendingPayments.length > 1) {
-             const restIds = allPendingPayments.slice(1).map(p => p.id);
-             await db.update(payments)
-               .set({ paymentMethod: 'subscription' })
-               .where(inArray(payments.id, restIds));
-          }
+      // IF COMPLETED, increment the fund's collectedAmount
+      if (statusToSet === 'completed') {
+         const totalPaid = updatedPayments.reduce((acc, p) => acc + (p.amount || 0), 0);
+         if (totalPaid > 0) {
+            await db.update(funds)
+              .set({ collectedAmount: sql`${funds.collectedAmount} + ${totalPaid}` })
+              .where(eq(funds.id, fundId));
+         }
       }
     }
 
@@ -173,12 +66,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'Dekont alındı, onay bekleniyor.' });
     }
 
-    // Ayrıca, fonun ödemesi yapıldığı için katılımcıları da onaylı (isPaid=true) hale getir
+    // Katılımcıları (Contributor) ödedi olarak işaretle
     const fund = await db.query.funds.findFirst({
         where: eq(funds.id, fundId)
     });
 
-    if (fund) {
+    if (fund && userId) {
         const contributors = await db.query.fundContributors.findMany({
             where: eq(fundContributors.fundId, fundId)
         });
@@ -195,30 +88,6 @@ export async function POST(request: Request) {
                 amount: 0,
                 isPaid: true
             });
-        }
-
-        // ACTIVATE APPLICATIONS AND NOTIFY STUDENTS GLOBALLY FOR THIS FUND
-        const appsToActivate = await db.query.applications.findMany({
-            where: and(
-                eq(applications.fundId, fundId),
-                eq(applications.status, 'selected')
-            )
-        });
-
-        if (appsToActivate.length > 0) {
-            await db.update(applications)
-              .set({ status: 'active' })
-              .where(and(eq(applications.fundId, fundId), eq(applications.status, 'selected')));
-
-            for (const app of appsToActivate) {
-               await createNotification(
-                  app.tenantId,
-                  [app.userId],
-                  'application',
-                  'Tebrikler! Bursa Seçildiniz 🎉',
-                  `Başvurunuz onaylandı ve bir burs fonuna atandınız. İlk tahsilat başarıyla yapıldı. Öğrenim döneminiz boyunca ödemeleriniz gerçekleşecektir.`
-               ).catch(e => console.error("Notification failed", e));
-            }
         }
     }
 

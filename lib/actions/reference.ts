@@ -308,7 +308,7 @@ export async function processExemption(applicationId: string, action: "approve" 
         await db.update(applications)
             .set({ 
                 status: "in_pool",
-                isExemptionRequested: false // No longer pending
+                isExemptionRequested: true // Keep it true so they are marked as old student
             })
             .where(eq(applications.id, applicationId));
 
@@ -325,7 +325,7 @@ export async function processExemption(applicationId: string, action: "approve" 
         // Send Email
         if (app.user?.email) {
             await sendEmail({
-                code: EMAIL_CODES.GENEL,
+                code: EMAIL_CODES.BILDIRIM,
                 sentTo: app.user.email,
                 subject: `${tenantData.tenantName || 'Vakıf'} - Muafiyet Talebi Onaylandı`,
                 screen: "exemption_approved",
@@ -365,7 +365,7 @@ export async function processExemption(applicationId: string, action: "approve" 
         // Send Email
         if (app.user?.email) {
             await sendEmail({
-                code: EMAIL_CODES.GENEL,
+                code: EMAIL_CODES.BILDIRIM,
                 sentTo: app.user.email,
                 subject: `${tenantData.tenantName || 'Vakıf'} - Muafiyet Talebi Reddedildi`,
                 screen: "exemption_rejected",

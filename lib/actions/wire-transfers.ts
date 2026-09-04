@@ -2,37 +2,44 @@
 
 import { db } from "@/lib/db";
 import { payments, applications, fundSelections, fundContributors, funds } from "@/lib/db/schema";
-import { eq, and, isNotNull, inArray } from "drizzle-orm";
+import { eq, and, isNotNull, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/actions/notification";
 
-export async function getPendingWireTransfers(tenantId: string) {
+export async function getWireTransfers(tenantId: string, tab: 'pending' | 'history' = 'pending') {
     try {
+        const statuses = (tab === 'pending' ? ['pending'] : ['completed', 'failed']) as Array<'pending' | 'completed' | 'failed' | 'cancelled'>;
+        const condition = and(
+            eq(payments.tenantId, tenantId),
+            inArray(payments.status, statuses),
+            eq(payments.paymentMethod, 'wire_transfer')
+        );
+
         const pendingPayments = await db.query.payments.findMany({
-            where: and(
-                eq(payments.tenantId, tenantId),
-                eq(payments.status, 'pending'),
-                isNotNull(payments.receiptUrl)
-            ),
+            where: condition,
             with: {
                 fund: true,
                 application: {
                     with: {
                         user: true
                     }
-                }
+                },
+                user: true
             },
             orderBy: (p, { desc }) => [desc(p.createdAt)]
         });
         const grouped = pendingPayments.reduce((acc, p) => {
-            const key = p.receiptUrl || p.id;
+            // Group by receiptUrl if available, otherwise group by user+fund to batch pending installments
+            const key = p.receiptUrl || `${p.userId || 'anon'}_${p.fundId}`;
             if (!acc[key]) {
                 acc[key] = {
                     id: key,
                     receiptUrl: p.receiptUrl,
                     fund: p.fund,
                     application: p.application,
+                    user: p.user, // Sender user
                     createdAt: p.createdAt,
+                    status: p.status, // take status of the first one in group
                     totalAmount: 0,
                     paymentIds: []
                 };
@@ -61,6 +68,7 @@ export async function approveWireTransfer(paymentIds: string[]) {
         });
 
         if (!payment) return { success: false, error: "Ödeme bulunamadı" };
+        if (!payment.userId) return { success: false, error: "Ödemeye ait kullanıcı bilgisi eksik" };
 
         await db.update(payments)
             .set({ 
@@ -71,19 +79,22 @@ export async function approveWireTransfer(paymentIds: string[]) {
 
         // Mark contributor as paid
         if (payment.fund) {
-            const contributors = await db.query.fundContributors.findMany({
-                where: eq(fundContributors.fundId, payment.fundId)
+            const contributor = await db.query.fundContributors.findFirst({
+                where: and(
+                    eq(fundContributors.fundId, payment.fundId),
+                    eq(fundContributors.userId, payment.userId)
+                )
             });
 
-            if (contributors.length > 0) {
+            if (contributor) {
                 await db.update(fundContributors)
                     .set({ isPaid: true })
-                    .where(eq(fundContributors.fundId, payment.fundId));
+                    .where(eq(fundContributors.id, contributor.id));
             } else {
                 await db.insert(fundContributors).values({
                     fundId: payment.fundId,
-                    userId: payment.fund.ownerId,
-                    amount: 0,
+                    userId: payment.userId,
+                    amount: payment.amount || 0,
                     isPaid: true
                 });
             }
@@ -136,6 +147,40 @@ export async function rejectWireTransfer(paymentIds: string[]) {
         return { success: true };
     } catch (e) {
         console.error("Error rejecting wire transfer:", e);
+        return { success: false, error: "Sistem hatası" };
+    }
+}
+
+export async function revertWireTransfer(paymentIds: string[]) {
+    try {
+        if (!paymentIds || paymentIds.length === 0) return { success: false, error: "Ödeme bulunamadı" };
+
+        const paymentList = await db.query.payments.findMany({
+            where: inArray(payments.id, paymentIds),
+        });
+
+        if (paymentList.length === 0) return { success: false, error: "Ödeme bulunamadı" };
+
+        const totalPaid = paymentList.filter(p => p.status === 'completed').reduce((acc, p) => acc + (p.amount || 0), 0);
+        const fundId = paymentList[0].fundId;
+
+        await db.update(payments)
+            .set({ 
+                status: 'pending',
+                notes: "İşlem yönetici tarafından geri alındı ve bekleme listesine döndürüldü."
+            })
+            .where(inArray(payments.id, paymentIds));
+
+        if (totalPaid > 0 && fundId) {
+            await db.update(funds)
+              .set({ collectedAmount: sql`${funds.collectedAmount} - ${totalPaid}` })
+              .where(eq(funds.id, fundId));
+        }
+
+        revalidatePath('/dashboard/wire-transfers');
+        return { success: true };
+    } catch (e) {
+        console.error("Error reverting wire transfer:", e);
         return { success: false, error: "Sistem hatası" };
     }
 }

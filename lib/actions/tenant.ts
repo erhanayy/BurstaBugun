@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { tenants, users, tenantUsers } from "@/lib/db/schema";
 import { auth } from "@/auth";
 import { eq } from "drizzle-orm";
+import { getCurrentTenant } from "@/lib/data/tenant";
 
 export async function switchTenant(tenantId: string) {
     const cookieStore = await cookies();
@@ -76,6 +77,20 @@ export async function toggleTenantStatus(tenantId: string, isActive: boolean) {
     await db.update(tenants)
         .set({ isActive })
         .where(eq(tenants.id, tenantId));
+        
+    return { success: true };
+}
+
+export async function setTenantSponsorSelection(canSponsorSelectFromPool: boolean) {
+    const tenantData = await getCurrentTenant();
+    const session = await auth();
+    if (!tenantData || tenantData.userRole !== 'admin') {
+        throw new Error("Unauthorized");
+    }
+
+    await db.update(tenants)
+        .set({ canSponsorSelectFromPool })
+        .where(eq(tenants.id, tenantData.tenantId));
         
     return { success: true };
 }

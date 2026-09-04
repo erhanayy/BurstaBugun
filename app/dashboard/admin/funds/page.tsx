@@ -44,15 +44,21 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
         with: {
             owner: true,
             selections: true,
+            payments: true,
+            contributors: true
         }
     });
 
-    // Fetch seasons to map UUIDs to period text
+    // Fetch seasons to map UUIDs to period text and get default parameters
     const allSeasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
     });
     const seasonMap = new Map<string, string>();
-    allSeasons.forEach(s => seasonMap.set(s.id, s.period));
+    const seasonDataMap = new Map<string, any>();
+    allSeasons.forEach(s => {
+        seasonMap.set(s.id, s.period);
+        seasonDataMap.set(s.id, s);
+    });
 
     const uiFunds = fundsList.map(f => {
         // Fon araması owner ismi ile de eşleşmeli
@@ -62,14 +68,34 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
         ) : true;
 
         const periodDisplay = f.period ? (seasonMap.get(f.period) || f.period) : "-";
+        
+        // Find season defaults
+        const season = f.period ? seasonDataMap.get(f.period) : null;
+        const defaultMonthlyLimit = season?.defaultFundAmount || 5000;
+        const defaultDuration = season?.defaultFundDuration || 10;
+        
+        // Calculate Total Expected Amount based on total promised students
+        const totalPromisedStudents = f.contributors 
+            ? f.contributors.filter(c => c.isActive).reduce((sum, c) => sum + (c.studentCount || 0), 0)
+            : (f.targetStudentCount || 0);
+            
+        const fundMonthlyLimit = f.monthlyLimit || defaultMonthlyLimit;
+        const fundDuration = f.durationMonths || defaultDuration;
+        const expectedTotalAmount = totalPromisedStudents * fundMonthlyLimit * fundDuration;
+
+        const actualCollected = f.payments 
+            ? f.payments.filter((p: any) => p.status === 'completed').reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+            : (f.collectedAmount || 0);
 
         return {
             id: f.id,
             title: f.title,
             ownerName: f.owner?.fullName || "Bilinmiyor",
             period: periodDisplay,
-            targetStudentCount: f.targetStudentCount || 0,
+            targetStudentCount: totalPromisedStudents, // using total promised students as target
             matchedStudentCount: f.selections.length,
+            collectedAmount: actualCollected,
+            expectedTotalAmount: expectedTotalAmount,
             isActive: f.isActive,
             matchSearch
         };

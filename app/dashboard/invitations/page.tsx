@@ -161,7 +161,7 @@ export default async function PendingInvitationsPage() {
                                         </div>
 
                                         {/* Seçilen Öğrencileri Göster */}
-                                        {inv.fund?.selections && inv.fund.selections.length > 0 ? (
+                                        {inv.fund?.selections && inv.fund.selections.length > 0 && (
                                             <div className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
                                                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Fona Seçilen Öğrenciler</p>
                                                 <div className="flex flex-col gap-2">
@@ -173,13 +173,6 @@ export default async function PendingInvitationsPage() {
                                                     ))}
                                                 </div>
                                             </div>
-                                        ) : (
-                                            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
-                                                <div className="text-sm bg-amber-50 dark:bg-amber-900/10 text-amber-800 dark:text-amber-300 px-3 py-2 rounded-lg border border-amber-100 dark:border-amber-800/30 flex items-center gap-2">
-                                                    <Clock className="w-4 h-4 shrink-0" />
-                                                    <span className="text-xs font-medium">Fon Sahibinin Öğrenci Seçmesi Bekleniyor</span>
-                                                </div>
-                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -187,24 +180,15 @@ export default async function PendingInvitationsPage() {
                                 {(() => {
                                     const fund = inv.fund;
                                     const targetCount = fund.targetStudentCount || 1;
-                                    const currentTotal = (fund.contributors as any[])?.filter(c => c.isActive).reduce((sum, c) => sum + (c.studentCount || 1), 0) || 0;
 
                                     return (
                                         <>
-                                            <div className="bg-blue-50/50 dark:bg-blue-900/10 px-4 py-2 border-y border-blue-100 dark:border-blue-900/30 text-sm flex justify-between items-center">
-                                                <span className="font-medium text-blue-700 dark:text-blue-300">Doluluk Oranı:</span>
-                                                <span className="font-bold text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-800/40 px-2 py-0.5 rounded">
-                                                    Kabul Gören: {currentTotal} / {targetCount}
-                                                </span>
-                                            </div>
                                             <div className="p-4 bg-gray-50 dark:bg-zinc-900/50">
                                                 <InvitationActions
                                                     invitationId={inv.id}
                                                     fundId={fund.id}
                                                     fund={fund}
-                                                    currentTotal={currentTotal}
                                                     targetCount={targetCount}
-                                                    hasSelections={inv.fund?.selections && inv.fund.selections.length > 0}
                                                 />
                                             </div>
                                         </>

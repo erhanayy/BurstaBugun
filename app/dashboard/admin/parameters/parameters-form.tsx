@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { setSystemParameter } from "@/lib/actions/parameters";
+import { setTenantSponsorSelection } from "@/lib/actions/tenant";
 import { Loader2, Save, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -19,6 +20,7 @@ import {
     initialExemptionText?: string;
     initialTenantIban?: string;
     initialTenantAccountName?: string;
+    initialCanSponsorSelect?: boolean;
 };
 
 export function ParametersForm({ 
@@ -28,6 +30,7 @@ export function ParametersForm({
     initialExemptionText,
     initialTenantIban,
     initialTenantAccountName,
+    initialCanSponsorSelect,
 }: ParametersFormProps) {
     const [maxLimit, setMaxLimit] = useState(initialMaxLimit);
     const [maskNames, setMaskNames] = useState(initialMaskNames === "true");
@@ -35,6 +38,7 @@ export function ParametersForm({
     const [exemptionText, setExemptionText] = useState(initialExemptionText || "");
     const [tenantIban, setTenantIban] = useState(initialTenantIban || "");
     const [tenantAccountName, setTenantAccountName] = useState(initialTenantAccountName || "");
+    const [canSponsorSelect, setCanSponsorSelect] = useState(initialCanSponsorSelect || false);
 
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
@@ -53,6 +57,8 @@ export function ParametersForm({
             await setSystemParameter("TENANT_IBAN", tenantIban, "Kurum IBAN Numarası (Havale/EFT bağışları için)");
             await setSystemParameter("TENANT_ACCOUNT_NAME", tenantAccountName, "Kurum Banka Hesap Adı (Havale/EFT bağışları için)");
             
+            await setTenantSponsorSelection(canSponsorSelect);
+
             setMessage({ text: "Parametreler başarıyla güncellendi.", type: "success" });
             router.refresh();
         } catch (error: any) {
@@ -108,6 +114,29 @@ export function ParametersForm({
                     <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                         Aktif edildiğinde Bursiyer havuzundaki ve Fon detayındaki öğrenci isimleri gizlilik amacıyla sadece baş harfleriyle (Örn: A.Y.) gösterilir. Adminler ve öğrencinin kendisi bu ayardan etkilenmez.
                     </p>
+                </div>
+            </div>
+
+            <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Fon ve Sponsor Ayarları</h3>
+                <div className="grid grid-cols-1 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            Sponsorlar Havuzdan Öğrenci Seçebilir
+                            <div className="relative inline-flex items-center cursor-pointer ml-auto">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer" 
+                                    checked={canSponsorSelect}
+                                    onChange={(e) => setCanSponsorSelect(e.target.checked)}
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            </div>
+                        </label>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                            Açık olduğunda, normal bursveren (sponsor) yetkisindeki kullanıcılar Fon Yönetimi ekranından havuza girerek kendi fonlarına doğrudan öğrenci seçimi yapabilirler. Kapalı olduğunda sadece Adminler atama yapabilir.
+                        </p>
+                    </div>
                 </div>
             </div>
 

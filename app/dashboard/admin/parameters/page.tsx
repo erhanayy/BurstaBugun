@@ -80,6 +80,7 @@ export default async function ParametersPage() {
                     initialExemptionText={paramMap.get("EXEMPTION_QUESTION_TEXT")}
                     initialTenantIban={paramMap.get("TENANT_IBAN")}
                     initialTenantAccountName={paramMap.get("TENANT_ACCOUNT_NAME")}
+                    initialCanSponsorSelect={tenantData.canSponsorSelectFromPool}
                 />
             </div>
 

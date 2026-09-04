@@ -120,21 +120,14 @@ export default async function SponsorFundsPage() {
                             </div>
 
                             <div className="p-4 border-t border-gray-100 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/80 flex items-center justify-between">
-                                {((fund as any).selections?.length || 0) === 0 ? (
-                                    <div className="flex items-center text-sm font-medium text-gray-400 dark:text-zinc-600 cursor-not-allowed" title="Ödeme yapılabilmesi için önce havuzdan öğrenci seçimi yapılmalıdır">
-                                        <CreditCard className="w-4 h-4 mr-1.5 opacity-50" />
-                                        Önce Öğrenci Seçin
-                                    </div>
-                                ) : (
-                                        <Link
-                                            href={`/dashboard/funds/${fund.id}/${fund.ownerId === tenantData.userId ? 'overview' : 'payment'}`}
-                                            className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                            title="Ödeme detaylarını ve genel durumu görüntüle"
-                                        >
-                                            <CreditCard className="w-4 h-4 mr-1.5" />
-                                            {fund.ownerId === tenantData.userId ? 'Genel Durum / Ödemeler' : 'Ödeme Detaylarını Gör'}
-                                        </Link>
-                                )}
+                                <Link
+                                    href={`/dashboard/funds/${fund.id}/${fund.ownerId === tenantData.userId ? 'overview' : 'payment'}`}
+                                    className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                    title="Ödeme detaylarını ve genel durumu görüntüle"
+                                >
+                                    <CreditCard className="w-4 h-4 mr-1.5" />
+                                    {fund.ownerId === tenantData.userId ? 'Genel Durum / Ödemeler' : 'Ödeme Yapın'}
+                                </Link>
 
                                 <div className="flex items-center gap-2">
                                     <Link

@@ -64,6 +64,20 @@
       "when": 1787994699770,
       "tag": "0008_spooky_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788472307587,
+      "tag": "0009_dazzling_betty_ross",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788473481196,
+      "tag": "0010_clumsy_blue_marvel",
+      "breakpoints": true
     }
   ]
 }

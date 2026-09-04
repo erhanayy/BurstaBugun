@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { payments, funds, applications, users } from "@/lib/db/schema";
+import { payments, funds, applications, users, studentPaymentLogs } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, desc, and, like, ilike } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -21,41 +21,46 @@ export default async function PaymentsHistoryPage({ searchParams }: { searchPara
     });
 
     const conditions = [];
-    conditions.push(eq(payments.tenantId, tenantData.tenantId));
-    conditions.push(eq(payments.status, 'completed')); // EXCLUDE PENDING
+    conditions.push(eq(studentPaymentLogs.tenantId, tenantData.tenantId));
 
     if (searchObj.fundId) {
-        conditions.push(eq(payments.fundId, searchObj.fundId));
+        conditions.push(eq(studentPaymentLogs.fundId, searchObj.fundId));
     }
 
     // Currently drizzle-orm doesn't easily support month/year extraction directly without raw SQL.
     // As a simple alternative, we will fetch and filter in-memory for dates if they are selected.
 
-    let history = await db.query.payments.findMany({
+    let history = await db.query.studentPaymentLogs.findMany({
         where: conditions.length > 0 ? and(...conditions) : undefined,
         with: {
-            fund: true,
             application: {
                 with: {
                     user: true
                 }
             }
         },
-        orderBy: [desc(payments.paymentDate), desc(payments.createdAt)],
+        orderBy: [desc(studentPaymentLogs.paymentDate), desc(studentPaymentLogs.createdAt)],
     });
+
+    // We need fund titles for display. Since studentPaymentLogs doesn't have relation defined to funds yet, 
+    // we can map it in memory.
+    let mappedHistory = history.map(log => ({
+        ...log,
+        fund: allFunds.find(f => f.id === log.fundId)
+    }));
 
     // In-memory filters for nested fields / dates:
     if (searchObj.search) {
         const searchLower = searchObj.search.toLowerCase();
-        history = history.filter(p => p.application?.user?.fullName?.toLowerCase().includes(searchLower));
+        mappedHistory = mappedHistory.filter(p => p.application?.user?.fullName?.toLowerCase().includes(searchLower));
     }
 
     if (searchObj.year) {
-        history = history.filter(p => new Date(p.paymentDate || p.createdAt).getFullYear() === parseInt(searchObj.year!));
+        mappedHistory = mappedHistory.filter(p => new Date(p.paymentDate || p.createdAt).getFullYear() === parseInt(searchObj.year!));
     }
 
     if (searchObj.month) {
-        history = history.filter(p => new Date(p.paymentDate || p.createdAt).getMonth() + 1 === parseInt(searchObj.month!));
+        mappedHistory = mappedHistory.filter(p => new Date(p.paymentDate || p.createdAt).getMonth() + 1 === parseInt(searchObj.month!));
     }
 
     return (
@@ -91,7 +96,7 @@ export default async function PaymentsHistoryPage({ searchParams }: { searchPara
                 </button>
             </form>
 
-            <HistoryTable history={history} />
+            <HistoryTable history={mappedHistory} />
         </div>
     );
 }

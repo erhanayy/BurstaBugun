@@ -1,15 +1,17 @@
 "use server";
 
 import { db } from "../db";
-import { payments, mokaTokens, fundSelections } from "../db/schema";
+import { payments, mokaTokens, fundSelections, users } from "../db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
 
+const isProdEnv = process.env.LIVE_ENV === 'true' || process.env.NODE_ENV === 'production';
 const MOKA_DEALER_CODE = process.env.MOKA_DEALER_CODE || "206019";
 const MOKA_USERNAME = process.env.MOKA_USERNAME || "c4152353-27d3-4dbc-912e-d748bd63c80f";
 const MOKA_PASSWORD = process.env.MOKA_PASSWORD || "bc730821-ea91-46d8-8671-55307c13d0a1";
-const MOKA_API_URL = process.env.MOKA_API_URL || "https://service.mokaunited.com";
+// Test ve Canlı ayrımı
+const MOKA_API_URL = process.env.MOKA_API_URL || (isProdEnv ? "https://service.mokaunited.com" : "https://service.testmoka.com");
 
 function createCheckKey() {
     const rawCheckKey = MOKA_DEALER_CODE + "MK" + MOKA_USERNAME + "PD" + MOKA_PASSWORD;
@@ -46,9 +48,7 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
         const groups = new Map<string, { payments: typeof pendingPayments, amount: number, userId: string, fundId: string, fundTitle: string, isArdaErel: boolean }>();
 
         // Fetch users to check for Arda Erel exception
-        const allUserIds = [...new Set(pendingPayments.map(p => p.application?.user?.id).filter(Boolean))];
-        // Wait, the sponsor is not the student. The sponsor is fetched via fundSelections.
-        // Let's fetch the selections inside the loop and get the user.
+        // In decoupled architecture, payment.userId is the sponsor.
 
         for (const payment of pendingPayments) {
             if (payment.status !== 'pending') {
@@ -56,24 +56,18 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
                 continue;
             }
 
-            const selection = await db.query.fundSelections.findFirst({
-                where: and(
-                    eq(fundSelections.fundId, payment.fundId),
-                    eq(fundSelections.applicationId, payment.applicationId),
-                    eq(fundSelections.isActive, true)
-                ),
-                with: {
-                    sponsor: true
-                }
-            });
-
-            const userId = selection?.sponsorId;
-            if (!userId || !selection.sponsor) {
-                results.push({ paymentId: payment.id, success: false, error: "Bu ödemeye ait bursveren (sponsor) bulunamadı." });
+            const userId = payment.userId;
+            if (!userId) {
+                results.push({ paymentId: payment.id, success: false, error: "Bu ödemeye ait kullanıcı (sponsor) bulunamadı." });
                 continue;
             }
 
-            const sponsorName = selection.sponsor.fullName || '';
+            // We need the user's name for the Arda Erel exception
+            const user = await db.query.users.findFirst({
+                where: eq(users.id, userId)
+            });
+
+            const sponsorName = user?.fullName || '';
             const isArdaErel = sponsorName.toLowerCase().includes('arda erel');
 
             let groupKey = payment.id; // Default to no grouping for exceptions

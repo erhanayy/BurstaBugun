@@ -157,6 +157,7 @@ export default async function DashboardLayout({
                         {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
                                 <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
+                                <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
                                 <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
@@ -179,7 +180,7 @@ export default async function DashboardLayout({
                 </aside>
 
                 {/* ─── Main Content ─── */}
-                <div className="flex-1 flex flex-col min-w-0 overflow-hidden h-full">
+                <section className="flex-1 flex flex-col min-w-0 overflow-hidden h-full">
                     <header
                         className="min-h-14 lg:h-14 border-b border-gray-200/20 dark:border-zinc-800 bg-[var(--header-bg)] text-white flex items-center justify-between px-4 lg:px-6 flex-shrink-0"
                         style={{ paddingTop: 'env(safe-area-inset-top)' }}
@@ -281,6 +282,7 @@ export default async function DashboardLayout({
                                         {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
                                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
                                                 <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
+                                                <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
                                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
                                                 <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
@@ -307,7 +309,7 @@ export default async function DashboardLayout({
 
                     {/* Page Content */}
                     <main className="flex-1 p-4 lg:p-6 overflow-y-auto overflow-x-hidden max-w-full w-full pb-[calc(env(safe-area-inset-bottom)+2rem)] lg:pb-6">{children}</main>
-                </div>
+                </section>
             </div>
         </>
     );
