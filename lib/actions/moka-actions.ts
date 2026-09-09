@@ -7,11 +7,11 @@ import { revalidatePath } from "next/cache";
 import crypto from "crypto";
 
 const isProdEnv = process.env.LIVE_ENV === 'true' || process.env.NODE_ENV === 'production';
-const MOKA_DEALER_CODE = process.env.MOKA_DEALER_CODE || "206019";
-const MOKA_USERNAME = process.env.MOKA_USERNAME || "c4152353-27d3-4dbc-912e-d748bd63c80f";
-const MOKA_PASSWORD = process.env.MOKA_PASSWORD || "bc730821-ea91-46d8-8671-55307c13d0a1";
 // Test ve Canlı ayrımı
 const MOKA_API_URL = process.env.MOKA_API_URL || (isProdEnv ? "https://service.mokaunited.com" : "https://service.testmoka.com");
+const MOKA_DEALER_CODE = isProdEnv ? (process.env.MOKA_DEALER_CODE || "206019") : (process.env.MOKA_TEST_DEALER_CODE || "Test");
+const MOKA_USERNAME = isProdEnv ? (process.env.MOKA_USERNAME || "c4152353-27d3-4dbc-912e-d748bd63c80f") : (process.env.MOKA_TEST_USERNAME || "Test");
+const MOKA_PASSWORD = isProdEnv ? (process.env.MOKA_PASSWORD || "bc730821-ea91-46d8-8671-55307c13d0a1") : (process.env.MOKA_TEST_PASSWORD || "Test");
 
 function createCheckKey() {
     const rawCheckKey = MOKA_DEALER_CODE + "MK" + MOKA_USERNAME + "PD" + MOKA_PASSWORD;
