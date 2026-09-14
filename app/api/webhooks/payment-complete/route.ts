@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { payments, funds, fundContributors, mokaTokens } from '@/lib/db/schema';
-import { eq, inArray, sql } from 'drizzle-orm';
+import { eq, inArray, sql, and, asc } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
@@ -64,8 +64,12 @@ export async function POST(request: Request) {
       // Taksitli abonelik işlemi, ancak paymentIds gelmedi (URL limitasyonundan dolayı).
       // Bu durumda, bu fona ve kullanıcıya ait olan İLK "pending" ödemeyi bulup "completed" yapacağız.
       const firstPendingPayment = await db.query.payments.findFirst({
-        where: sql`${payments.fundId} = ${fundId} AND ${payments.userId} = ${userId} AND ${payments.status} = 'pending'`,
-        orderBy: sql`${payments.paymentDate} ASC`
+        where: and(
+          eq(payments.fundId, fundId),
+          eq(payments.userId, userId),
+          eq(payments.status, 'pending')
+        ),
+        orderBy: [asc(payments.paymentDate)]
       });
 
       if (firstPendingPayment) {
