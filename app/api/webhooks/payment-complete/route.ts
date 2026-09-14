@@ -60,6 +60,32 @@ export async function POST(request: Request) {
               .where(eq(funds.id, fundId));
          }
       }
+    } else if (fundId && userId && paymentMethod === 'subscription') {
+      // Taksitli abonelik işlemi, ancak paymentIds gelmedi (URL limitasyonundan dolayı).
+      // Bu durumda, bu fona ve kullanıcıya ait olan İLK "pending" ödemeyi bulup "completed" yapacağız.
+      const firstPendingPayment = await db.query.payments.findFirst({
+        where: sql`${payments.fundId} = ${fundId} AND ${payments.userId} = ${userId} AND ${payments.status} = 'pending'`,
+        orderBy: sql`${payments.paymentDate} ASC`
+      });
+
+      if (firstPendingPayment) {
+        const updatedPayment = await db.update(payments)
+          .set({ 
+            status: 'completed',
+            paymentMethod: 'subscription',
+            notes: `Web Sanal POS ile (Aylık Abonelik İlk Taksit). İşlem No: ${transactionId || ''}`
+          })
+          .where(eq(payments.id, firstPendingPayment.id))
+          .returning();
+
+        // IF COMPLETED, increment the fund's collectedAmount
+        const totalPaid = updatedPayment[0]?.amount || 0;
+        if (totalPaid > 0) {
+          await db.update(funds)
+            .set({ collectedAmount: sql`${funds.collectedAmount} + ${totalPaid}` })
+            .where(eq(funds.id, fundId));
+        }
+      }
     }
 
     if (isWireTransfer) {
