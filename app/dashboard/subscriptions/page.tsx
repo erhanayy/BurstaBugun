@@ -16,7 +16,18 @@ export default async function SubscriptionsPage() {
             eq(payments.paymentMethod, 'subscription')
         ),
         with: {
-            fund: true,
+            fund: {
+                with: {
+                    selections: {
+                        where: eq(fundSelections.isActive, true),
+                        with: {
+                            application: {
+                                with: { user: true }
+                            }
+                        }
+                    }
+                }
+            },
             user: true
         }
     });
@@ -36,10 +47,19 @@ export default async function SubscriptionsPage() {
         }
 
         if (!groupedSubscriptionsMap.has(groupKey)) {
+            let studentDisplayName = "Öğrenci Seçimi Bekleniyor";
+            if (p.fund?.selections && p.fund.selections.length > 0) {
+                if (p.fund.selections.length === 1) {
+                    studentDisplayName = p.fund.selections[0].application?.user?.fullName || "Bursiyer (Gizli)";
+                } else {
+                    studentDisplayName = `${p.fund.selections.length} Öğrenci`;
+                }
+            }
+
             groupedSubscriptionsMap.set(groupKey, {
                 id: p.id,
                 fundName: p.fund?.title || 'Bilinmeyen Fon',
-                studentName: "Öğrenci Seçimi Bekleniyor",
+                studentName: studentDisplayName,
                 sponsorName: sponsorName,
                 amount: p.amount || 0,
                 dueDate: p.paymentDate ? p.paymentDate.toISOString() : '',
