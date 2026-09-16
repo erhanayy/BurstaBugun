@@ -18,7 +18,8 @@ import {
     Route,
     ChevronDown,
     UploadCloud,
-    Briefcase
+    Briefcase,
+    MessageSquare
 } from "lucide-react";
 
 import { getCurrentTenant } from "@/lib/data/tenant";
@@ -32,6 +33,7 @@ import { auth } from "@/auth";
 import Image from "next/image";
 import { CollapsibleNavSection } from "@/components/ui/collapsible-nav-section";
 import { NotificationBell } from "@/components/notification-bell";
+import { ChatBell } from "@/components/chat-bell";
 import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
@@ -110,6 +112,7 @@ export default async function DashboardLayout({
                         <CollapsibleNavSection title="Genel" storageKey="general">
                             <NavItem href="/dashboard/home" icon={Home} label="Ana Sayfa" />
                             <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
+                            <NavItem href="/dashboard/messages" icon={MessageSquare} label="Mesajlar" />
                         </CollapsibleNavSection>
 
                         {/* Bursiyer Menüsü */}
@@ -208,8 +211,11 @@ export default async function DashboardLayout({
                         <div className="flex items-center gap-3">
                             {tenantData && (
                                 <div className="hidden lg:flex items-center gap-4">
-                                    {/* 1. Bildirim Logosu */}
-                                    <NotificationBell tenantId={tenantData.tenantId} userId={tenantData.userId} />
+                                    {/* 1. Bildirim ve Mesaj Logosu */}
+                                    <div className="flex items-center gap-1">
+                                        <NotificationBell tenantId={tenantData.tenantId} userId={tenantData.userId} />
+                                        <ChatBell />
+                                    </div>
 
                                     {/* 2. Kişi Adı Baş Harfleri Logosu */}
                                     <div className="w-9 h-9 rounded-full relative overflow-hidden flex items-center justify-center">
@@ -237,6 +243,7 @@ export default async function DashboardLayout({
                                         <CollapsibleNavSection title="Genel" storageKey="general">
                                             <NavItem href="/dashboard/home" icon={Home} label="Ana Sayfa" />
                                             <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
+                                            <NavItem href="/dashboard/messages" icon={MessageSquare} label="Mesajlar" />
                                         </CollapsibleNavSection>
 
                                         {/* Bursiyer Menüsü */}
