@@ -10,58 +10,48 @@ export const metadata: Metadata = {
 
 export default async function SubscriptionsPage() {
     // Fetch all pending payments that are marked as 'subscription'
-    const pendingPayments = await db.select({
-        payment: payments,
-        fund: funds,
-        application: applications,
-        sponsor: users
-    })
-    .from(payments)
-    .innerJoin(funds, eq(payments.fundId, funds.id))
-    .innerJoin(applications, eq(payments.applicationId, applications.id))
-    .innerJoin(fundSelections, and(
-        eq(fundSelections.fundId, payments.fundId),
-        eq(fundSelections.applicationId, payments.applicationId)
-    ))
-    .innerJoin(users, eq(fundSelections.sponsorId, users.id))
-    .where(
-        and(
+    const pendingPayments = await db.query.payments.findMany({
+        where: and(
             eq(payments.status, 'pending'),
-            eq(payments.paymentMethod, 'subscription'),
-            eq(fundSelections.isActive, true)
-        )
-    );
+            eq(payments.paymentMethod, 'subscription')
+        ),
+        with: {
+            fund: true,
+            user: true
+        }
+    });
 
     // Group for the client
     const groupedSubscriptionsMap = new Map<string, any>();
 
     pendingPayments.forEach(p => {
-        const isArdaErel = p.sponsor.fullName.toLowerCase().includes('arda erel');
+        const sponsorName = p.user?.fullName || 'Bilinmeyen Bursveren';
+        const isArdaErel = sponsorName.toLowerCase().includes('arda erel');
         
-        let groupKey = p.payment.id; // Default to no grouping for exceptions
+        let groupKey = p.id; // Default to no grouping for exceptions
         
         if (!isArdaErel) {
-            const dateStr = p.payment.paymentDate ? `${p.payment.paymentDate.getFullYear()}-${String(p.payment.paymentDate.getMonth() + 1).padStart(2, '0')}` : 'unknown';
-            groupKey = `${p.sponsor.id}-${p.fund.id}-${dateStr}`;
+            const dateStr = p.paymentDate ? `${p.paymentDate.getFullYear()}-${String(p.paymentDate.getMonth() + 1).padStart(2, '0')}` : 'unknown';
+            groupKey = `${p.userId || 'nouser'}-${p.fundId}-${dateStr}`;
         }
 
         if (!groupedSubscriptionsMap.has(groupKey)) {
             groupedSubscriptionsMap.set(groupKey, {
-                id: p.payment.id,
-                fundName: p.fund.title,
-                studentName: "Bursiyer (Gizli)", // Simplified for demo
-                sponsorName: p.sponsor.fullName,
-                amount: p.payment.amount || 0,
-                dueDate: p.payment.paymentDate ? p.payment.paymentDate.toISOString() : '',
-                status: p.payment.status,
-                userId: p.sponsor.id,
-                combinedIds: [p.payment.id]
+                id: p.id,
+                fundName: p.fund?.title || 'Bilinmeyen Fon',
+                studentName: "Öğrenci Seçimi Bekleniyor",
+                sponsorName: sponsorName,
+                amount: p.amount || 0,
+                dueDate: p.paymentDate ? p.paymentDate.toISOString() : '',
+                status: p.status,
+                userId: p.userId,
+                combinedIds: [p.id]
             });
         } else {
             const existing = groupedSubscriptionsMap.get(groupKey)!;
-            existing.amount += (p.payment.amount || 0);
-            existing.combinedIds.push(p.payment.id);
-            existing.id += `,${p.payment.id}`; // Optional: keep id unique
+            existing.amount += (p.amount || 0);
+            existing.combinedIds.push(p.id);
+            existing.id += `,${p.id}`; // Optional: keep id unique
         }
     });
 
