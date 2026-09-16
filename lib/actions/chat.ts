@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "../db";
-import { chatRooms, chatRoomMembers, chatMessages, chatMessageReads, users } from "../db/schema";
+import { chatRooms, chatRoomMembers, chatMessages, chatMessageReads, users, parametersTenantSeasons, applications, funds, fundContributors, tenantUsers } from "../db/schema";
 import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import { getCurrentTenant } from "../tenant";
 import { revalidatePath } from "next/cache";
@@ -17,7 +17,118 @@ async function isUserInRoom(roomId: string, userId: string) {
     return member;
 }
 
+export async function syncDynamicGroups() {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) return;
+
+    // Get active season
+    const activeSeasonParam = await db.query.parametersTenantSeasons.findFirst({
+        where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+        orderBy: [desc(parametersTenantSeasons.isActive), desc(parametersTenantSeasons.startDate)]
+    });
+    
+    if (!activeSeasonParam) return;
+    const seasonName = activeSeasonParam.seasonId; // e.g., '2026-2027'
+
+    // Group Names
+    const bursiyerGroupName = `${seasonName} Bursiyer`;
+    const bursverenGroupName = `${seasonName} Bursveren`;
+
+    // 1. Ensure Bursiyer Group
+    let bursiyerGroup = await db.query.chatRooms.findFirst({
+        where: and(
+            eq(chatRooms.tenantId, tenantData.tenantId),
+            eq(chatRooms.name, bursiyerGroupName),
+            eq(chatRooms.type, 'group')
+        )
+    });
+
+    if (!bursiyerGroup) {
+        const [newGroup] = await db.insert(chatRooms).values({
+            tenantId: tenantData.tenantId,
+            name: bursiyerGroupName,
+            type: 'group',
+            isLocked: true // Varsayılan kilitli
+        }).returning();
+        bursiyerGroup = newGroup;
+    }
+
+    // 2. Ensure Bursveren Group
+    let bursverenGroup = await db.query.chatRooms.findFirst({
+        where: and(
+            eq(chatRooms.tenantId, tenantData.tenantId),
+            eq(chatRooms.name, bursverenGroupName),
+            eq(chatRooms.type, 'group')
+        )
+    });
+
+    if (!bursverenGroup) {
+        const [newGroup] = await db.insert(chatRooms).values({
+            tenantId: tenantData.tenantId,
+            name: bursverenGroupName,
+            type: 'group',
+            isLocked: true // Varsayılan kilitli
+        }).returning();
+        bursverenGroup = newGroup;
+    }
+
+    // Find Active Bursiyerler
+    const activeBursiyerler = await db.query.applications.findMany({
+        where: and(
+            eq(applications.tenantId, tenantData.tenantId),
+            eq(applications.status, 'active')
+        )
+    });
+    const bursiyerUserIds = activeBursiyerler.map(a => a.userId);
+
+    // Find Bursverenler (Funds' creators/contributors)
+    const activeFunds = await db.query.funds.findMany({
+        where: eq(funds.tenantId, tenantData.tenantId)
+    });
+    const bursverenUserIds = new Set(activeFunds.map(f => f.userId));
+    // Also include contributors
+    const contributors = await db.query.fundContributors.findMany();
+    contributors.forEach(c => {
+        if (c.userId) bursverenUserIds.add(c.userId);
+    });
+
+    // Sync Members function
+    const syncGroupMembers = async (roomId: string, targetUserIds: string[]) => {
+        const existing = await db.query.chatRoomMembers.findMany({ where: eq(chatRoomMembers.roomId, roomId) });
+        const existingIds = new Set(existing.map(e => e.userId));
+        
+        // Admins should always be in these groups
+        const admins = await db.query.tenantUsers.findMany({
+            where: and(
+                eq(tenantUsers.tenantId, tenantData.tenantId),
+                inArray(tenantUsers.role, ['admin', 'superadmin'])
+            )
+        });
+        
+        const allTargets = new Set([...targetUserIds, ...admins.map(a => a.userId)]);
+
+        // Find missing
+        const toAdd = Array.from(allTargets).filter(id => !existingIds.has(id));
+        
+        if (toAdd.length > 0) {
+            await db.insert(chatRoomMembers).values(
+                toAdd.map(uid => ({
+                    roomId: roomId,
+                    userId: uid,
+                    role: admins.some(a => a.userId === uid) ? 'admin' : 'member'
+                }))
+            );
+        }
+    };
+
+    if (bursiyerGroup) await syncGroupMembers(bursiyerGroup.id, bursiyerUserIds);
+    if (bursverenGroup) await syncGroupMembers(bursverenGroup.id, Array.from(bursverenUserIds));
+}
+
 export async function getMyRooms() {
+    // Mevcut kodunuzdan önce çağırın
+    await syncDynamicGroups();
+
     const tenantData = await getCurrentTenant();
     if (!tenantData) return { success: false, error: 'Oturum bulunamadı' };
 

@@ -1,7 +1,24 @@
 import Link from "next/link";
 import { ChevronRight, KeyRound, User, Bell, ShieldCheck, FileText, Info } from "lucide-react";
+import { db } from "@/lib/db";
+import { applications } from "@/lib/db/schema";
+import { and, eq } from "drizzle-orm";
+import { getCurrentTenant } from "@/lib/tenant";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+    const tenantData = await getCurrentTenant();
+    let isEligibleForIban = false;
+
+    if (tenantData) {
+        const userApp = await db.query.applications.findFirst({
+            where: and(
+                eq(applications.userId, tenantData.userId),
+                eq(applications.tenantId, tenantData.tenantId)
+            )
+        });
+        isEligibleForIban = userApp?.status === 'active';
+    }
+
     return (
         <div className="max-w-2xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Ayarlar</h1>
@@ -59,21 +76,23 @@ export default function SettingsPage() {
                 </Link>
 
                 {/* Bank Information (IBAN) */}
-                <Link
-                    href="/dashboard/settings/bank"
-                    className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors group"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 transition-colors">
-                            <User className="w-5 h-5" />
+                {isEligibleForIban && (
+                    <Link
+                        href="/dashboard/settings/bank"
+                        className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors group"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 transition-colors">
+                                <User className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-medium text-gray-900 dark:text-white">Banka Bilgilerim (IBAN)</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Burs ödemeleriniz için IBAN bilgilerinizi yönetin</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="font-medium text-gray-900 dark:text-white">Banka Bilgilerim (IBAN)</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Burs ödemeleriniz için IBAN bilgilerinizi yönetin</p>
-                        </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
-                </Link>
+                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                    </Link>
+                )}
 
                 {/* Notifications Settings */}
                 <Link

@@ -16,11 +16,11 @@ export default async function AdminIbansPage() {
         redirect("/dashboard");
     }
 
-    // Havuza seçilmiş (pool) veya fona atanmış (active) olan ve IBAN bilgisini girmiş öğrencileri çekelim.
+    // Fona atanmış (active) olan ve IBAN bilgisini girmiş öğrencileri çekelim.
     const activeStudents = await db.query.applications.findMany({
         where: and(
             eq(applications.tenantId, tenantData.tenantId),
-            or(eq(applications.status, 'pool'), eq(applications.status, 'active'))
+            eq(applications.status, 'active')
         ),
         with: {
             user: true,
@@ -57,7 +57,7 @@ export default async function AdminIbansPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Bursiyer Ödeme (IBAN) Raporu</h1>
                     <p className="text-sm text-gray-500 mt-1">
-                        Havuza seçilmiş veya aktif burs alan öğrencilerin IBAN bilgilerini buradan görüntüleyebilirsiniz.
+                        Sadece fona seçilmiş aktif burs alan öğrencilerin IBAN bilgilerini buradan görüntüleyebilirsiniz.
                     </p>
                 </div>
             </div>

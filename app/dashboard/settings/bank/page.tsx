@@ -31,7 +31,7 @@ export default async function BankSettingsPage() {
         )
     });
 
-    const isEligible = userApplication && (userApplication.status === 'pool' || userApplication.status === 'active');
+    const isEligible = userApplication && userApplication.status === 'active';
 
     return (
         <div className="max-w-2xl mx-auto">
@@ -44,7 +44,7 @@ export default async function BankSettingsPage() {
                 {!isEligible ? (
                     <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 text-sm">
                         <p className="font-medium mb-1">Şu an IBAN girişi yapamazsınız.</p>
-                        <p>Sadece değerlendirmeyi geçip havuza alınan veya bursiyer olmaya hak kazanan öğrenciler banka bilgilerini girebilir.</p>
+                        <p>Sadece bursiyer olmaya hak kazanan öğrenciler banka bilgilerini girebilir.</p>
                     </div>
                 ) : (
                     <BankForm initialIban={user.iban || ""} initialIbanName={user.ibanName || ""} />

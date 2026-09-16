@@ -22,8 +22,8 @@ export async function saveBankInfo(formData: FormData) {
         return { success: false, error: 'Burs başvurunuz bulunamadı.' };
     }
 
-    if (userApplication.status !== 'pool' && userApplication.status !== 'active') {
-        return { success: false, error: 'Sadece havuza seçilen veya bursiyer olan öğrenciler IBAN girebilir.' };
+    if (userApplication.status !== 'active') {
+        return { success: false, error: 'Sadece bursiyer olmaya hak kazanan öğrenciler IBAN girebilir.' };
     }
 
     const ibanName = formData.get("ibanName")?.toString().trim();
