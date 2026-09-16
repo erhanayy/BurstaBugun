@@ -64,7 +64,7 @@ export default async function SubscriptionsPage() {
                 amount: p.amount || 0,
                 dueDate: p.paymentDate ? p.paymentDate.toISOString() : '',
                 status: p.status,
-                userId: p.userId,
+                userId: p.userId || 'Bilinmiyor',
                 combinedIds: [p.id]
             });
         } else {
