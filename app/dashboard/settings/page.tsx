@@ -58,19 +58,22 @@ export default function SettingsPage() {
                     <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
                 </Link>
 
-                {/* Placeholder for Profile - Can be added later */}
-                <div className="flex items-center justify-between p-4 opacity-50 cursor-not-allowed">
+                {/* Bank Information (IBAN) */}
+                <Link
+                    href="/dashboard/settings/bank"
+                    className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors group"
+                >
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 transition-colors">
                             <User className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="font-medium text-gray-900 dark:text-white">Profil Bilgileri</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Kişisel bilgilerinizi düzenleyin (Yakında)</p>
+                            <h3 className="font-medium text-gray-900 dark:text-white">Banka Bilgilerim (IBAN)</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Burs ödemeleriniz için IBAN bilgilerinizi yönetin</p>
                         </div>
                     </div>
-                    {/* <ChevronRight className="w-5 h-5 text-gray-400" /> */}
-                </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                </Link>
 
                 {/* Notifications Settings */}
                 <Link
