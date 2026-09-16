@@ -20,10 +20,19 @@ interface Donation {
     receiptUrl: string | null;
     bankTransactionId: string;
     dateString: string;
+    fundId?: string | null;
+    fundName?: string;
 }
 
-export default function DonationsTable({ donations }: { donations: Donation[] }) {
+export default function DonationsTable({ donations, eftFunds = [] }: { donations: Donation[], eftFunds?: any[] }) {
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [assignModalOpen, setAssignModalOpen] = useState(false);
+    const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
+    const [selectedFundId, setSelectedFundId] = useState("");
+    const [supporterType, setSupporterType] = useState("recurring");
+    
+    // Using import for the server action at the top
+    const { assignDonationToFund } = require("@/lib/actions/donations");
 
     const handleAction = async (id: string, status: 'completed' | 'failed') => {
         if (status === 'failed' && !window.confirm("Bu işlemi reddetmek istediğinize emin misiniz?")) return;
@@ -33,6 +42,24 @@ export default function DonationsTable({ donations }: { donations: Donation[] })
         const res = await updateDonationStatus(id, status);
         if (res.success) {
             toast.success(status === 'completed' ? "İşlem onaylandı." : "İşlem reddedildi.");
+        } else {
+            toast.error(res.error || "Bir hata oluştu.");
+        }
+        setProcessingId(null);
+    };
+
+    const handleAssignFund = async () => {
+        if (!selectedDonation || !selectedFundId) return;
+        
+        setProcessingId("assigning_" + selectedDonation.id);
+        const res = await assignDonationToFund(selectedDonation.id, selectedFundId, supporterType);
+        
+        if (res.success) {
+            toast.success("Bağış başarıyla fona atandı.");
+            setAssignModalOpen(false);
+            setSelectedDonation(null);
+            setSelectedFundId("");
+            setSupporterType("recurring");
         } else {
             toast.error(res.error || "Bir hata oluştu.");
         }
@@ -57,6 +84,7 @@ export default function DonationsTable({ donations }: { donations: Donation[] })
                             <th className="px-4 py-3 font-medium">Bağışçı Bilgisi</th>
                             <th className="px-4 py-3 font-medium">İletişim</th>
                             <th className="px-4 py-3 font-medium text-right">Tutar</th>
+                            <th className="px-4 py-3 font-medium text-center">Bağlı Fon</th>
                             <th className="px-4 py-3 font-medium text-center">İşlem Durumu</th>
                             <th className="px-4 py-3 font-medium text-right">Ödeme Tipi & Dekont</th>
                         </tr>
@@ -97,6 +125,25 @@ export default function DonationsTable({ donations }: { donations: Donation[] })
                                 <td className="px-4 py-3 whitespace-nowrap font-semibold text-gray-900 dark:text-gray-100 text-right">
                                     {item.amount.toLocaleString('tr-TR')} ₺
                                 </td>
+                                <td className="px-4 py-3 text-center">
+                                    {item.fundId ? (
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className="text-xs font-semibold text-fbiad-dark-blue">{item.fundName}</span>
+                                            <span className="text-[10px] text-gray-500">Atandı</span>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => {
+                                                setSelectedDonation(item);
+                                                setSelectedFundId("");
+                                                setAssignModalOpen(true);
+                                            }}
+                                            className="bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 dark:bg-zinc-800 dark:border-blue-900/50 dark:text-blue-400 dark:hover:bg-zinc-700 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+                                        >
+                                            Fona Ata
+                                        </button>
+                                    )}
+                                </td>
                                 <td className="px-4 py-3 whitespace-nowrap text-center">
                                     {item.status === 'completed' ? (
                                         <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800 px-2.5 py-1 rounded-full text-xs font-semibold">
@@ -135,7 +182,7 @@ export default function DonationsTable({ donations }: { donations: Donation[] })
                                 <td className="px-4 py-3 whitespace-nowrap text-right">
                                     <div className="flex flex-col items-end gap-1">
                                         {item.paymentMethod === 'wire_transfer' ? (
-                                            <span className="font-semibold text-xs text-fbiad-dark-blue">Havale / EFT</span>
+                                            <span className="font-semibold text-xs text-fbiad-dark-blue">Vakıf Hesabına EFT/Havale</span>
                                         ) : (
                                             <span className="font-semibold text-xs text-gray-600">Kredi Kartı</span>
                                         )}
@@ -155,6 +202,77 @@ export default function DonationsTable({ donations }: { donations: Donation[] })
                     </tbody>
                 </table>
             </div>
+
+            {/* Fund Assignment Modal */}
+            {assignModalOpen && selectedDonation && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-zinc-800">
+                        <div className="p-6">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Fona Ata</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                <strong className="text-gray-900 dark:text-gray-200">{selectedDonation.donorName}</strong> tarafından yapılan <strong className="text-gray-900 dark:text-gray-200">{selectedDonation.amount.toLocaleString('tr-TR')} ₺</strong> tutarındaki bağışı bir fona atıyorsunuz.
+                            </p>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Hedef Fon <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={selectedFundId}
+                                        onChange={(e) => setSelectedFundId(e.target.value)}
+                                        className="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Lütfen bir fon seçiniz...</option>
+                                        {eftFunds?.map((fund: any) => (
+                                            <option key={fund.id} value={fund.id}>
+                                                {fund.title}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Destekçi Tipi <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={supporterType}
+                                        onChange={(e) => setSupporterType(e.target.value)}
+                                        className="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="recurring">Daimi Destekçi</option>
+                                        <option value="one_time">Tek Seferlik Destekçi</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 border-t border-gray-200 dark:border-zinc-800 flex justify-end gap-3">
+                            <button
+                                onClick={() => {
+                                    setAssignModalOpen(false);
+                                    setSelectedDonation(null);
+                                    setSelectedFundId("");
+                                }}
+                                disabled={processingId?.startsWith("assigning")}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                            >
+                                İptal
+                            </button>
+                            <button
+                                onClick={handleAssignFund}
+                                disabled={!selectedFundId || processingId?.startsWith("assigning")}
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {processingId?.startsWith("assigning") ? (
+                                    <>Atanıyor...</>
+                                ) : (
+                                    <>Fona Ata</>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

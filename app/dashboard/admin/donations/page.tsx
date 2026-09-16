@@ -1,14 +1,14 @@
 import { db } from "@/lib/db";
-import { donations } from "@/lib/db/schema";
+import { donations, funds } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
-import { eq, desc, and, ilike, or } from "drizzle-orm";
+import { eq, desc, and, ilike, or, isNull, isNotNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { Search, Heart } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import DonationsTable from "./donations-table";
 
-export default async function AdminDonationsPage({ searchParams }: { searchParams: { search?: string, year?: string, month?: string, status?: string, paymentMethod?: string, fbiadMember?: string, wantsInfo?: string } }) {
+export default async function AdminDonationsPage({ searchParams }: { searchParams: { search?: string, year?: string, month?: string, status?: string, paymentMethod?: string, fbiadMember?: string, wantsInfo?: string, fundStatus?: string } }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData || !['admin', 'superadmin'].includes(tenantData.userRole) && !tenantData.isSuperAdmin) {
         return redirect("/unauthorized");
@@ -21,6 +21,7 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
     const targetYear = searchObj.year === "" ? null : (searchObj.year ? parseInt(searchObj.year) : null);
     const targetStatus = searchObj.status || "all";
     const paymentMethod = searchObj.paymentMethod || "all";
+    const fundStatus = searchObj.fundStatus || "all";
     const fbiadMember = searchObj.fbiadMember;
     const wantsInfo = searchObj.wantsInfo;
 
@@ -47,6 +48,12 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
         conditions.push(eq(donations.wantsMembershipInfo, false));
     }
 
+    if (fundStatus === "assigned") {
+        conditions.push(isNotNull(donations.fundId));
+    } else if (fundStatus === "unassigned") {
+        conditions.push(isNull(donations.fundId));
+    }
+
     if (searchObj.search) {
         conditions.push(
             or(
@@ -58,6 +65,9 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
 
     const donationsList = await db.query.donations.findMany({
         where: and(...conditions),
+        with: {
+            fund: true
+        },
         orderBy: [desc(donations.createdAt)],
     });
 
@@ -82,10 +92,22 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
         wantsMembershipInfo: d.wantsMembershipInfo,
         status: d.status,
         paymentMethod: d.paymentMethod,
+        fundId: d.fundId,
+        fundName: d.fund?.title || "-",
         receiptUrl: d.receiptUrl,
         bankTransactionId: d.bankTransactionId || "-",
         dateString: format(new Date(d.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })
     }));
+
+    // Get active EFT funds for assignment
+    const eftFunds = await db.query.funds.findMany({
+        where: and(
+            eq(funds.tenantId, tenantData.tenantId),
+            eq(funds.paymentMethod, 'wire_transfer'),
+            eq(funds.isActive, true)
+        ),
+        orderBy: (f, { desc }) => [desc(f.createdAt)]
+    });
 
     return (
         <div className="space-y-6">
@@ -117,7 +139,7 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
                         <select name="paymentMethod" defaultValue={searchObj.paymentMethod || "all"} className="w-full h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-gray-100">
                             <option value="all">Tüm Yöntemler</option>
                             <option value="credit_card">Kredi Kartı</option>
-                            <option value="wire_transfer">Havale / EFT</option>
+                            <option value="wire_transfer">Vakıf Hesabına EFT/Havale</option>
                         </select>
                     </div>
                     <div className="flex-1 flex gap-2">
@@ -144,6 +166,11 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
                             <option value="true">Sadece Bilgi İsteyenler</option>
                             <option value="false">İstemeyenler</option>
                         </select>
+                        <select name="fundStatus" defaultValue={searchObj.fundStatus || "all"} className="flex-1 h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-gray-100">
+                            <option value="all">Fon Atama Durumu (Tümü)</option>
+                            <option value="assigned">Fona Atananlar</option>
+                            <option value="unassigned">Atama Bekleyenler</option>
+                        </select>
                     </div>
                     <button type="submit" className="w-full md:w-auto h-10 px-8 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 whitespace-nowrap">
                         Filtrele
@@ -151,7 +178,7 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
                 </div>
             </form>
 
-            <DonationsTable donations={uiDonations} />
+            <DonationsTable donations={uiDonations} eftFunds={eftFunds} />
         </div>
     );
 }

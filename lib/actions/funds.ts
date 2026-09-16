@@ -143,3 +143,57 @@ export async function toggleFundStatus(fundId: string, isActive: boolean) {
     
     return { success: true };
 }
+
+export async function updateFund(fundId: string, data: {
+    title: string;
+    description: string;
+    photoUrl?: string | null;
+    targetStudentCount: number;
+    shareMessage?: string;
+}) {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) throw new Error("Oturum bulunamadı");
+
+    const fund = await db.query.funds.findFirst({
+        where: eq(funds.id, fundId),
+        with: { selections: true }
+    });
+
+    if (!fund) throw new Error("Fon bulunamadı");
+
+    const isOwner = fund.ownerId === tenantData.userId;
+    const isAdmin = tenantData.userRole === 'admin' || tenantData.userRole === 'superadmin' || tenantData.isSuperAdmin;
+
+    if (!isOwner && !isAdmin) {
+        throw new Error("Bu işlemi yapmak için yetkiniz yok.");
+    }
+
+    // Minimum student count validation
+    // Mevcut atanmış (sponsorId dolu olan) bursiyer sayısı hesaplanıyor (veya direkt selections length)
+    // Sadece artırıma değil, boşta olan kadar eksiltmeye izin vereceğiz (Kullanıcının typo riskini önlemek için)
+    const claimedStudents = fund.selections.filter(s => s.sponsorId).length;
+    // Fakat aslında fon toplam kapasitesi `selections` count'undan (atanmış atanmamış farketmeksizin) düşük olmamalı
+    // Veya sadece claimedStudents'dan düşük olmamalı. Biz "seçilmiş" (selections.length) öğrencilerin altına düşmesine izin vermeyelim.
+    const minimumAllowed = fund.selections.length;
+
+    if (data.targetStudentCount < minimumAllowed) {
+        throw new Error(`Kapasite ${minimumAllowed} (Mevcut seçilmiş öğrenci sayısı) değerinin altına düşürülemez.`);
+    }
+
+    await db.update(funds)
+        .set({
+            title: data.title,
+            description: data.description,
+            photoUrl: data.photoUrl || null,
+            targetStudentCount: data.targetStudentCount,
+            shareMessage: data.shareMessage || null
+        })
+        .where(eq(funds.id, fundId));
+
+    revalidatePath(`/dashboard/funds/${fundId}/overview`);
+    revalidatePath(`/dashboard/funds/${fundId}/payment`);
+    revalidatePath(`/dashboard/funds`);
+    revalidatePath(`/dashboard/admin/funds`);
+
+    return { success: true };
+}

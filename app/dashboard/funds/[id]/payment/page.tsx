@@ -30,12 +30,20 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
 
     const isPendingInvite = fund.invitations?.some(inv => inv.status === 'pending');
 
-    // Fetch payments assigned to this schedule for THIS user
+    const isOwner = fund.ownerId === tenantData.userId;
+    const isAdminOrOwner = tenantData.userRole === 'admin' || tenantData.userRole === 'superadmin' || isOwner;
+    const isWireTransfer = fund.paymentMethod === 'wire_transfer';
+    const fetchAllPayments = isWireTransfer && isAdminOrOwner;
+
+    // Fetch payments assigned to this schedule
     const displayedPayments = await db.query.payments.findMany({
         where: and(
             eq(payments.fundId, fundId),
-            eq(payments.userId, tenantData.userId)
+            ...(fetchAllPayments ? [] : [eq(payments.userId, tenantData.userId)])
         ),
+        with: {
+            user: true
+        },
         orderBy: [asc(payments.paymentDate)]
     });
 
@@ -44,7 +52,6 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
         where: eq(fundContributors.fundId, fundId)
     });
     
-    const isOwner = fund.ownerId === tenantData.userId;
     const myContribution = contributors.find(c => c.userId === tenantData.userId);
     let myCount = 1;
 
@@ -63,7 +70,11 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
     const totalAmount = hasGeneratedPayments 
         ? displayedPayments.reduce((acc, p) => acc + (p.amount || 0), 0)
         : expectedTotalAmount;
+        
+    const paidAmount = displayedPayments.filter(p => p.status === 'completed').reduce((acc, p) => acc + (p.amount || 0), 0);
+    const remainingAmount = Math.max(0, expectedTotalAmount - paidAmount);
     
+
     const session = await auth();
     const adSoyad = session?.user?.name || "Bilinmeyen Kullanıcı";
 
@@ -103,23 +114,40 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
             </div>
 
             {/* Summary Block */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
-                    <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">{isUpfront ? 'Toplam İşlem' : 'Toplam Taksit'}</div>
-                    <div className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{totalPayments} Ödeme</div>
+            {isWireTransfer ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
+                        <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">Hedef Borç</div>
+                        <div className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{myCount === 0 ? "Serbest" : `${expectedTotalAmount.toLocaleString('tr-TR')} ₺`}</div>
+                    </div>
+                    <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
+                        <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">Ödenen (Tahsilat)</div>
+                        <div className="text-3xl font-bold mt-1 text-green-600 dark:text-green-500">{paidAmount.toLocaleString('tr-TR')} ₺</div>
+                    </div>
+                    <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
+                        <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">Kalan Borç</div>
+                        <div className="text-3xl font-bold mt-1 text-orange-500 dark:text-orange-400">{myCount === 0 ? "Yok" : `${remainingAmount.toLocaleString('tr-TR')} ₺`}</div>
+                    </div>
                 </div>
-                <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
-                    <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">Ödenen</div>
-                    <div className="text-3xl font-bold mt-1 text-green-600 dark:text-green-500">{paidPayments} Ödeme</div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
+                        <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">{isUpfront ? 'Toplam İşlem' : 'Toplam Taksit'}</div>
+                        <div className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{totalPayments} Ödeme</div>
+                    </div>
+                    <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
+                        <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">Ödenen</div>
+                        <div className="text-3xl font-bold mt-1 text-green-600 dark:text-green-500">{paidPayments} Ödeme</div>
+                    </div>
+                    <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
+                        <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">Bekleyen</div>
+                        <div className="text-3xl font-bold mt-1 text-orange-500 dark:text-orange-400">{totalPayments - paidPayments} Ödeme</div>
+                    </div>
                 </div>
-                <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
-                    <div className="text-gray-500 dark:text-gray-400 text-sm font-medium">Bekleyen</div>
-                    <div className="text-3xl font-bold mt-1 text-orange-500 dark:text-orange-400">{totalPayments - paidPayments} Ödeme</div>
-                </div>
-            </div>
+            )}
 
             {/* In-App Payment Action */}
-            {totalPayments > paidPayments && (
+            {!isWireTransfer && totalPayments > paidPayments && (
                 <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50 flex flex-col items-center justify-between gap-4 md:flex-row">
                     <div className="flex-1">
                         <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100">
@@ -145,12 +173,22 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
                 </div>
 
                 <div className="divide-y divide-gray-100 dark:divide-zinc-800">
-                    {displayedPayments.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                            Henüz bu fon için oluşturulmuş bir ödeme planı (taksit) bulunmuyor. <br /> "Ödeme Yap" butonuna tıkladığınızda kapasiteniz doğrultusunda ({myCount} Öğrenci) ödeme planınız otomatik oluşacaktır.
-                        </div>
-                    ) : (
-                        displayedPayments.map((payment, i) => (
+                    {(() => {
+                        const paymentsToShow = isWireTransfer 
+                            ? displayedPayments.filter(p => p.status === 'completed')
+                            : displayedPayments;
+
+                        if (paymentsToShow.length === 0) {
+                            return (
+                                <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                                    {isWireTransfer 
+                                        ? "Sisteme işlenmiş herhangi bir EFT/Havale tahsilatınız bulunmuyor."
+                                        : <>Henüz bu fon için oluşturulmuş bir ödeme planı (taksit) bulunmuyor. <br /> "Ödeme Yap" butonuna tıkladığınızda kapasiteniz doğrultusunda ({myCount} Öğrenci) ödeme planınız otomatik oluşacaktır.</>}
+                                </div>
+                            );
+                        }
+
+                        return paymentsToShow.map((payment, i) => (
                             <div key={payment.id} className={`p-4 md:p-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between hover:bg-gray-50/50 dark:hover:bg-zinc-800/20 transition-colors ${payment.status === 'completed' ? 'opacity-80' : ''}`}>
 
                                 <div className="flex items-center gap-4 flex-1">
@@ -168,7 +206,13 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
                                                 <span suppressHydrationWarning>{payment.paymentDate ? format(new Date(payment.paymentDate), "MMMM yyyy", { locale: tr }) : "Bilinmeyen Tarih"}</span>
                                             </span>
                                             <span className="text-gray-300 dark:text-zinc-700">•</span>
-                                            <span>{payment.notes || "Aylık Ödeme Taksiti"}</span>
+                                            <span>{payment.notes || (isWireTransfer ? "Manuel Tahsilat" : "Aylık Ödeme Taksiti")}</span>
+                                            {fetchAllPayments && payment.user && (
+                                                <>
+                                                    <span className="text-gray-300 dark:text-zinc-700">•</span>
+                                                    <span className="font-medium text-fbiad-dark-blue">{payment.user.fullName}</span>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -185,8 +229,8 @@ export default async function FundPaymentPage(props: { params: Promise<{ id: str
                                     )}
                                 </div>
                             </div>
-                        ))
-                    )}
+                        ));
+                    })()}
                 </div>
             </div>
         </div>

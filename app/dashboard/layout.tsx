@@ -160,6 +160,7 @@ export default async function DashboardLayout({
                                 <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
+                                <NavItem href="/dashboard/admin/payments/new" icon={Landmark} label="Manuel Tahsilat (EFT)" />
                                 <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
                                 <NavItem href="/dashboard/admin/donations" icon={Landmark} label="Web Bağış" />
                                 <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
@@ -285,6 +286,7 @@ export default async function DashboardLayout({
                                                 <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
                                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
+                                                <NavItem href="/dashboard/admin/payments/new" icon={Landmark} label="Manuel Tahsilat (EFT)" />
                                                 <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
                                                 <NavItem href="/dashboard/admin/donations" icon={Landmark} label="Web Bağış" />
                                                 <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />

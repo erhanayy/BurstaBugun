@@ -22,6 +22,7 @@ type Season = {
     seasonEndDate: Date | null;
     defaultFundAmount: number | null;
     defaultFundDuration: number | null;
+    globalStudentQuota: number | null;
 };
 
 export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Season[], globalPeriods?: string[] }) {
@@ -43,6 +44,7 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
     const [seasonEndDate, setSeasonEndDate] = useState("");
     const [amount, setAmount] = useState("");
     const [duration, setDuration] = useState("");
+    const [globalStudentQuota, setGlobalStudentQuota] = useState("");
 
     const resetForm = () => {
         setPeriod(""); setAppStartDate(""); setAppEndDate(""); 
@@ -50,7 +52,7 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
         setSponsorPaymentStartDate(""); setSponsorPaymentEndDate("");
         setStudentPaymentStartDate(""); setStudentPaymentEndDate("");
         setSeasonStartDate(""); setSeasonEndDate("");
-        setAmount(""); setDuration("");
+        setAmount(""); setDuration(""); setGlobalStudentQuota("");
         setEditingId(null);
         setIsCreating(false);
     };
@@ -70,6 +72,7 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
         setSeasonEndDate(s.seasonEndDate ? format(new Date(s.seasonEndDate), "yyyy-MM-dd") : "");
         setAmount(s.defaultFundAmount ? s.defaultFundAmount.toString() : "");
         setDuration(s.defaultFundDuration ? s.defaultFundDuration.toString() : "");
+        setGlobalStudentQuota(s.globalStudentQuota ? s.globalStudentQuota.toString() : "");
         setIsCreating(true);
     };
 
@@ -91,6 +94,7 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
                 seasonEndDate: seasonEndDate ? new Date(seasonEndDate) : null,
                 defaultFundAmount: amount ? parseInt(amount) : null,
                 defaultFundDuration: duration ? parseInt(duration) : null,
+                globalStudentQuota: globalStudentQuota ? parseInt(globalStudentQuota) : null,
             };
 
             if (editingId) {
@@ -171,7 +175,7 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
                                 </select>
                             )}
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Standart Tutar (₺)</label>
                                 <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="2500" className="w-full text-sm px-3 py-2 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" />
@@ -179,6 +183,10 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Standart Süre (Ay)</label>
                                 <input type="number" value={duration} onChange={e => setDuration(e.target.value)} placeholder="10" className="w-full text-sm px-3 py-2 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Toplam Öğrenci Kotası</label>
+                                <input type="number" value={globalStudentQuota} onChange={e => setGlobalStudentQuota(e.target.value)} placeholder="Örn: 200" className="w-full text-sm px-3 py-2 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 bg-amber-50/30" />
                             </div>
                         </div>
                     </div>
@@ -256,7 +264,11 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
                                 <span><strong className="font-medium text-gray-700 dark:text-gray-300">Fon:</strong> {s.fundStartDate ? format(new Date(s.fundStartDate), "dd.MM.yy") : "-"} / {s.fundEndDate ? format(new Date(s.fundEndDate), "dd.MM.yy") : "-"}</span>
                                 <span><strong className="font-medium text-gray-700 dark:text-gray-300">Sponsor Ödeme:</strong> {s.sponsorPaymentStartDate ? format(new Date(s.sponsorPaymentStartDate), "dd.MM.yy") : "-"} / {s.sponsorPaymentEndDate ? format(new Date(s.sponsorPaymentEndDate), "dd.MM.yy") : "-"}</span>
                                 <span><strong className="font-medium text-gray-700 dark:text-gray-300">Öğrenci Ödeme:</strong> {s.studentPaymentStartDate ? format(new Date(s.studentPaymentStartDate), "dd.MM.yy") : "-"} / {s.studentPaymentEndDate ? format(new Date(s.studentPaymentEndDate), "dd.MM.yy") : "-"}</span>
-                                <span className="w-full text-gray-400 mt-1"><strong className="font-medium text-gray-700 dark:text-gray-300">Standart Tutar:</strong> {s.defaultFundAmount ? `${s.defaultFundAmount} ₺` : "-"} ({s.defaultFundDuration ? `${s.defaultFundDuration} Ay` : "-"})</span>
+                                <span className="w-full text-gray-400 mt-1">
+                                    <strong className="font-medium text-gray-700 dark:text-gray-300">Standart Tutar:</strong> {s.defaultFundAmount ? `${s.defaultFundAmount} ₺` : "-"} ({s.defaultFundDuration ? `${s.defaultFundDuration} Ay` : "-"})
+                                    <span className="mx-2">•</span>
+                                    <strong className="font-medium text-gray-700 dark:text-gray-300">Dönem Kotası:</strong> {s.globalStudentQuota ? `${s.globalStudentQuota} Öğrenci` : "Sınırsız"}
+                                </span>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">

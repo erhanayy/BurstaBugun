@@ -1,0 +1,1 @@
+ALTER TABLE "parameters_tenant_seasons" ADD COLUMN "global_student_quota" integer;

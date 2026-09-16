@@ -301,6 +301,7 @@ export function FundForm({ seasons, isAdmin, onSuccessRedirect }: { seasons?: Se
                                     <SelectContent>
                                         <SelectItem value="upfront">Peşin</SelectItem>
                                         <SelectItem value="monthly">Taksitli</SelectItem>
+                                        {isAdmin && <SelectItem value="wire_transfer">Vakıf Hesabına EFT/Havale (Admin)</SelectItem>}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

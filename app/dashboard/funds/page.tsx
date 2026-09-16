@@ -1,34 +1,67 @@
 import { getSponsorFunds } from "@/lib/actions/sponsor";
 import Link from "next/link";
 import Image from "next/image";
-import { DollarSign, Wallet, Users, CreditCard, Plus, UserPlus, Calendar } from "lucide-react";
+import { DollarSign, Wallet, Users, CreditCard, Plus, UserPlus, Calendar, Settings } from "lucide-react";
 import { format, differenceInMonths } from "date-fns";
 import { tr } from "date-fns/locale";
+import { Suspense } from "react";
+import { ShareFundButton } from "@/components/share-fund-button";
 
+import { db } from "@/lib/db";
+import { parametersTenantSeasons } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { FundPeriodFilter } from "@/components/fund-period-filter";
 import { getCurrentTenant } from "@/lib/data/tenant";
 
-export default async function SponsorFundsPage() {
+export default async function SponsorFundsPage(props: { searchParams: Promise<{ period?: string }> }) {
+    const searchParams = await props.searchParams;
+    
     const tenantData = await getCurrentTenant();
     if (!tenantData) return null;
 
-    const funds = await getSponsorFunds();
+    // Fetch seasons for the filter
+    const seasons = await db.query.parametersTenantSeasons.findMany({
+        where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+        orderBy: (s, { desc }) => [desc(s.period)]
+    });
+
+    let currentPeriod = searchParams?.period;
+    if (!currentPeriod) {
+        const activeSeason = seasons.find(s => s.isActive);
+        currentPeriod = activeSeason ? activeSeason.id : "all";
+    }
+
+    let funds = await getSponsorFunds();
+    
+    // Filter funds based on selected period
+    if (currentPeriod !== "all") {
+        funds = funds.filter(f => f.period === currentPeriod);
+    }
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
+                <div className="flex-1">
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Fonlarım ve Desteklerim</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">
                         Sponsor olduğunuz veya maddi olarak katkıda bulunduğunuz tüm eğitim fonları.
                     </p>
                 </div>
-                <Link
-                    href="/dashboard/funds/new"
-                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-                >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Yeni Fon Oluştur
-                </Link>
+                
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+                    {seasons.length > 0 && (
+                        <Suspense fallback={<div className="h-10 w-[180px] bg-gray-100 dark:bg-zinc-800 rounded-md animate-pulse"></div>}>
+                            <FundPeriodFilter seasons={seasons} currentPeriod={currentPeriod} />
+                        </Suspense>
+                    )}
+                    <Link
+                        href="/dashboard/funds/new"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                    >
+                        <Plus className="h-5 w-5 mr-2" />
+                        Yeni Fon Oluştur
+                    </Link>
+                </div>
             </div>
 
             {funds.length === 0 ? (
@@ -83,7 +116,7 @@ export default async function SponsorFundsPage() {
                                         <div className="grid grid-cols-2 gap-4 mt-auto">
                                             <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3 border border-gray-100 dark:border-zinc-800">
                                                 <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider font-semibold">Dönemi</div>
-                                                <div className="font-bold text-gray-900 dark:text-white text-sm truncate">{fund.period || "Belirtilmemiş"}</div>
+                                                <div className="font-bold text-gray-900 dark:text-white text-sm truncate">{fund.period ? (seasons.find(s => s.id === fund.period)?.period || fund.period) : "Belirtilmemiş"}</div>
                                             </div>
                                             <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3 border border-gray-100 dark:border-zinc-800">
                                                 <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider font-semibold">Aylık Tutar</div>
@@ -137,6 +170,7 @@ export default async function SponsorFundsPage() {
                                     >
                                         <Users className="w-5 h-5" />
                                     </Link>
+                                    <ShareFundButton fund={fund} variant="ghost" size="icon" iconOnly className="p-2 text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/30 dark:hover:bg-green-900/50 rounded-full transition-colors" />
                                     <Link
                                         href={`/dashboard/funds/${fund.id}`}
                                         className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 rounded-full transition-colors"
@@ -144,6 +178,15 @@ export default async function SponsorFundsPage() {
                                     >
                                         <UserPlus className="w-5 h-5" />
                                     </Link>
+                                    {(fund.ownerId === tenantData.userId || tenantData.userRole === 'admin' || tenantData.isSuperAdmin) && (
+                                        <Link
+                                            href={`/dashboard/funds/${fund.id}/edit`}
+                                            className="p-2 text-orange-600 bg-orange-50 hover:bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30 dark:hover:bg-orange-900/50 rounded-full transition-colors"
+                                            title="Fonu Güncelle"
+                                        >
+                                            <Settings className="w-5 h-5" />
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         </div>

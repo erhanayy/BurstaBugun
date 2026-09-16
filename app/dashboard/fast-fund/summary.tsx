@@ -57,7 +57,11 @@ export default async function SummaryPage({ fundId }: { fundId: string }) {
                     <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                         <Wallet className="text-blue-600" /> Bağış Özeti
                     </h2>
-                    <p className="text-gray-500 mt-1">Fonunuz oluşturuldu ve öğrenci kapasiteniz belirlendi. Son bir kontrol yapıp ödeme adımına geçebilirsiniz.</p>
+                    <p className="text-gray-500 mt-1">
+                        {fund.paymentMethod === 'wire_transfer' 
+                            ? "EFT/Havale fonunuz başarıyla oluşturuldu. Tahsilat girişlerini yönetim paneli üzerinden yapabilirsiniz."
+                            : "Fonunuz oluşturuldu ve öğrenci kapasiteniz belirlendi. Son bir kontrol yapıp ödeme adımına geçebilirsiniz."}
+                    </p>
                 </div>
 
                 <div className="p-6 md:p-8 bg-gray-50/50">
@@ -105,7 +109,11 @@ export default async function SummaryPage({ fundId }: { fundId: string }) {
                             <span className="text-3xl font-bold text-gray-900">{displayAmount.toLocaleString('tr-TR')} ₺</span>
                         </div>
                         
-                        {displayAmount > 0 ? (
+                        {fund.paymentMethod === 'wire_transfer' ? (
+                            <div className="text-green-600 font-medium text-sm flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+                                Fon başarıyla kaydedildi. Ödeme işlemi manuel takip edilecektir.
+                            </div>
+                        ) : displayAmount > 0 ? (
                             <div className="w-full md:w-auto scale-110 origin-right">
                                 <AppPaymentButton fundId={fund.id} />
                             </div>

@@ -81,6 +81,7 @@ export const parametersTenantSeasons = pgTable('parameters_tenant_seasons', {
     defaultFundDuration: integer('default_fund_duration'),
     defaultFundStartDate: timestamp('default_fund_start_date'),
     defaultFundEndDate: timestamp('default_fund_end_date'),
+    globalStudentQuota: integer('global_student_quota'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (t) => ({
     tenantPeriodUnq: unique().on(t.tenantId, t.period),
@@ -129,6 +130,7 @@ export const funds = pgTable('funds', {
     collectedAmount: integer('collected_amount').default(0).notNull(),
     distributedAmount: integer('distributed_amount').default(0).notNull(),
     photoUrl: text('photo_url'),
+    shareMessage: text('share_message'),
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -140,6 +142,7 @@ export const fundContributors = pgTable('fund_contributors', {
     userId: uuid('user_id').references(() => users.id).notNull(),
     amount: integer('amount').notNull(),
     studentCount: integer('student_count').default(1).notNull(),
+    supporterType: varchar('supporter_type', { length: 20 }).default('recurring').notNull(),
     isPaid: boolean('is_paid').default(false).notNull(),
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -342,6 +345,7 @@ export const donationStatusEnum = pgEnum('donation_status', ['completed', 'faile
 export const donations = pgTable('donations', {
     id: uuid('id').defaultRandom().primaryKey(),
     tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    fundId: uuid('fund_id').references(() => funds.id), // Added to track which fund this donation was assigned to
     amount: integer('amount').notNull(),
     donorName: text('donor_name'),
     donorTc: text('donor_tc'),
@@ -587,5 +591,9 @@ export const donationsRelations = relations(donations, ({ one }) => ({
     tenant: one(tenants, {
         fields: [donations.tenantId],
         references: [tenants.id],
+    }),
+    fund: one(funds, {
+        fields: [donations.fundId],
+        references: [funds.id],
     }),
 }));

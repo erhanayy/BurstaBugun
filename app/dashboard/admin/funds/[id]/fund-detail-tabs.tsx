@@ -52,6 +52,14 @@ export default function FundDetailTabs({
                                 <th className="px-6 py-4 font-medium">Bursveren Adı</th>
                                 <th className="px-6 py-4 font-medium">İletişim Bilgileri</th>
                                 <th className="px-6 py-4 font-medium text-center">Öğrenci Adedi</th>
+                                {fund?.paymentMethod === 'wire_transfer' && (
+                                    <>
+                                        <th className="px-6 py-4 font-medium text-right">Hedef Borç</th>
+                                        <th className="px-6 py-4 font-medium text-right">Ödenen</th>
+                                        <th className="px-6 py-4 font-medium text-right">Kalan Borç</th>
+                                        <th className="px-6 py-4 font-medium text-center">İşlem</th>
+                                    </>
+                                )}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
@@ -65,13 +73,38 @@ export default function FundDetailTabs({
                                         <div className="flex items-center gap-2 mt-1"><Phone className="w-3 h-3"/> {c.user?.phone || "-"}</div>
                                     </td>
                                     <td className="px-6 py-4 text-center font-medium">
-                                        {c.studentCount}
+                                        {fund?.paymentMethod === 'wire_transfer' && c.studentCount === 0 ? "Serbest" : c.studentCount}
                                     </td>
+                                    {fund?.paymentMethod === 'wire_transfer' && (() => {
+                                        const targetDebt = c.studentCount * (fund.monthlyLimit || 0) * (fund.durationMonths || 10);
+                                        const paid = c.amount || 0;
+                                        const remaining = Math.max(0, targetDebt - paid);
+                                        return (
+                                            <>
+                                                <td className="px-6 py-4 text-right font-medium text-gray-700 dark:text-gray-300">
+                                                    {c.studentCount === 0 ? "-" : `${targetDebt.toLocaleString('tr-TR')} ₺`}
+                                                </td>
+                                                <td className="px-6 py-4 text-right font-medium text-green-600 dark:text-green-400">
+                                                    {paid.toLocaleString('tr-TR')} ₺
+                                                </td>
+                                                <td className={`px-6 py-4 text-right font-bold ${remaining > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500'}`}>
+                                                    {c.studentCount === 0 ? "Yok" : `${remaining.toLocaleString('tr-TR')} ₺`}
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    {remaining > 0 && c.user?.email && (
+                                                        <button title="Hatırlatma Gönder" className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-full text-amber-500 transition-colors">
+                                                            <Mail className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </>
+                                        );
+                                    })()}
                                 </tr>
                             ))}
                             {contributors.length === 0 && (
                                 <tr>
-                                    <td colSpan={3} className="px-6 py-8 text-center text-gray-500">Bu fonda henüz bir bursveren bulunmuyor.</td>
+                                    <td colSpan={fund?.paymentMethod === 'wire_transfer' ? 7 : 3} className="px-6 py-8 text-center text-gray-500">Bu fonda henüz bir bursveren bulunmuyor.</td>
                                 </tr>
                             )}
                         </tbody>

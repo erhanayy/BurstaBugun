@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { applications, funds, fundSelections, fundContributors, payments } from "@/lib/db/schema";
+import { applications, funds, fundSelections, fundContributors, payments, parametersTenantSeasons } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, and, inArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -127,6 +127,42 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
         where: eq(funds.id, fundId)
     });
     if (!fundObj) throw new Error("Fon bulunamadı.");
+
+    // Check Global Quota
+    if (fundObj.period) {
+        const activeSeason = await db.query.parametersTenantSeasons.findFirst({
+            where: and(
+                eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+                eq(parametersTenantSeasons.period, fundObj.period)
+            )
+        });
+
+        if (activeSeason && activeSeason.globalStudentQuota) {
+            // Count total students assigned in this period
+            // Instead of join, we can just get all funds for this period and count selections
+            const periodFunds = await db.query.funds.findMany({
+                where: and(
+                    eq(funds.tenantId, tenantData.tenantId),
+                    eq(funds.period, fundObj.period)
+                ),
+                columns: { id: true }
+            });
+            const periodFundIds = periodFunds.map(f => f.id);
+            
+            if (periodFundIds.length > 0) {
+                const totalSelections = await db.query.fundSelections.findMany({
+                    where: and(
+                        inArray(fundSelections.fundId, periodFundIds),
+                        eq(fundSelections.isActive, true)
+                    )
+                });
+                
+                if (totalSelections.length >= activeSeason.globalStudentQuota) {
+                    throw new Error(`Kontenjan Dolu! Bu dönem için vakfın belirlediği maksimum öğrenci kapasitesine (${activeSeason.globalStudentQuota} kişi) ulaşıldığı için yeni bir öğrenci fonlara atanamaz.`);
+                }
+            }
+        }
+    }
 
     // Check capacity
     const currentSelections = await db.query.fundSelections.findMany({

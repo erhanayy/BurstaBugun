@@ -20,6 +20,7 @@ export async function createSeason(data: {
     seasonEndDate?: Date | null;
     defaultFundAmount: number | null;
     defaultFundDuration: number | null;
+    globalStudentQuota?: number | null;
 }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData || tenantData.userRole !== 'admin') {
@@ -41,6 +42,7 @@ export async function createSeason(data: {
         seasonEndDate: data.seasonEndDate,
         defaultFundAmount: data.defaultFundAmount,
         defaultFundDuration: data.defaultFundDuration,
+        globalStudentQuota: data.globalStudentQuota,
         isActive: true,
     });
 
@@ -62,6 +64,7 @@ export async function updateSeason(seasonId: string, data: {
     seasonEndDate?: Date | null;
     defaultFundAmount: number | null;
     defaultFundDuration: number | null;
+    globalStudentQuota?: number | null;
 }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData || tenantData.userRole !== 'admin') {
@@ -83,6 +86,7 @@ export async function updateSeason(seasonId: string, data: {
             seasonEndDate: data.seasonEndDate,
             defaultFundAmount: data.defaultFundAmount,
             defaultFundDuration: data.defaultFundDuration,
+            globalStudentQuota: data.globalStudentQuota,
         })
         .where(and(eq(parametersTenantSeasons.id, seasonId), eq(parametersTenantSeasons.tenantId, tenantData.tenantId)));
 
