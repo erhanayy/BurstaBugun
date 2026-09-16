@@ -597,3 +597,86 @@ export const donationsRelations = relations(donations, ({ one }) => ({
         references: [funds.id],
     }),
 }));
+
+// --- Chat / Messaging Tables ---
+
+export const chatRoomTypeEnum = pgEnum('chat_room_type', ['direct', 'group']);
+export const chatRoleEnum = pgEnum('chat_role', ['admin', 'member']);
+
+export const chatRooms = pgTable('chat_rooms', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id), // Nullable if system-wide, but usually scoped
+    name: text('name'), // Optional name for groups
+    type: chatRoomTypeEnum('type').default('group').notNull(),
+    isLocked: boolean('is_locked').default(false).notNull(), // Only admins can talk if locked
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const chatRoomMembers = pgTable('chat_room_members', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    roomId: uuid('room_id').references(() => chatRooms.id, { onDelete: 'cascade' }).notNull(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    role: chatRoleEnum('role').default('member').notNull(),
+    joinedAt: timestamp('joined_at').defaultNow().notNull(),
+});
+
+export const chatMessages = pgTable('chat_messages', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    roomId: uuid('room_id').references(() => chatRooms.id, { onDelete: 'cascade' }).notNull(),
+    senderId: uuid('sender_id').references(() => users.id, { onDelete: 'set null' }),
+    content: text('content').notNull(),
+    isSystemMessage: boolean('is_system_message').default(false).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const chatMessageReads = pgTable('chat_message_reads', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    messageId: uuid('message_id').references(() => chatMessages.id, { onDelete: 'cascade' }).notNull(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    readAt: timestamp('read_at').defaultNow().notNull(),
+});
+
+// Chat Relations
+export const chatRoomsRelations = relations(chatRooms, ({ many, one }) => ({
+    members: many(chatRoomMembers),
+    messages: many(chatMessages),
+    creator: one(users, {
+        fields: [chatRooms.createdBy],
+        references: [users.id],
+    }),
+}));
+
+export const chatRoomMembersRelations = relations(chatRoomMembers, ({ one }) => ({
+    room: one(chatRooms, {
+        fields: [chatRoomMembers.roomId],
+        references: [chatRooms.id],
+    }),
+    user: one(users, {
+        fields: [chatRoomMembers.userId],
+        references: [users.id],
+    }),
+}));
+
+export const chatMessagesRelations = relations(chatMessages, ({ one, many }) => ({
+    room: one(chatRooms, {
+        fields: [chatMessages.roomId],
+        references: [chatRooms.id],
+    }),
+    sender: one(users, {
+        fields: [chatMessages.senderId],
+        references: [users.id],
+    }),
+    reads: many(chatMessageReads),
+}));
+
+export const chatMessageReadsRelations = relations(chatMessageReads, ({ one }) => ({
+    message: one(chatMessages, {
+        fields: [chatMessageReads.messageId],
+        references: [chatMessages.id],
+    }),
+    user: one(users, {
+        fields: [chatMessageReads.userId],
+        references: [users.id],
+    }),
+}));
