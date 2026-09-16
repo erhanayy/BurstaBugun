@@ -94,6 +94,7 @@ export async function createPaymentSession(fundId: string) {
                 amount: amountPerMonth * numMonths,
                 status: 'pending' as const,
                 paymentDate: new Date(currentDate),
+                paymentMethod: 'subscription',
             });
         } else {
             for (let i = 0; i < numMonths; i++) {
@@ -104,6 +105,7 @@ export async function createPaymentSession(fundId: string) {
                     amount: amountPerMonth,
                     status: 'pending' as const,
                     paymentDate: new Date(currentDate),
+                    paymentMethod: 'subscription',
                 });
                 // Add 1 month for next payment
                 currentDate.setMonth(currentDate.getMonth() + 1);

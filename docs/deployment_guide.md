@@ -4,7 +4,7 @@ Bu doküman, **ŞirketteBugün** ve **DernekteBugün** projelerinin Google Cloud
 
 ## 1. Mimari Tasarım (Deployment Architecture)
 
-İki proje de herhangi bir geleneksel Sanal Makineye (Virtual Machine / EC2 / Compute Engine) ihtiyaç **duymadan**, Google'ın **Cloud Run** servisleri üzerinden "Container-as-a-Service" yapısıyla serverless (sunucusuz) olarak koşturulur. 
+Projeler herhangi bir geleneksel Sanal Makineye (Virtual Machine / EC2 / Compute Engine) ihtiyaç **duymadan**, Google'ın **Cloud Run** servisleri üzerinden "Container-as-a-Service" yapısıyla serverless (sunucusuz) olarak koşturulur. 
 
 Avantajları:
 - **Zero-downtime Deployments:** Yeni versiyon hazır olana kadar eskisi trafik almaya devam eder.
@@ -13,6 +13,7 @@ Avantajları:
 
 ### Alan Adı ve SSL Yönlendirmeleri
 Google Cloud Run üzerinden proje dış dünyaya bir CNAME kaydına bağlanılarak yansıtılır.
+- **BurstaBugun (FBİAD Vakfı):** `www.fbiadvakfi.org` => CNAME `ghs.googlehosted.com`
 - **ŞirketteBugün:** `sirkette.bugunai.com` => CNAME `ghs.googlehosted.com`
 - **DernekteBugün:** `dernekte.bugunai.com` => CNAME `ghs.googlehosted.com`
 
@@ -22,41 +23,35 @@ Google Cloud Run üzerinden proje dış dünyaya bir CNAME kaydına bağlanılar
 
 Google Cloud Run platformunda `.env.local` veya `.env` dosyaları projeyle GİT üzerinden veya manuel olarak YÜKLENMEZ. Güvenlik ve best-practice gereği enviroment (ortam değişkeni) verileri doğrudan deployment (`gcloud run deploy`) komutuna flag (`--set-env-vars`) olarak sağlanır.
 
-Bunun getirdiği sorumluluk, her iki proje için de deployment yapmadan önce doğru veritabanına hedeflendiğinden emin olunmasıdır.
-
-### DernekteBugün .env Çekirdek Yapısı (Örnek)
-- `DATABASE_URL`: postgresql://postgres:Sifre@IPAdresi:5432/dernekte-bugun
+### BurstaBugun (FBİAD Vakfı) .env Çekirdek Yapısı
+- `DATABASE_URL`: postgresql://postgres:Sifre@IPAdresi:5432/bursta-bugun
 - `AUTH_SECRET`: super_secret_generated_key_for_local_dev
-- `EMAIL_SENDER`: admin@bugunai.com
+- `EMAIL_SENDER`: noreply@fbiadvakfi.org
 - `RESEND_API_KEY`: re_*****
-
-### ŞirketteBugün .env Çekirdek Yapısı (Örnek)
-- `DATABASE_URL`: postgresql://postgres:Sifre@IPAdresi:5432/sirkette-bugun
-- `AUTH_SECRET`: super_secret_generated_key_for_local_dev
-- `NEXT_PUBLIC_APP_URL`: https://sirkette.bugunai.com
+- `NEXT_PUBLIC_TENANT_ID`: cfc00202-11c1-48dd-ae63-35fd44c60977
 
 ---
 
 ## 3. Canlıya Alma (Deployment) Süreci ve Komutları
 
-Deployment lokal bilgisayar üzerinden (veya gelecekte Google Cloud Build CI üzerinden) kaynak kod ile yapılır (`--source .`). Bu sayede arka planda kod Next.js projesi olarak derlenip (buildpacks aracılığıyla) konteyner haline gelir.
+Deployment lokal bilgisayar üzerinden kaynak kod ile yapılır (`--source .`). Google Cloud Run bu komut çalıştırıldığında arka planda `npm run build` komutunu çalıştırarak imajı oluşturur.
 
-### DernekteBugün Deployment Komutu
+### BurstaBugun (FBİAD) Deployment Komutu (Kısa Kullanım)
+Google Cloud Run, mevcut ortam değişkenlerinizi (env vars) zaten saklar. Yalnızca koddaki güncellemeleri canlıya almak istediğinizde aşağıdaki komut yeterlidir:
 ```bash
-gcloud run deploy dernekte-bugun \
-  --source . \
-  --region europe-west1 \
-  --allow-unauthenticated \
-  --set-env-vars="DATABASE_URL=...,AUTH_SECRET=...,EMAIL_SENDER=...,RESEND_API_KEY=..."
+gcloud run deploy bursta-fbiad --source . --region europe-west1
 ```
 
-### ŞirketteBugün Deployment Komutu
+### BurstaBugun (FBİAD) Deployment Komutu (İlk Kurulum veya Ortam Değişkeni Güncelleme)
 ```bash
-gcloud run deploy sirkette-bugun \
+gcloud run deploy bursta-fbiad \
   --source . \
   --region europe-west1 \
   --allow-unauthenticated \
-  --set-env-vars="DATABASE_URL=postgresql://postgres:***dB2026***@34.38.207.47:5432/sirkette-bugun,AUTH_SECRET=super_secret_generated_key_for_local_dev,EMAIL_SENDER=admin@bugunai.com,RESEND_API_KEY=re_N3hGjuZN_ApQrh6SXzMH9vDYbkaMWaHke,NEXT_PUBLIC_APP_URL=https://sirkette.bugunai.com"
+  --vpc-egress all-traffic \
+  --vpc-network bursta-vpc \
+  --vpc-subnet bursta-subnet-2 \
+  --set-env-vars="AUTH_SECRET=super_secret_generated_key_for_local_dev,AUTH_TRUST_HOST=true,DATABASE_URL=postgresql://postgres:***dB2026***@34.38.207.47:5432/bursta-bugun,EMAIL_API_TOKEN=db_email_token_2024_dernektebugun,EMAIL_SENDER=noreply@fbiadvakfi.org,LIVE_ENV=true,NEXT_PUBLIC_APP_URL=https://www.fbiadvakfi.org,NEXT_PUBLIC_TENANT_ID=cfc00202-11c1-48dd-ae63-35fd44c60977,NEXT_PUBLIC_VAPID_PUBLIC_KEY=BBE_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,RESEND_API_KEY=re_********_******************,VAPID_PRIVATE_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 ```
 
 *Not:* Eklenen yeni API key'leri, Token'lar (Örn: VAPID_KEY vb.) sisteme entegre edildikçe bu komutlardaki `--set-env-vars=""` argüman listesine virgülle ayrılıp sırasıyla eklenmek **zorundadır**.
