@@ -2,7 +2,7 @@
 
 import { db } from "../db";
 import { chatRooms, chatRoomMembers, chatMessages, chatMessageReads, users, parametersTenantSeasons, applications, funds, fundContributors, tenantUsers } from "../db/schema";
-import { eq, and, desc, inArray, sql } from "drizzle-orm";
+import { eq, and, desc, inArray, sql, or } from "drizzle-orm";
 import { getCurrentTenant } from "../data/tenant";
 import { revalidatePath } from "next/cache";
 
@@ -101,7 +101,7 @@ export async function syncDynamicGroups() {
         const admins = await db.query.tenantUsers.findMany({
             where: and(
                 eq(tenantUsers.tenantId, tenantData.tenantId),
-                inArray(tenantUsers.role, ['admin', 'superadmin'])
+                or(eq(tenantUsers.role, 'admin'), eq(tenantUsers.role, 'superadmin'))
             )
         });
         
