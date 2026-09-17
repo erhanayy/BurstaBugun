@@ -24,11 +24,11 @@ export async function syncDynamicGroups() {
     // Get active season
     const activeSeasonParam = await db.query.parametersTenantSeasons.findFirst({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
-        orderBy: [desc(parametersTenantSeasons.isActive), desc(parametersTenantSeasons.startDate)]
+        orderBy: [desc(parametersTenantSeasons.isActive), desc(parametersTenantSeasons.seasonStartDate)]
     });
     
     if (!activeSeasonParam) return;
-    const seasonName = activeSeasonParam.seasonId; // e.g., '2026-2027'
+    const seasonName = activeSeasonParam.period; // e.g., '2026-2027'
 
     // Group Names
     const bursiyerGroupName = `${seasonName} Bursiyer`;
