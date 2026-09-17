@@ -40,8 +40,8 @@ export default async function AdminApplicantsPage({ searchParams }: { searchPara
     const multiAppUserIds = await getUsersWithMultipleApps(currentPeriod);
 
     const sortedApplicants = [...applicants].sort((a, b) => {
-        const nameA = (a.user?.fullName || "").toLocaleLowerCase('tr-TR');
-        const nameB = (b.user?.fullName || "").toLocaleLowerCase('tr-TR');
+        const nameA = (a.user?.fullName || "").trim().toLocaleLowerCase('tr-TR');
+        const nameB = (b.user?.fullName || "").trim().toLocaleLowerCase('tr-TR');
         return nameA.localeCompare(nameB, 'tr-TR');
     }).filter(app => {
         if (!searchQuery) return true;

@@ -9,6 +9,7 @@ import {
     markNotificationAsRead,
     markAllNotificationsAsRead
 } from "@/lib/actions/notification";
+import { getMyRooms } from "@/lib/actions/chat";
 
 export function NotificationBell({ tenantId, userId }: { tenantId: string, userId: string }) {
     const [notifications, setNotifications] = useState<any[]>([]);
@@ -19,12 +20,32 @@ export function NotificationBell({ tenantId, userId }: { tenantId: string, userI
 
     const fetchNotifications = async () => {
         try {
-            const [notifs, count] = await Promise.all([
+            const [notifs, count, roomsRes] = await Promise.all([
                 getNotifications(tenantId, userId, 10),
-                getUnreadNotificationCount(tenantId, userId)
+                getUnreadNotificationCount(tenantId, userId),
+                getMyRooms()
             ]);
-            setNotifications(notifs);
-            setUnreadCount(count);
+            
+            let msgCount = 0;
+            if (roomsRes && roomsRes.success && roomsRes.rooms) {
+                msgCount = (roomsRes.rooms as any[]).reduce((acc, room) => acc + (room.unreadCount || 0), 0);
+            }
+            
+            setUnreadCount(count + msgCount);
+
+            let virtualNotifs = [];
+            if (msgCount > 0) {
+                virtualNotifs.push({
+                    id: 'virtual-msg-notif',
+                    title: 'Yeni Mesajlar',
+                    body: `${msgCount} adet okunmamış mesajınız bulunuyor.`,
+                    createdAt: new Date().toISOString(),
+                    isRead: false,
+                    actionUrl: '/dashboard/messages'
+                });
+            }
+            
+            setNotifications([...virtualNotifs, ...notifs]);
         } catch (e) {
             console.error("Failed fetching notifications", e);
         }
@@ -55,8 +76,12 @@ export function NotificationBell({ tenantId, userId }: { tenantId: string, userI
     const handleNotificationClick = async (notif: any) => {
         setIsOpen(false);
         if (!notif.isRead) {
-            await markNotificationAsRead(notif.id);
-            setUnreadCount(prev => Math.max(0, prev - 1));
+            if (notif.id === 'virtual-msg-notif') {
+                // Sadece mesaj sayfasına yönlendir, okundu işareti sohbet açıldığında yapılacak
+            } else {
+                await markNotificationAsRead(notif.id);
+                setUnreadCount(prev => Math.max(0, prev - 1));
+            }
         }
 
         if (notif.actionUrl) {

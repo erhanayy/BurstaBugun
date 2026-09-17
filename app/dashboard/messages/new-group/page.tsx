@@ -13,7 +13,7 @@ export const metadata = {
 
 export default async function NewGroupPage() {
     const tenantData = await getCurrentTenant();
-    if (!tenantData || (tenantData.role !== 'admin' && tenantData.role !== 'superadmin')) {
+    if (!tenantData || (tenantData.userRole !== 'admin' && tenantData.userRole !== 'superadmin')) {
         redirect("/dashboard/messages");
     }
 

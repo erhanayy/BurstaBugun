@@ -16,7 +16,7 @@ export default async function MessagesPage() {
 
     return (
         <div className="flex h-[calc(100vh-140px)] w-full bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-            <ChatLayout initialRooms={rooms as any} currentUserId={tenantData.userId} isAdmin={tenantData.role === 'admin' || tenantData.role === 'superadmin'} />
+            <ChatLayout initialRooms={rooms as any} currentUserId={tenantData.userId} isAdmin={tenantData.userRole === 'admin' || tenantData.userRole === 'superadmin'} />
         </div>
     );
 }

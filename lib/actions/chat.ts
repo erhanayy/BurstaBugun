@@ -85,7 +85,10 @@ export async function syncDynamicGroups() {
     const activeFunds = await db.query.funds.findMany({
         where: eq(funds.tenantId, tenantData.tenantId)
     });
-    const bursverenUserIds = new Set(activeFunds.map(f => f.userId));
+    const bursverenUserIds = new Set<string>();
+    activeFunds.forEach(f => {
+        if (f.ownerId) bursverenUserIds.add(f.ownerId);
+    });
     // Also include contributors
     const contributors = await db.query.fundContributors.findMany();
     contributors.forEach(c => {
@@ -101,7 +104,7 @@ export async function syncDynamicGroups() {
         const admins = await db.query.tenantUsers.findMany({
             where: and(
                 eq(tenantUsers.tenantId, tenantData.tenantId),
-                sql`${tenantUsers.role} IN ('admin', 'superadmin')`
+                eq(tenantUsers.role, 'admin')
             )
         });
         
@@ -161,7 +164,7 @@ export async function getMyRooms() {
             LEFT JOIN chat_message_reads cmr ON cm.id = cmr.message_id AND cmr.user_id = ${tenantData.userId}
             WHERE cm.room_id = ${room.id} AND cmr.id IS NULL AND cm.sender_id != ${tenantData.userId}
         `);
-        const unreadCount = Number(unreadResult[0]?.count || 0);
+        const unreadCount = Number(unreadResult.rows[0]?.count || 0);
 
         // Eğer direct ise karşı tarafın adını bul
         let displayName = room.name;
@@ -220,7 +223,7 @@ export async function getRoomMessages(roomId: string) {
             WHERE cm.room_id = ${roomId} AND cmr.id IS NULL AND cm.sender_id != ${tenantData.userId}
         `);
         
-        const idsToMark = unreadMessageIds.map(row => row.id as string);
+        const idsToMark = unreadMessageIds.rows.map(row => row.id as string);
         if (idsToMark.length > 0) {
             await db.insert(chatMessageReads).values(
                 idsToMark.map(id => ({
@@ -269,7 +272,7 @@ export async function sendMessage(roomId: string, content: string) {
 // Yönetici fonksiyonları
 export async function createGroup(name: string, userIds: string[]) {
     const tenantData = await getCurrentTenant();
-    if (!tenantData || (tenantData.role !== 'admin' && tenantData.role !== 'superadmin')) {
+    if (!tenantData || (tenantData.userRole !== 'admin' && tenantData.userRole !== 'superadmin')) {
         return { success: false, error: 'Yetkisiz işlem.' };
     }
 
@@ -308,7 +311,7 @@ export async function createGroup(name: string, userIds: string[]) {
 
 export async function toggleRoomLock(roomId: string, isLocked: boolean) {
     const tenantData = await getCurrentTenant();
-    if (!tenantData || (tenantData.role !== 'admin' && tenantData.role !== 'superadmin')) {
+    if (!tenantData || (tenantData.userRole !== 'admin' && tenantData.userRole !== 'superadmin')) {
         return { success: false, error: 'Yetkisiz işlem.' };
     }
 

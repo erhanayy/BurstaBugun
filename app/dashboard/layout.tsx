@@ -3,6 +3,7 @@ import {
     Home,
     LayoutDashboard,
     Settings,
+    CreditCard,
     FileText,
     Users,
     Building,
@@ -33,7 +34,6 @@ import { auth } from "@/auth";
 import Image from "next/image";
 import { CollapsibleNavSection } from "@/components/ui/collapsible-nav-section";
 import { NotificationBell } from "@/components/notification-bell";
-import { ChatBell } from "@/components/chat-bell";
 import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
@@ -72,8 +72,35 @@ export default async function DashboardLayout({
     }
 
     let pendingContracts: any[] = [];
+    let unreadMessageCount = 0;
+    let isSelectedStudent = false;
+    
     if (tenantData?.userId) {
         pendingContracts = await getMissingContracts(tenantData.userId);
+        
+        const { getMyRooms } = await import("@/lib/actions/chat");
+        const roomsRes = await getMyRooms();
+        if (roomsRes.success && roomsRes.rooms) {
+            unreadMessageCount = roomsRes.rooms.reduce((acc, r: any) => acc + (r.unreadCount || 0), 0);
+        }
+
+        if (userRole === 'applicant' || userRole === 'admin') {
+            const { db } = await import("@/lib/db");
+            const { applications } = await import("@/lib/db/schema");
+            const { eq, and, or } = await import("drizzle-orm");
+            
+            const activeApp = await db.query.applications.findFirst({
+                where: and(
+                    eq(applications.userId, tenantData.userId),
+                    eq(applications.tenantId, tenantData.tenantId),
+                    or(
+                        eq(applications.status, 'selected'),
+                        eq(applications.status, 'active')
+                    )
+                )
+            });
+            if (activeApp) isSelectedStudent = true;
+        }
     }
 
     return (
@@ -111,7 +138,7 @@ export default async function DashboardLayout({
 
                         <CollapsibleNavSection title="Genel" storageKey="general">
                             <NavItem href="/dashboard/home" icon={Home} label="Ana Sayfa" />
-                            <NavItem href="/dashboard/messages" icon={MessageSquare} label="Mesajlar" />
+                            <NavItem href="/dashboard/messages" icon={MessageSquare} label="Mesajlar" badge={unreadMessageCount > 0 ? unreadMessageCount : undefined} />
                             <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
                         </CollapsibleNavSection>
 
@@ -122,6 +149,9 @@ export default async function DashboardLayout({
                                 <NavItem href="/dashboard/applications/new" icon={FileText} label="Burs Başvurusu Yap" />
                                 <NavItem href="/dashboard/applications" icon={LayoutDashboard} label="Başvurularım" />
                                 <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
+                                {isSelectedStudent && (
+                                    <NavItem href="/dashboard/iban" icon={CreditCard} label="IBAN Bilgileri" />
+                                )}
                                 <NavItem href="/dashboard/applications/recover-documents" icon={UploadCloud} label="Eksik Evrak Yükle" />
                             </CollapsibleNavSection>
                         )}
@@ -173,6 +203,7 @@ export default async function DashboardLayout({
                                 <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
                                 <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
                                 <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
+                                <NavItem href="/dashboard/admin/iban-list" icon={CreditCard} label="IBAN Bilgileri" />
                                 <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
                             </CollapsibleNavSection>
                         )}
@@ -214,7 +245,6 @@ export default async function DashboardLayout({
                                     {/* 1. Bildirim ve Mesaj Logosu */}
                                     <div className="flex items-center gap-1">
                                         <NotificationBell tenantId={tenantData.tenantId} userId={tenantData.userId} />
-                                        <ChatBell />
                                     </div>
 
                                     {/* 2. Kişi Adı Baş Harfleri Logosu */}
@@ -242,7 +272,7 @@ export default async function DashboardLayout({
 
                                         <CollapsibleNavSection title="Genel" storageKey="general">
                                             <NavItem href="/dashboard/home" icon={Home} label="Ana Sayfa" />
-                                            <NavItem href="/dashboard/messages" icon={MessageSquare} label="Mesajlar" />
+                                            <NavItem href="/dashboard/messages" icon={MessageSquare} label="Mesajlar" badge={unreadMessageCount > 0 ? unreadMessageCount : undefined} />
                                             <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
                                         </CollapsibleNavSection>
 
@@ -253,6 +283,9 @@ export default async function DashboardLayout({
                                                 <NavItem href="/dashboard/applications/new" icon={FileText} label="Burs Başvurusu Yap" />
                                                 <NavItem href="/dashboard/applications" icon={LayoutDashboard} label="Başvurularım" />
                                                 <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
+                                                {isSelectedStudent && (
+                                                    <NavItem href="/dashboard/iban" icon={CreditCard} label="IBAN Bilgileri" />
+                                                )}
                                                 <NavItem href="/dashboard/applications/recover-documents" icon={UploadCloud} label="Eksik Evrak Yükle" />
                                             </CollapsibleNavSection>
                                         )}
@@ -303,6 +336,7 @@ export default async function DashboardLayout({
                                                 <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
                                                 <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
                                                 <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
+                                                <NavItem href="/dashboard/admin/iban-list" icon={CreditCard} label="IBAN Bilgileri" />
                                                 <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
                                             </CollapsibleNavSection>
                                         )}
