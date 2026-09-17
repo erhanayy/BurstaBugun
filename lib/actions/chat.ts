@@ -101,7 +101,7 @@ export async function syncDynamicGroups() {
         const admins = await db.query.tenantUsers.findMany({
             where: and(
                 eq(tenantUsers.tenantId, tenantData.tenantId),
-                or(eq(tenantUsers.role, 'admin'), eq(tenantUsers.role, 'superadmin'))
+                sql`${tenantUsers.role} IN ('admin', 'superadmin')`
             )
         });
         
