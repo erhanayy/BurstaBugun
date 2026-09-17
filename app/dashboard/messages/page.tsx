@@ -1,5 +1,5 @@
 import { getMyRooms } from "@/lib/actions/chat";
-import { getCurrentTenant } from "@/lib/tenant";
+import { getCurrentTenant } from "@/lib/data/tenant";
 import { redirect } from "next/navigation";
 import ChatLayout from "./chat-layout";
 

@@ -3,7 +3,7 @@
 import { db } from "../db";
 import { chatRooms, chatRoomMembers, chatMessages, chatMessageReads, users, parametersTenantSeasons, applications, funds, fundContributors, tenantUsers } from "../db/schema";
 import { eq, and, desc, inArray, sql } from "drizzle-orm";
-import { getCurrentTenant } from "../tenant";
+import { getCurrentTenant } from "../data/tenant";
 import { revalidatePath } from "next/cache";
 
 // Sadece odaya üye olup olmadığını kontrol eden yardımcı fonksiyon

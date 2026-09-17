@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { applications, users, funds, fundSelections } from "@/lib/db/schema";
 import { eq, and, isNotNull, or } from "drizzle-orm";
-import { getCurrentTenant } from "@/lib/tenant";
+import { getCurrentTenant } from "@/lib/data/tenant";
 import { redirect } from "next/navigation";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";

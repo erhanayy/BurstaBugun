@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { tenantUsers, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { getCurrentTenant } from "@/lib/tenant";
+import { getCurrentTenant } from "@/lib/data/tenant";
 import { redirect } from "next/navigation";
 import NewGroupForm from "./new-group-form";
 import { ArrowLeft } from "lucide-react";

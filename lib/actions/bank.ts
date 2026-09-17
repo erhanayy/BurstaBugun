@@ -3,7 +3,7 @@
 import { db } from "../db";
 import { users, applications } from "../db/schema";
 import { eq, and } from "drizzle-orm";
-import { getCurrentTenant } from "../tenant";
+import { getCurrentTenant } from "../data/tenant";
 import { revalidatePath } from "next/cache";
 
 export async function saveBankInfo(formData: FormData) {

@@ -3,7 +3,7 @@ import { ChevronRight, KeyRound, User, Bell, ShieldCheck, FileText, Info } from 
 import { db } from "@/lib/db";
 import { applications } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
-import { getCurrentTenant } from "@/lib/tenant";
+import { getCurrentTenant } from "@/lib/data/tenant";
 
 export default async function SettingsPage() {
     const tenantData = await getCurrentTenant();

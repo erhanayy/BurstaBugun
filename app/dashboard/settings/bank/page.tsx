@@ -1,4 +1,4 @@
-import { getCurrentTenant } from "@/lib/tenant";
+import { getCurrentTenant } from "@/lib/data/tenant";
 import { db } from "@/lib/db";
 import { applications, users } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
