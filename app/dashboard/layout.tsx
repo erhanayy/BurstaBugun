@@ -111,8 +111,8 @@ export default async function DashboardLayout({
 
                         <CollapsibleNavSection title="Genel" storageKey="general">
                             <NavItem href="/dashboard/home" icon={Home} label="Ana Sayfa" />
-                            <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
                             <NavItem href="/dashboard/messages" icon={MessageSquare} label="Mesajlar" />
+                            <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
                         </CollapsibleNavSection>
 
                         {/* Bursiyer Menüsü */}
@@ -242,8 +242,8 @@ export default async function DashboardLayout({
 
                                         <CollapsibleNavSection title="Genel" storageKey="general">
                                             <NavItem href="/dashboard/home" icon={Home} label="Ana Sayfa" />
-                                            <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
                                             <NavItem href="/dashboard/messages" icon={MessageSquare} label="Mesajlar" />
+                                            <NavItem href="/dashboard/notifications" icon={Bell} label="Bildirimler" />
                                         </CollapsibleNavSection>
 
                                         {/* Bursiyer Menüsü */}
