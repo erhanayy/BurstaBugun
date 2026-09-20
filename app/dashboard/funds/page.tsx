@@ -1,7 +1,7 @@
 import { getSponsorFunds } from "@/lib/actions/sponsor";
 import Link from "next/link";
 import Image from "next/image";
-import { DollarSign, Wallet, Users, CreditCard, Plus, UserPlus, Calendar, Settings } from "lucide-react";
+import { DollarSign, Wallet, Users, CreditCard, Plus, UserPlus, Calendar, Settings, User } from "lucide-react";
 import { format, differenceInMonths } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Suspense } from "react";
@@ -102,7 +102,13 @@ export default async function SponsorFundsPage(props: { searchParams: Promise<{ 
                             </div>
 
                             <div className="p-6 flex-1 flex flex-col">
-                                <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-2 line-clamp-2">{fund.title}</h3>
+                                <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-1 line-clamp-2">{fund.title}</h3>
+                                {(fund as any).owner?.fullName && (
+                                    <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-1.5">
+                                        <User className="w-3.5 h-3.5" />
+                                        {(fund as any).owner.fullName}
+                                    </div>
+                                )}
                                 <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-4 flex-1">
                                     {fund.description || "Bu fon hakkında herhangi bir açıklama bulunmuyor."}
                                 </div>

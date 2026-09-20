@@ -30,7 +30,13 @@ export async function updateDonationStatus(donationId: string, status: 'complete
     }
 }
 
-export async function assignDonationToFund(donationId: string, fundId: string, supporterType: string = 'recurring') {
+export async function assignDonationToFund(
+    donationId: string, 
+    fundId: string, 
+    supporterType: string = 'recurring',
+    selectedUserId?: string | null,
+    createNewUser?: boolean
+) {
     const tenantData = await getCurrentTenant();
     if (!tenantData || !['admin', 'superadmin'].includes(tenantData.userRole) && !tenantData.isSuperAdmin) {
         return { success: false, error: "Yetkisiz işlem." };
@@ -45,30 +51,35 @@ export async function assignDonationToFund(donationId: string, fundId: string, s
         });
 
         if (!donation) return { success: false, error: "Bağış bulunamadı." };
-        if (donation.fundId) return { success: false, error: "Bu bağış zaten bir fona atanmış." };
+        if (donation.fundId && donation.status === 'completed') return { success: false, error: "Bu bağış zaten onaylanmış ve bir fona atanmış." };
 
-        let userId = null;
+        let userId = selectedUserId || null;
 
-        // Try to find user by email or phone
-        if (donation.donorEmail) {
-            const existingUser = await db.query.users.findFirst({
-                where: eq(users.email, donation.donorEmail.toLowerCase())
-            });
-            if (existingUser) userId = existingUser.id;
+        // Try to find user by email or phone if not provided and not strictly creating new
+        if (!userId && !createNewUser) {
+            if (donation.donorEmail) {
+                const existingUser = await db.query.users.findFirst({
+                    where: eq(users.email, donation.donorEmail.toLowerCase())
+                });
+                if (existingUser) userId = existingUser.id;
+            }
+
+            if (!userId && donation.donorPhone) {
+                const existingUser = await db.query.users.findFirst({
+                    where: and(
+                        eq(users.phoneNumber, donation.donorPhone),
+                        eq(users.tenantId, tenantData.tenantId)
+                    )
+                });
+                if (existingUser) userId = existingUser.id;
+            }
         }
 
-        if (!userId && donation.donorPhone) {
-            const existingUser = await db.query.users.findFirst({
-                where: and(
-                    eq(users.phoneNumber, donation.donorPhone),
-                    eq(users.tenantId, tenantData.tenantId)
-                )
-            });
-            if (existingUser) userId = existingUser.id;
-        }
-
-        // If no user found, create a shadow user
+        // If no user found and createNewUser is true, or just no user found at all
         if (!userId) {
+            if (!createNewUser) {
+                return { success: false, error: "Bu bağışçı sistemde bulunamadı. Lütfen yeni kullanıcı oluştur seçeneğini işaretleyin." };
+            }
             const dummyPhone = `0000${Math.floor(100000 + Math.random() * 900000)}`;
             const [newUser] = await db.insert(users).values({
                 tenantId: tenantData.tenantId,
@@ -82,21 +93,59 @@ export async function assignDonationToFund(donationId: string, fundId: string, s
             await db.insert(tenantUsers).values({
                 tenantId: tenantData.tenantId,
                 userId,
-                role: 'sponsor'
+                role: 'sponsor' // Default role for new donors
             });
         }
 
-        // Add payment record
-        await db.insert(payments).values({
-            tenantId: tenantData.tenantId,
-            fundId,
-            userId,
-            amount: donation.amount,
-            status: 'completed',
-            paymentMethod: donation.paymentMethod,
-            paymentDate: donation.createdAt,
-            notes: `Web üzerinden gelen ${donation.paymentMethod === 'wire_transfer' ? 'EFT/Havale' : 'Kredi Kartı'} ödemesi. Bağış ID: ${donation.id}`
+        // Akıllı Taksit Eşleştirme (Smart Payment Allocation)
+        let remainingAmount = donation.amount;
+
+        // Find all pending payments for this user and fund, ordered by date
+        const pendingPayments = await db.query.payments.findMany({
+            where: and(
+                eq(payments.userId, userId),
+                eq(payments.fundId, fundId),
+                eq(payments.status, 'pending')
+            ),
+            orderBy: (p, { asc }) => [asc(p.paymentDate)]
         });
+
+        for (const p of pendingPayments) {
+            if (remainingAmount >= p.amount) {
+                // Tamamen karşılıyor
+                await db.update(payments)
+                    .set({ 
+                        status: 'completed', 
+                        donationId: donation.id,
+                        paymentMethod: donation.paymentMethod,
+                        notes: (p.notes ? p.notes + ' | ' : '') + `Web üzerinden gelen bağış ile eşleşti.`
+                    })
+                    .where(eq(payments.id, p.id));
+                remainingAmount -= p.amount;
+            } else if (remainingAmount > 0) {
+                // Kısmi karşılama durumunda taksidi bölmüyoruz. O taksit pending kalıyor.
+                // Kalan parayı en sona ek bir ödeme olarak atacağız.
+                break;
+            } else {
+                break;
+            }
+        }
+
+        // Eğer eşleştirmelerden sonra elde para kaldıysa (veya hiç pending taksit yoksa),
+        // kalan tutar için yeni bir "completed" ödeme satırı oluşturuyoruz.
+        if (remainingAmount > 0) {
+            await db.insert(payments).values({
+                tenantId: tenantData.tenantId,
+                fundId,
+                userId,
+                donationId: donation.id,
+                amount: remainingAmount,
+                status: 'completed',
+                paymentMethod: donation.paymentMethod,
+                paymentDate: donation.createdAt,
+                notes: `Web üzerinden gelen ${donation.paymentMethod === 'wire_transfer' ? 'EFT/Havale' : 'Kredi Kartı'} ödemesi (veya artan bakiye). Bağış ID: ${donation.id}`
+            });
+        }
 
         // Update fundContributors
         const existingContributor = await db.query.fundContributors.findFirst({
@@ -134,9 +183,9 @@ export async function assignDonationToFund(donationId: string, fundId: string, s
                 .where(eq(funds.id, fundId));
         }
 
-        // Finally, update the donation record with the assigned fund
+        // Finally, update the donation record with the assigned fund and mark as completed
         await db.update(donations)
-            .set({ fundId })
+            .set({ fundId, status: 'completed' })
             .where(eq(donations.id, donationId));
 
         revalidatePath("/dashboard/admin/donations");

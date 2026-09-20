@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
-import { donations, funds } from "@/lib/db/schema";
+import { donations, funds, users, tenantUsers } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
-import { eq, desc, and, ilike, or, isNull, isNotNull } from "drizzle-orm";
+import { eq, desc, and, ilike, or, isNull, isNotNull, ne } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { Search, Heart } from "lucide-react";
 import { format } from "date-fns";
@@ -99,15 +99,35 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
         dateString: format(new Date(d.createdAt), "dd MMMM yyyy HH:mm", { locale: tr })
     }));
 
-    // Get active EFT funds for assignment
-    const eftFunds = await db.query.funds.findMany({
+    const allFunds = await db.query.funds.findMany({
         where: and(
             eq(funds.tenantId, tenantData.tenantId),
-            eq(funds.paymentMethod, 'wire_transfer'),
             eq(funds.isActive, true)
         ),
+        with: {
+            owner: true
+        },
         orderBy: (f, { desc }) => [desc(f.createdAt)]
     });
+
+    const nonStudentTenantUsers = await db.query.tenantUsers.findMany({
+        where: eq(tenantUsers.tenantId, tenantData.tenantId),
+        with: {
+            user: true
+        }
+    });
+
+    const usersData = nonStudentTenantUsers
+        .filter(tu => tu.role !== 'student' && tu.role !== 'applicant')
+        .map(tu => tu.user)
+        .filter(u => u !== null)
+        .map(u => ({
+            id: u.id,
+            fullName: u.fullName,
+            email: u.email,
+            phone: u.phoneNumber
+        }))
+        .sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
 
     return (
         <div className="space-y-6">
@@ -178,7 +198,7 @@ export default async function AdminDonationsPage({ searchParams }: { searchParam
                 </div>
             </form>
 
-            <DonationsTable donations={uiDonations} eftFunds={eftFunds} />
+            <DonationsTable donations={uiDonations} allFunds={allFunds} users={usersData} />
         </div>
     );
 }

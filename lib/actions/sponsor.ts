@@ -16,6 +16,7 @@ export async function getSponsorFunds() {
         return await db.query.funds.findMany({
             where: eq(funds.tenantId, tenantData.tenantId),
             with: {
+                owner: true,
                 contributors: true,
                 selections: { where: eq(fundSelections.isActive, true) },
                 invitations: true
@@ -27,6 +28,7 @@ export async function getSponsorFunds() {
     const ownedFunds = await db.query.funds.findMany({
         where: eq(funds.ownerId, tenantData.userId),
         with: {
+            owner: true,
             contributors: true,
             selections: { where: eq(fundSelections.isActive, true) },
             invitations: true
@@ -39,6 +41,7 @@ export async function getSponsorFunds() {
         with: {
             fund: {
                 with: {
+                    owner: true,
                     contributors: true,
                     selections: { where: eq(fundSelections.isActive, true) },
                     invitations: true

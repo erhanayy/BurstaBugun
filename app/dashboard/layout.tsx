@@ -190,6 +190,7 @@ export default async function DashboardLayout({
                         {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
                                 <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
+                                <NavItem href="/dashboard/admin/pledges" icon={Briefcase} label="Burs Taahhütleri" />
                                 <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
@@ -323,6 +324,7 @@ export default async function DashboardLayout({
                                         {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
                                             <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
                                                 <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
+                                                <NavItem href="/dashboard/admin/pledges" icon={Briefcase} label="Burs Taahhütleri" />
                                                 <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
                                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
                                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />

@@ -38,6 +38,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "cn": "^0.3.0",
     "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
@@ -49,6 +50,7 @@
     "nodemailer": "^7.0.0",
     "pg": "^8.18.0",
     "postgres": "^3.4.8",
+    "radix-ui": "^1.6.7",
     "react": "19.2.3",
     "react-day-picker": "^9.13.2",
     "react-dom": "19.2.3",
@@ -59,6 +61,7 @@
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.1.0",
     "web-push": "^3.6.7",
+    "xlsx": "^0.18.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {

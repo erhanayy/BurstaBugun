@@ -24,19 +24,21 @@ interface Donation {
     fundName?: string;
 }
 
-export default function DonationsTable({ donations, eftFunds = [] }: { donations: Donation[], eftFunds?: any[] }) {
+export default function DonationsTable({ donations, allFunds = [], users = [] }: { donations: Donation[], allFunds?: any[], users?: any[] }) {
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
     const [selectedFundId, setSelectedFundId] = useState("");
     const [supporterType, setSupporterType] = useState("recurring");
+    const [selectedUserId, setSelectedUserId] = useState("");
+    const [createNewUser, setCreateNewUser] = useState(false);
     
     // Using import for the server action at the top
     const { assignDonationToFund } = require("@/lib/actions/donations");
 
     const handleAction = async (id: string, status: 'completed' | 'failed') => {
         if (status === 'failed' && !window.confirm("Bu işlemi reddetmek istediğinize emin misiniz?")) return;
-        if (status === 'completed' && !window.confirm("Bu ödemenin hesaba geçtiğini onaylıyor musunuz?")) return;
+        // 'completed' is handled by the modal now, this is only for 'failed'
 
         setProcessingId(id);
         const res = await updateDonationStatus(id, status);
@@ -52,13 +54,15 @@ export default function DonationsTable({ donations, eftFunds = [] }: { donations
         if (!selectedDonation || !selectedFundId) return;
         
         setProcessingId("assigning_" + selectedDonation.id);
-        const res = await assignDonationToFund(selectedDonation.id, selectedFundId, supporterType);
+        const res = await assignDonationToFund(selectedDonation.id, selectedFundId, supporterType, selectedUserId, createNewUser);
         
         if (res.success) {
-            toast.success("Bağış başarıyla fona atandı.");
+            toast.success("Bağış başarıyla onaylandı ve fona atandı.");
             setAssignModalOpen(false);
             setSelectedDonation(null);
             setSelectedFundId("");
+            setSelectedUserId("");
+            setCreateNewUser(false);
             setSupporterType("recurring");
         } else {
             toast.error(res.error || "Bir hata oluştu.");
@@ -136,6 +140,8 @@ export default function DonationsTable({ donations, eftFunds = [] }: { donations
                                             onClick={() => {
                                                 setSelectedDonation(item);
                                                 setSelectedFundId("");
+                                                setSelectedUserId("");
+                                                setCreateNewUser(false);
                                                 setAssignModalOpen(true);
                                             }}
                                             className="bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 dark:bg-zinc-800 dark:border-blue-900/50 dark:text-blue-400 dark:hover:bg-zinc-700 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
@@ -156,7 +162,13 @@ export default function DonationsTable({ donations, eftFunds = [] }: { donations
                                             </span>
                                             <div className="flex gap-2 mt-1">
                                                 <button
-                                                    onClick={() => handleAction(item.id, 'completed')}
+                                                    onClick={() => {
+                                                        setSelectedDonation(item);
+                                                        setSelectedFundId("");
+                                                        setSelectedUserId("");
+                                                        setCreateNewUser(false);
+                                                        setAssignModalOpen(true);
+                                                    }}
                                                     disabled={processingId === item.id}
                                                     className="p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
                                                     title="Onayla"
@@ -208,9 +220,9 @@ export default function DonationsTable({ donations, eftFunds = [] }: { donations
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-zinc-800">
                         <div className="p-6">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Fona Ata</h3>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Onayla ve Fona Ata</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                <strong className="text-gray-900 dark:text-gray-200">{selectedDonation.donorName}</strong> tarafından yapılan <strong className="text-gray-900 dark:text-gray-200">{selectedDonation.amount.toLocaleString('tr-TR')} ₺</strong> tutarındaki bağışı bir fona atıyorsunuz.
+                                <strong className="text-gray-900 dark:text-gray-200">{selectedDonation.donorName}</strong> tarafından yapılan <strong className="text-gray-900 dark:text-gray-200">{selectedDonation.amount.toLocaleString('tr-TR')} ₺</strong> tutarındaki bağışı onaylayıp fona atıyorsunuz.
                             </p>
 
                             <div className="space-y-4">
@@ -224,9 +236,9 @@ export default function DonationsTable({ donations, eftFunds = [] }: { donations
                                         className="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="">Lütfen bir fon seçiniz...</option>
-                                        {eftFunds?.map((fund: any) => (
+                                        {allFunds?.map((fund: any) => (
                                             <option key={fund.id} value={fund.id}>
-                                                {fund.title}
+                                                {fund.title} - {fund.owner?.fullName || 'Sistem'} {fund.paymentMethod === 'wire_transfer' ? '(Vakıf Fonu)' : '(Kişisel Fon)'}
                                             </option>
                                         ))}
                                     </select>
@@ -244,6 +256,48 @@ export default function DonationsTable({ donations, eftFunds = [] }: { donations
                                         <option value="one_time">Tek Seferlik Destekçi</option>
                                     </select>
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Bağlanacak Kullanıcı (Sponsor) <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={selectedUserId}
+                                        onChange={(e) => {
+                                            setSelectedUserId(e.target.value);
+                                            if (e.target.value) setCreateNewUser(false);
+                                        }}
+                                        disabled={createNewUser}
+                                        className="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                    >
+                                        <option value="">Lütfen sistemdeki bir kullanıcıyı seçiniz...</option>
+                                        {users?.map((user: any) => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.fullName} ({user.email || user.phoneNumber})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    
+                                    <div className="mt-3 flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            id="createNewUser"
+                                            checked={createNewUser}
+                                            onChange={(e) => {
+                                                setCreateNewUser(e.target.checked);
+                                                if (e.target.checked) setSelectedUserId("");
+                                            }}
+                                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="createNewUser" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Sistemde Yok, Yeni Kullanıcı (Sponsor) Oluştur
+                                        </label>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                        {createNewUser 
+                                            ? "Bağış yapan kişinin adı, e-postası ve telefonu kullanılarak arka planda yeni bir hesap oluşturulacaktır." 
+                                            : "Bu ödemenin CRM'deki hangi sponsora yazılacağını seçin."}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 border-t border-gray-200 dark:border-zinc-800 flex justify-end gap-3">
@@ -252,6 +306,8 @@ export default function DonationsTable({ donations, eftFunds = [] }: { donations
                                     setAssignModalOpen(false);
                                     setSelectedDonation(null);
                                     setSelectedFundId("");
+                                    setSelectedUserId("");
+                                    setCreateNewUser(false);
                                 }}
                                 disabled={processingId?.startsWith("assigning")}
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
@@ -260,7 +316,7 @@ export default function DonationsTable({ donations, eftFunds = [] }: { donations
                             </button>
                             <button
                                 onClick={handleAssignFund}
-                                disabled={!selectedFundId || processingId?.startsWith("assigning")}
+                                disabled={!selectedFundId || (!selectedUserId && !createNewUser) || processingId?.startsWith("assigning")}
                                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {processingId?.startsWith("assigning") ? (
