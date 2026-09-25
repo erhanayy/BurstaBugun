@@ -17,7 +17,7 @@ export const revalidate = 0;
 
 export default async function PoolPage({ searchParams }: { searchParams: Promise<{ fundId?: string }> }) {
     const myFunds = await getSponsorFunds();
-    const eligibleFunds = myFunds;
+    const eligibleFunds = myFunds.filter(f => f.isActive === true);
 
     const parsedParams = await searchParams;
     const specificFundId = parsedParams?.fundId || (eligibleFunds.length > 0 ? eligibleFunds[0].id : "");
@@ -59,7 +59,8 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
 
     const eligibleFundsWithPeriodName = eligibleFunds.map(f => ({
         ...f,
-        periodName: f.period && f.period !== "none" ? seasonMap.get(f.period) || f.period : 'Dönemsiz'
+        periodName: f.period && f.period !== "none" ? seasonMap.get(f.period) || f.period : 'Dönemsiz',
+        ownerName: f.owner?.fullName || "Bilinmiyor"
     }));
 
     return (

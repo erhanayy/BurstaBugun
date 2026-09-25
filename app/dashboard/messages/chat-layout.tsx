@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getMyRooms, getRoomMessages, sendMessage, toggleRoomLock } from "@/lib/actions/chat";
+import { getMyRooms, getRoomMessages, sendMessage, toggleRoomLock, getRoomMembers } from "@/lib/actions/chat";
 import { Search, Send, Lock, Unlock, Users, Info, MessageSquare, Loader2, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -29,7 +29,7 @@ type Message = {
     sender?: { fullName: string };
 };
 
-export default function ChatLayout({ initialRooms, currentUserId, isAdmin }: { initialRooms: Room[], currentUserId: string, isAdmin: boolean }) {
+export default function ChatLayout({ initialRooms, currentUserId, isAdmin, tenantName = "BurstaBugün" }: { initialRooms: Room[], currentUserId: string, isAdmin: boolean, tenantName?: string }) {
     const [rooms, setRooms] = useState<Room[]>(initialRooms);
     const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -37,6 +37,11 @@ export default function ChatLayout({ initialRooms, currentUserId, isAdmin }: { i
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [isSending, setIsSending] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    
+    // Members viewing state
+    const [showMembers, setShowMembers] = useState(false);
+    const [roomMembers, setRoomMembers] = useState<any[]>([]);
+    const [isLoadingMembers, setIsLoadingMembers] = useState(false);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const activeRoom = rooms.find(r => r.id === activeRoomId);
@@ -129,6 +134,17 @@ export default function ChatLayout({ initialRooms, currentUserId, isAdmin }: { i
 
     const canSend = activeRoom && (!activeRoom.isLocked || activeRoom.myRole === 'admin');
 
+    const handleViewMembers = async () => {
+        if (!activeRoomId) return;
+        setShowMembers(true);
+        setIsLoadingMembers(true);
+        const res = await getRoomMembers(activeRoomId);
+        if (res.success && res.members) {
+            setRoomMembers(res.members);
+        }
+        setIsLoadingMembers(false);
+    };
+
     return (
         <>
             {/* Sidebar (Rooms) */}
@@ -202,7 +218,7 @@ export default function ChatLayout({ initialRooms, currentUserId, isAdmin }: { i
                         <div className="w-16 h-16 rounded-full bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center mb-4 text-blue-500">
                             <MessageSquare className="w-8 h-8" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">BurstaBugün Mesajlaşma</h3>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{tenantName} Mesajlaşma</h3>
                         <p className="text-sm max-w-sm">Sol taraftan bir sohbet seçerek mesajlaşmaya başlayabilirsiniz.</p>
                     </div>
                 ) : (
@@ -225,18 +241,67 @@ export default function ChatLayout({ initialRooms, currentUserId, isAdmin }: { i
                             </div>
 
                             {activeRoom?.type === 'group' && isAdmin && (
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className={activeRoom.isLocked ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50" : "text-gray-500"}
-                                    onClick={handleToggleLock}
-                                    title={activeRoom.isLocked ? "Grubu Yoruma Aç" : "Grubu Yoruma Kapat"}
-                                >
-                                    {activeRoom.isLocked ? <Lock className="w-4 h-4 mr-2" /> : <Unlock className="w-4 h-4 mr-2" />}
-                                    {activeRoom.isLocked ? "Kilitli" : "Açık"}
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                                        onClick={handleViewMembers}
+                                        title="Kişileri Gör"
+                                    >
+                                        <Users className="w-4 h-4 mr-2" />
+                                        Kişiler
+                                    </Button>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className={activeRoom.isLocked ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"}
+                                        onClick={handleToggleLock}
+                                        title={activeRoom.isLocked ? "Grubu Yoruma Aç" : "Grubu Yoruma Kapat"}
+                                    >
+                                        {activeRoom.isLocked ? <Lock className="w-4 h-4 mr-2" /> : <Unlock className="w-4 h-4 mr-2" />}
+                                        {activeRoom.isLocked ? "Kilitli" : "Açık"}
+                                    </Button>
+                                </div>
                             )}
                         </div>
+
+                        {/* Members Modal Overlay */}
+                        {showMembers && (
+                            <div className="absolute inset-0 z-50 bg-black/20 flex flex-col items-center justify-center p-4">
+                                <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg w-full max-w-sm max-h-[80%] flex flex-col">
+                                    <div className="p-4 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            Grup Üyeleri ({Array.from(new Map(roomMembers.map(m => [m.id, m])).values()).length})
+                                        </h3>
+                                        <button onClick={() => setShowMembers(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                                            &times;
+                                        </button>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto p-2">
+                                        {isLoadingMembers ? (
+                                            <div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
+                                        ) : (
+                                            <div className="space-y-1">
+                                                {Array.from(new Map(roomMembers.map(m => [m.id, m])).values())
+                                                    .sort((a, b) => a.fullName.localeCompare(b.fullName, 'tr-TR'))
+                                                    .map(member => (
+                                                    <div key={member.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg">
+                                                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 text-sm">
+                                                            <UserAvatar name={member.fullName} />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{member.fullName}</p>
+                                                            <p className="text-xs text-gray-500 truncate">{member.email || '-'}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Chat Messages */}
                         <div className="flex-1 p-4 overflow-y-auto space-y-4">

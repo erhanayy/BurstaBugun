@@ -51,6 +51,16 @@ export async function getAdminApplicants(statusFilter?: string, periodFilter?: s
                 with: {
                     owner: true
                 }
+            },
+            selections: {
+                where: eq(fundSelections.isActive, true),
+                with: {
+                    fund: {
+                        with: {
+                            owner: true
+                        }
+                    }
+                }
             }
         },
         orderBy: (applications, { desc }) => [desc(applications.createdAt)]
@@ -191,4 +201,64 @@ export async function sendApplicantReminderEmail(appId: string) {
     }
 
     return { success: true };
+}
+
+export async function getExcelExportDataAction(periodFilter: string, activeStatus: string, searchQuery: string) {
+    const allApps = await getAdminApplicants(undefined, periodFilter, activeStatus);
+    
+    // Uygula searchQuery filtrelemesi
+    const filteredApps = allApps.filter(app => {
+        if (!searchQuery) return true;
+        const name = (app.user?.fullName || "").toLocaleLowerCase('tr-TR');
+        const query = searchQuery.toLocaleLowerCase('tr-TR');
+        return name.includes(query);
+    });
+
+    // Sırala ve maple
+    return filteredApps.sort((a, b) => {
+        const nameA = (a.user?.fullName || "").trim().toLocaleLowerCase('tr-TR');
+        const nameB = (b.user?.fullName || "").trim().toLocaleLowerCase('tr-TR');
+        return nameA.localeCompare(nameB, 'tr-TR');
+    }).map(app => {
+        const fullName = app.user?.fullName?.trim() || "";
+        const nameParts = fullName.split(" ");
+        let firstName = fullName;
+        let lastName = "";
+        if (nameParts.length > 1) {
+            lastName = nameParts.pop() || "";
+            firstName = nameParts.join(" ");
+        }
+
+        let statusTr = app.status;
+        switch (app.status) {
+            case 'draft': statusTr = 'Başvurusu Devam Eden'; break;
+            case 'waiting_reference': statusTr = 'Referans Aşamasında'; break;
+            case 'in_pool': statusTr = 'Havuzdakiler'; break;
+            case 'selected': 
+            case 'active': statusTr = 'Seçilmişler'; break;
+            case 'rejected': statusTr = 'Reddedildi'; break;
+        }
+
+        let fundName = "-";
+        let fundOwner = "-";
+        
+        if (app.selections && app.selections.length > 0) {
+            const selection = app.selections[0];
+            fundName = selection.fund?.title || "-";
+            fundOwner = selection.fund?.owner?.fullName || "-";
+        } else if (app.fund) {
+            fundName = app.fund.title || "-";
+            fundOwner = app.fund.owner?.fullName || "-";
+        }
+
+        return {
+            "Bursiyer Adı": firstName,
+            "Soyadı": lastName,
+            "Email Adresi": app.user?.email || "-",
+            "Telefonu": app.user?.phoneNumber || "-",
+            "Statü": statusTr,
+            "Fonu": fundName,
+            "Fon Sahibi": fundOwner
+        };
+    });
 }

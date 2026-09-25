@@ -1,4 +1,4 @@
-import { getMyRooms } from "@/lib/actions/chat";
+import { getMyRooms, syncDynamicGroups } from "@/lib/actions/chat";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { redirect } from "next/navigation";
 import ChatLayout from "./chat-layout";
@@ -11,12 +11,19 @@ export default async function MessagesPage() {
     const tenantData = await getCurrentTenant();
     if (!tenantData) redirect("/auth/login");
 
+    await syncDynamicGroups();
+    
     const result = await getMyRooms();
     const rooms = result.success ? (result.rooms || []) : [];
 
     return (
         <div className="flex h-[calc(100vh-140px)] w-full bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-            <ChatLayout initialRooms={rooms as any} currentUserId={tenantData.userId} isAdmin={tenantData.userRole === 'admin' || tenantData.userRole === 'superadmin'} />
+            <ChatLayout 
+                initialRooms={rooms as any} 
+                currentUserId={tenantData.userId} 
+                isAdmin={tenantData.userRole === 'admin' || tenantData.userRole === 'superadmin'} 
+                tenantName={tenantData.tenantShortName || "BurstaBugün"}
+            />
         </div>
     );
 }

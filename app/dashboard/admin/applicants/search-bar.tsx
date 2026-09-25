@@ -13,6 +13,8 @@ export function SearchBar({ defaultValue }: { defaultValue: string }) {
 
     // Debounce the search input
     useEffect(() => {
+        if (value === (searchParams.get('q') || '')) return;
+
         const timer = setTimeout(() => {
             const params = new URLSearchParams(searchParams.toString());
             if (value) {

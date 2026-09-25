@@ -12,6 +12,7 @@ import { PeriodSelector } from "./period-selector";
 import { ActiveSelector } from "./active-selector";
 import { ApplicantActions } from "./applicant-actions";
 import { SearchBar } from "./search-bar";
+import { ExcelExportApplicants } from "@/components/excel-export-applicants";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -95,6 +96,14 @@ export default async function AdminApplicantsPage({ searchParams }: { searchPara
                             <PeriodSelector seasons={seasons} currentPeriod={currentPeriod} currentStatus={currentStatus} />
                         </div>
                     </div>
+
+                    {/* Divider */}
+                    <div className="hidden sm:block w-px h-8 bg-gray-200 dark:bg-zinc-800" />
+
+                    {/* Excel Export Button */}
+                    <div className="px-1 py-1 w-full sm:w-auto">
+                        <ExcelExportApplicants period={currentPeriod} activeStatus={activeStatus} searchQuery={searchQuery} />
+                    </div>
                 </div>
             </div>
 
@@ -103,7 +112,7 @@ export default async function AdminApplicantsPage({ searchParams }: { searchPara
                 {tabs.map(tab => (
                     <Link
                         key={tab.id}
-                        href={`/dashboard/admin/applicants?status=${tab.id}&period=${currentPeriod}`}
+                        href={`/dashboard/admin/applicants?status=${tab.id}&period=${currentPeriod}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''}`}
                         className={`flex items-center px-4 py-2 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                             currentStatus === tab.id
                                 ? 'border-blue-500 text-blue-600 dark:text-blue-400'

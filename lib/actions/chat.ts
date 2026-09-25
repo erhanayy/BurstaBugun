@@ -76,7 +76,7 @@ export async function syncDynamicGroups() {
     const activeBursiyerler = await db.query.applications.findMany({
         where: and(
             eq(applications.tenantId, tenantData.tenantId),
-            eq(applications.status, 'active')
+            inArray(applications.status, ['active', 'selected'])
         )
     });
     const bursiyerUserIds = activeBursiyerler.map(a => a.userId);
@@ -329,5 +329,29 @@ export async function toggleRoomLock(roomId: string, isLocked: boolean) {
         return { success: true };
     } catch (e) {
         return { success: false, error: 'İşlem başarısız.' };
+    }
+}
+
+export async function getRoomMembers(roomId: string) {
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) return { success: false, error: "Yetkisiz" };
+
+    try {
+        const members = await db.query.chatRoomMembers.findMany({
+            where: eq(chatRoomMembers.roomId, roomId),
+            with: {
+                user: {
+                    columns: {
+                        id: true,
+                        fullName: true,
+                        email: true
+                    }
+                }
+            }
+        });
+        
+        return { success: true, members: members.map(m => m.user) };
+    } catch (e: any) {
+        return { success: false, error: e.message };
     }
 }

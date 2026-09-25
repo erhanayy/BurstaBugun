@@ -268,6 +268,7 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
                 tenantId: tenantData.tenantId,
                 fundId,
                 applicationId,
+                userId: fundObj.ownerId, // Eklendi: Hangi kullanıcının (Sponsorun) ödemesi olduğu bilgisi
                 amount: monthlyAmount,
                 status: 'pending' as const,
                 paymentDate: currentPayDate, // Scheduled date

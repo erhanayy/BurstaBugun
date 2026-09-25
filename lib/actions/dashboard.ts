@@ -238,7 +238,9 @@ export async function getApplicantDashboardData(period: string | null) {
         if (contributors.length > 0) {
             isFundConfirmed = contributors.every(c => c.isPaid);
         } else {
-            isFundConfirmed = false; // Henüz hiç katılımcı yoksa veya ödeme kaydı yoksa onaylanmamış sayılır
+            // Eğer fona ait katılımcı (contributor) yoksa, bu tekil sponsorlu bir fondur.
+            // Bu nedenle fon varsayılan olarak onaylı kabul edilir.
+            isFundConfirmed = true; 
         }
     }
 

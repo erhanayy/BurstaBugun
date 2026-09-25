@@ -106,27 +106,21 @@ export default async function DashboardLayout({
     return (
         <>
             {tenantData?.userId && <ContractEnforcer userId={tenantData.userId} pendingContracts={pendingContracts} />}
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                :root {
-                    --menu-text: #FFFFFF;
-                    --screen-text: #1F2937;
-                    --bg-color: ${tenantData?.backgroundColor || '#F9FAFB'};
-                    --header-bg: #1E3A5F;
-                    --nav-bg: ${tenantData?.primaryColor || '#2563EB'};
-                }
-                .dark {
-                    --bg-color: ${tenantData?.backgroundColor || '#18181b'};
-                    --screen-text: #f4f4f5;
-                }
-            `}} />
-
             {/* Common Sidebar Content for both Desktop and Mobile */}
             <div style={{ display: 'none' }}>
                 <span id="mobile-menu-content" />
             </div>
             
-            <div className="h-screen overflow-hidden bg-[var(--bg-color)] dark:bg-[var(--bg-color)] text-[var(--screen-text)] dark:text-[var(--screen-text)] flex">
+            <div 
+                className="h-screen overflow-hidden bg-[var(--bg-color)] dark:bg-[var(--bg-color)] text-[var(--screen-text)] dark:text-[var(--screen-text)] flex"
+                style={{
+                    '--menu-text': '#FFFFFF',
+                    '--screen-text': '#1F2937',
+                    '--bg-color': tenantData?.backgroundColor || '#F9FAFB',
+                    '--header-bg': '#1E3A5F',
+                    '--nav-bg': tenantData?.primaryColor || '#2563EB',
+                } as React.CSSProperties}
+            >
                 <ForcePasswordCheck forcePasswordChange={false} />
 
                 {/* ─── Desktop Sidebar (hidden on mobile) ─── */}
