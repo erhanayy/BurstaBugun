@@ -20,10 +20,12 @@ export default async function SponsorFundsPage(props: { searchParams: Promise<{ 
     if (!tenantData) return null;
 
     // Fetch seasons for the filter
-    const seasons = await db.query.parametersTenantSeasons.findMany({
+    const allSeasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
         orderBy: (s, { desc }) => [desc(s.period)]
     });
+    const isAdmin = tenantData.userRole === 'admin';
+    const seasons = allSeasons.filter(s => isAdmin || !s.adminOnly);
 
     let currentPeriod = searchParams?.period;
     if (!currentPeriod) {

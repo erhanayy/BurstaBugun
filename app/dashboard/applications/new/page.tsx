@@ -18,7 +18,7 @@ export default async function NewApplicationPage({ searchParams }: { searchParam
     });
 
     // Öğrenciye gösterilecek dönem listesi (Veritabanındaki Aktif Sezonlar)
-    const activeSeasons = allActiveSeasons.filter(s => s.isActive);
+    const activeSeasons = allActiveSeasons.filter(s => s.isActive && (tenant.userRole === 'admin' || !s.adminOnly));
 
     if (activeSeasons.length === 0) {
         return (

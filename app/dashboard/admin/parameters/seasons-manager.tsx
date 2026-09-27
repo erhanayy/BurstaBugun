@@ -11,6 +11,7 @@ type Season = {
     period: string;
     isActive: boolean;
     publishOnWebsite: boolean;
+    adminOnly: boolean;
     appStartDate: Date | null;
     appEndDate: Date | null;
     fundStartDate: Date | null;
@@ -47,6 +48,7 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
     const [duration, setDuration] = useState("");
     const [globalStudentQuota, setGlobalStudentQuota] = useState("");
     const [publishOnWebsite, setPublishOnWebsite] = useState(false);
+    const [adminOnly, setAdminOnly] = useState(false);
 
     const resetForm = () => {
         setPeriod(""); setAppStartDate(""); setAppEndDate(""); 
@@ -56,6 +58,7 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
         setSeasonStartDate(""); setSeasonEndDate("");
         setAmount(""); setDuration(""); setGlobalStudentQuota("");
         setPublishOnWebsite(false);
+        setAdminOnly(false);
         setEditingId(null);
         setIsCreating(false);
     };
@@ -77,6 +80,7 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
         setDuration(s.defaultFundDuration ? s.defaultFundDuration.toString() : "");
         setGlobalStudentQuota(s.globalStudentQuota ? s.globalStudentQuota.toString() : "");
         setPublishOnWebsite(s.publishOnWebsite);
+        setAdminOnly(s.adminOnly);
         setIsCreating(true);
     };
 
@@ -100,6 +104,7 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
                 defaultFundDuration: duration ? parseInt(duration) : null,
                 globalStudentQuota: globalStudentQuota ? parseInt(globalStudentQuota) : null,
                 publishOnWebsite,
+                adminOnly,
             };
 
             if (editingId) {
@@ -196,17 +201,31 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-4 px-1">
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="sr-only peer"
-                                checked={publishOnWebsite}
-                                onChange={(e) => setPublishOnWebsite(e.target.checked)}
-                            />
-                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        </label>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Bu dönemi vakıf sitesinde (Burslarımız sayfasında) yayınla</span>
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mt-4 px-1">
+                        <div className="flex items-center gap-2">
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={publishOnWebsite}
+                                    onChange={(e) => setPublishOnWebsite(e.target.checked)}
+                                />
+                                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            </label>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Bu dönemi vakıf sitesinde yayınla</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={adminOnly}
+                                    onChange={(e) => setAdminOnly(e.target.checked)}
+                                />
+                                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-amber-600"></div>
+                            </label>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sadece yöneticiler görsün (Test)</span>
+                        </div>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -277,6 +296,9 @@ export function SeasonsManager({ seasons, globalPeriods = [] }: { seasons: Seaso
                                 )}
                                 {s.publishOnWebsite && (
                                     <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Web'de Yayında</span>
+                                )}
+                                {s.adminOnly && (
+                                    <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Test / Admin</span>
                                 )}
                             </div>
                             <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3 text-xs text-gray-500 dark:text-gray-400">

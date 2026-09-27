@@ -11,10 +11,11 @@ export default async function NewFundPage() {
     const tenantData = await getCurrentTenant();
     const isAdmin = tenantData?.userRole === 'admin';
     
-    const seasons = await db.query.parametersTenantSeasons.findMany({
+    const allSeasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData!.tenantId),
         orderBy: (s, { desc }) => [desc(s.createdAt)]
     });
+    const seasons = allSeasons.filter(s => isAdmin || !s.adminOnly);
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="mb-8">

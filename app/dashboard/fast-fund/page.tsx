@@ -19,10 +19,11 @@ export default async function FastFundPage({ searchParams }: { searchParams: Pro
     const fundId = params.fundId || "";
 
     const isAdmin = tenantData.userRole === 'admin';
-    const seasons = await db.query.parametersTenantSeasons.findMany({
+    const allSeasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
         orderBy: (s, { desc }) => [desc(s.createdAt)]
     });
+    const seasons = allSeasons.filter(s => isAdmin || !s.adminOnly);
 
     const Stepper = () => (
         <div className="max-w-xl mx-auto mb-12 mt-6">

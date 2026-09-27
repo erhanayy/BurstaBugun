@@ -49,9 +49,11 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
     // Fetch seasons to map period ID to period name
     let seasons: any[] = [];
     if (tenantData) {
-        seasons = await db.query.parametersTenantSeasons.findMany({
+        const allSeasons = await db.query.parametersTenantSeasons.findMany({
             where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
         });
+        const isAdmin = tenantData.userRole === 'admin';
+        seasons = allSeasons.filter(s => isAdmin || !s.adminOnly);
     }
     
     const seasonMap = new Map();
