@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { Loader2, Plus, Calendar, Image as ImageIcon, AlignLeft, Info, Users, CreditCard, Clock } from "lucide-react";
+import { Loader2, Plus, Calendar, Image as ImageIcon, AlignLeft, Info, Users, CreditCard, Clock, Globe, EyeOff } from "lucide-react";
 
 import {
     Form,
@@ -28,6 +28,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 import { createFund } from "@/lib/actions/funds";
 
@@ -42,6 +43,8 @@ const fundSchema = z.object({
     monthlyLimit: z.coerce.number().min(0).optional().default(0),
     paymentMethod: z.string().min(1, "Ödeme şekli seçiniz.").default('monthly'),
     photoUrl: z.string().optional(),
+    publishOnWebsite: z.boolean().default(true),
+    showOwnerName: z.boolean().default(true),
 });
 
 type Season = {
@@ -83,6 +86,8 @@ export function FundForm({ seasons, isAdmin, onSuccessRedirect }: { seasons?: Se
             endDate: "",
             durationMonths: 1,
             targetStudentCount: 1,
+            publishOnWebsite: true,
+            showOwnerName: true,
         },
     });
 
@@ -148,6 +153,8 @@ export function FundForm({ seasons, isAdmin, onSuccessRedirect }: { seasons?: Se
                     durationMonths: Number(values.durationMonths),
                     targetStudentCount: Number(values.targetStudentCount),
                     paymentMethod: values.paymentMethod,
+                    publishOnWebsite: values.publishOnWebsite,
+                    showOwnerName: values.showOwnerName,
                 };
 
                 const result = await createFund(parsedValues as any);
@@ -444,6 +451,60 @@ export function FundForm({ seasons, isAdmin, onSuccessRedirect }: { seasons?: Se
                             </FormItem>
                         )}
                     />
+
+                    {/* GÖRÜNÜRLÜK AYARLARI */}
+                    <div className="col-span-1 md:col-span-2 bg-gray-50/50 dark:bg-zinc-800/20 border border-gray-100 dark:border-zinc-800/50 p-5 rounded-2xl space-y-6 mt-4">
+                        <h4 className="text-sm font-semibold flex items-center gap-2 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-zinc-700 pb-3">
+                            <Globe className="w-4 h-4" />
+                            Web Sitesi Görünürlük Ayarları
+                        </h4>
+                        
+                        <FormField
+                            control={form.control}
+                            name="publishOnWebsite"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm">
+                                    <div className="space-y-0.5">
+                                        <FormLabel className="text-base text-gray-900 dark:text-gray-100 font-medium">Web Sitesinde Yayınla</FormLabel>
+                                        <p className="text-sm text-gray-500">
+                                            Bu fon FBİAD Vakfı web sitesindeki "Burslarımız" sayfasında görüntülensin mi?
+                                        </p>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="showOwnerName"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm">
+                                    <div className="space-y-0.5">
+                                        <FormLabel className="text-base text-gray-900 dark:text-gray-100 font-medium flex items-center gap-2">
+                                            <EyeOff className="w-4 h-4 text-gray-400" />
+                                            Fon Sahibi ve Katılımcı İsimlerini Göster
+                                        </FormLabel>
+                                        <p className="text-sm text-gray-500">
+                                            Fon web sitesinde yayınlanırken, fonu oluşturanın ve katılımcıların isimleri listelensin mi? Kapatırsanız gizli kalır.
+                                        </p>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                            disabled={!form.watch("publishOnWebsite")}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
                 </div>
 
                 <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 flex justify-end gap-4">

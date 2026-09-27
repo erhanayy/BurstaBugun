@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateFund } from "@/lib/actions/funds";
 import { toast } from "sonner";
-import { Users } from "lucide-react";
+import { Users, Globe, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface EditFundFormProps {
     fundId: string;
@@ -14,6 +15,8 @@ interface EditFundFormProps {
         photoUrl: string;
         targetStudentCount: number;
         shareMessage: string;
+        publishOnWebsite: boolean;
+        showOwnerName: boolean;
     };
     minimumAllowedCount: number;
 }
@@ -27,6 +30,8 @@ export function EditFundForm({ fundId, initialData, minimumAllowedCount }: EditF
     const [photoUrl, setPhotoUrl] = useState(initialData.photoUrl);
     const [shareMessage, setShareMessage] = useState(initialData.shareMessage || "");
     const [targetStudentCount, setTargetStudentCount] = useState(initialData.targetStudentCount.toString());
+    const [publishOnWebsite, setPublishOnWebsite] = useState(initialData.publishOnWebsite ?? true);
+    const [showOwnerName, setShowOwnerName] = useState(initialData.showOwnerName ?? true);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,7 +59,9 @@ export function EditFundForm({ fundId, initialData, minimumAllowedCount }: EditF
                 description,
                 photoUrl,
                 targetStudentCount: numCount,
-                shareMessage
+                shareMessage,
+                publishOnWebsite,
+                showOwnerName
             });
             
             if (res.success) {
@@ -145,6 +152,48 @@ export function EditFundForm({ fundId, initialData, minimumAllowedCount }: EditF
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                     Boş bırakırsanız sistem varsayılan mesajını kullanır.
                 </p>
+            </div>
+
+            {/* GÖRÜNÜRLÜK AYARLARI */}
+            <div className="bg-gray-50/50 dark:bg-zinc-800/20 border border-gray-100 dark:border-zinc-800/50 p-5 rounded-2xl space-y-6">
+                <h4 className="text-sm font-semibold flex items-center gap-2 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-zinc-700 pb-3">
+                    <Globe className="w-4 h-4" />
+                    Web Sitesi Görünürlük Ayarları
+                </h4>
+                
+                <div className="flex flex-row items-center justify-between rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm">
+                    <div className="space-y-0.5">
+                        <label className="text-base text-gray-900 dark:text-gray-100 font-medium">Web Sitesinde Yayınla</label>
+                        <p className="text-sm text-gray-500">
+                            Bu fon FBİAD Vakfı web sitesindeki "Burslarımız" sayfasında görüntülensin mi?
+                        </p>
+                    </div>
+                    <div>
+                        <Switch
+                            checked={publishOnWebsite}
+                            onCheckedChange={setPublishOnWebsite}
+                        />
+                    </div>
+                </div>
+
+                <div className="flex flex-row items-center justify-between rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm">
+                    <div className="space-y-0.5">
+                        <label className="text-base text-gray-900 dark:text-gray-100 font-medium flex items-center gap-2">
+                            <EyeOff className="w-4 h-4 text-gray-400" />
+                            Fon Sahibi ve Katılımcı İsimlerini Göster
+                        </label>
+                        <p className="text-sm text-gray-500">
+                            Fon web sitesinde yayınlanırken, fonu oluşturanın ve katılımcıların isimleri listelensin mi? Kapatırsanız gizli kalır.
+                        </p>
+                    </div>
+                    <div>
+                        <Switch
+                            checked={showOwnerName}
+                            onCheckedChange={setShowOwnerName}
+                            disabled={!publishOnWebsite}
+                        />
+                    </div>
+                </div>
             </div>
 
             <div className="pt-4 flex justify-end gap-3">

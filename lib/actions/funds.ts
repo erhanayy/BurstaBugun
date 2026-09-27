@@ -17,6 +17,8 @@ export async function createFund(data: {
     monthlyLimit?: number | null;
     paymentMethod?: string | null;
     photoUrl?: string | null;
+    publishOnWebsite?: boolean;
+    showOwnerName?: boolean;
 }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData) throw new Error("Oturum bulunamadı");
@@ -34,7 +36,9 @@ export async function createFund(data: {
         paymentMethod: data.paymentMethod || 'monthly',
         monthlyLimit: data.monthlyLimit || null,
         photoUrl: data.photoUrl || null,
-        isActive: true
+        isActive: true,
+        publishOnWebsite: data.publishOnWebsite ?? true,
+        showOwnerName: data.showOwnerName ?? true,
     }).returning();
 
     const owner = await db.query.users.findFirst({
@@ -150,6 +154,8 @@ export async function updateFund(fundId: string, data: {
     photoUrl?: string | null;
     targetStudentCount: number;
     shareMessage?: string;
+    publishOnWebsite?: boolean;
+    showOwnerName?: boolean;
 }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData) throw new Error("Oturum bulunamadı");
@@ -186,7 +192,9 @@ export async function updateFund(fundId: string, data: {
             description: data.description,
             photoUrl: data.photoUrl || null,
             targetStudentCount: data.targetStudentCount,
-            shareMessage: data.shareMessage || null
+            shareMessage: data.shareMessage || null,
+            publishOnWebsite: data.publishOnWebsite ?? true,
+            showOwnerName: data.showOwnerName ?? true,
         })
         .where(eq(funds.id, fundId));
 

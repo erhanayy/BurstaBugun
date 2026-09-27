@@ -58,6 +58,9 @@ export default async function EditFundPage(props: { params: Promise<{ id: string
                         description: fund.description || "",
                         photoUrl: fund.photoUrl || "",
                         targetStudentCount: fund.targetStudentCount || 1,
+                        shareMessage: fund.shareMessage || "",
+                        publishOnWebsite: fund.publishOnWebsite ?? true,
+                        showOwnerName: fund.showOwnerName ?? true,
                     }}
                     minimumAllowedCount={minimumAllowedCount}
                 />

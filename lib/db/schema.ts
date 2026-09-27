@@ -132,6 +132,8 @@ export const funds = pgTable('funds', {
     photoUrl: text('photo_url'),
     shareMessage: text('share_message'),
     isActive: boolean('is_active').default(true).notNull(),
+    publishOnWebsite: boolean('publish_on_website').default(true).notNull(),
+    showOwnerName: boolean('show_owner_name').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
