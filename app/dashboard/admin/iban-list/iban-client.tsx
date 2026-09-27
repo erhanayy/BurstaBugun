@@ -90,7 +90,9 @@ export function IbanClient({ periods, activePeriod, searchQuery, statusFilter, i
                     <CreditCard className="w-8 h-8" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Bursiyer IBAN Listesi</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                        Bursiyer IBAN Listesi ({initialStudents.length})
+                    </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">
                         Seçili dönemde fona seçilmiş öğrencilerin IBAN bilgilerini takip edin.
                     </p>

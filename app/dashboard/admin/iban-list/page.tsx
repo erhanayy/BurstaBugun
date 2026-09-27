@@ -42,6 +42,7 @@ export default async function AdminIbanListPage({
             where: and(
                 eq(applications.tenantId, tenantData.tenantId),
                 eq(applications.period, activePeriodId),
+                eq(applications.isActive, true),
                 or(
                     eq(applications.status, 'selected'),
                     eq(applications.status, 'active')
