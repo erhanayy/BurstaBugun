@@ -92,7 +92,7 @@ export async function GET(req: Request) {
             };
 
             if (fund.showOwnerName) {
-                responseItem.ownerName = fund.owner?.fullName ? toTitleCase(fund.owner.fullName) : "Bilinmiyor";
+                responseItem.ownerName = fund.owner?.fullName || "Bilinmiyor";
                 responseItem.contributors = fund.contributors.map(c => toTitleCase(c.user?.fullName)).filter(Boolean);
                 // Ensure owner is unique from contributors list
                 responseItem.contributors = Array.from(new Set(responseItem.contributors));
