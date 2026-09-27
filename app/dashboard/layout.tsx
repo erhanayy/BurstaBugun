@@ -175,33 +175,49 @@ export default async function DashboardLayout({
                             </CollapsibleNavSection>
                         )}
 
-                        {/* Ayarlar Menüsü (Tüm Roller) */}
-                        <CollapsibleNavSection title="Ayarlar" storageKey="user">
-                            <NavItem href="/dashboard/settings" icon={Settings} label="Ayarlar" />
-                        </CollapsibleNavSection>
-
-                        {/* Sistem Yönetimi (Super Admin veya Admin) */}
+                        {/* 1. Finans ve Ödemeler */}
                         {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
-                            <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
-                                <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
-                                <NavItem href="/dashboard/admin/pledges" icon={Briefcase} label="Burs Taahhütleri" />
-                                <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
+                            <CollapsibleNavSection title="Finans ve Ödemeler" storageKey="finance" defaultExpanded={false}>
                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
+                                <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
                                 <NavItem href="/dashboard/admin/payments/new" icon={Landmark} label="Manuel Tahsilat (EFT)" />
-                                <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
                                 <NavItem href="/dashboard/admin/donations" icon={Landmark} label="Web Bağış" />
-                                <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
-                                {tenantData?.isSuperAdmin && (
-                                    <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />
-                                )}
-                                <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
-                                <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
-                                <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
-                                <NavItem href="/dashboard/admin/iban-list" icon={CreditCard} label="IBAN Bilgileri" />
-                                <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
                             </CollapsibleNavSection>
                         )}
+
+                        {/* 2. Fon ve Taahhüt Yönetimi */}
+                        {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                            <CollapsibleNavSection title="Fon ve Taahhüt Yönetimi" storageKey="fund-admin" defaultExpanded={false}>
+                                <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
+                                <NavItem href="/dashboard/admin/pledges" icon={Briefcase} label="Burs Taahhütleri" />
+                            </CollapsibleNavSection>
+                        )}
+
+                        {/* 3. Bursiyer Yönetimi */}
+                        {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                            <CollapsibleNavSection title="Bursiyer Yönetimi" storageKey="applicant-admin" defaultExpanded={false}>
+                                <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
+                                <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
+                                <NavItem href="/dashboard/admin/iban-list" icon={CreditCard} label="IBAN Bilgileri" />
+                            </CollapsibleNavSection>
+                        )}
+
+                        {/* Ayarlar Menüsü (Tüm Roller + Admin Ayarları) */}
+                        <CollapsibleNavSection title="Ayarlar" storageKey="user">
+                            <NavItem href="/dashboard/settings" icon={Settings} label="Kişisel Ayarlar" />
+                            {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                                <>
+                                    <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
+                                    <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
+                                    <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
+                                    <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
+                                    {tenantData?.isSuperAdmin && (
+                                        <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />
+                                    )}
+                                </>
+                            )}
+                        </CollapsibleNavSection>
 
                     </nav>
                     <div className="p-4 border-t border-white/10">
@@ -309,33 +325,49 @@ export default async function DashboardLayout({
                                             </CollapsibleNavSection>
                                         )}
 
-                                        {/* Ayarlar Menüsü (Tüm Roller) */}
-                                        <CollapsibleNavSection title="Ayarlar" storageKey="user">
-                                            <NavItem href="/dashboard/settings" icon={Settings} label="Ayarlar" />
-                                        </CollapsibleNavSection>
-
-                                        {/* Sistem Yönetimi (Super Admin veya Admin) */}
+                                        {/* 1. Finans ve Ödemeler */}
                                         {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
-                                            <CollapsibleNavSection title="Sistem Yönetimi" storageKey="system">
-                                                <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
-                                                <NavItem href="/dashboard/admin/pledges" icon={Briefcase} label="Burs Taahhütleri" />
-                                                <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
+                                            <CollapsibleNavSection title="Finans ve Ödemeler" storageKey="finance" defaultExpanded={false}>
                                                 <NavItem href="/dashboard/payments/history" icon={Wallet} label="Ödeme Sayfası" />
+                                                <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
                                                 <NavItem href="/dashboard/wire-transfers" icon={FileText} label="Havale/EFT Onayları" />
                                                 <NavItem href="/dashboard/admin/payments/new" icon={Landmark} label="Manuel Tahsilat (EFT)" />
-                                                <NavItem href="/dashboard/subscriptions" icon={Wallet} label="Abonelik (Kredi Kartı)" />
                                                 <NavItem href="/dashboard/admin/donations" icon={Landmark} label="Web Bağış" />
-                                                <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
-                                                {tenantData?.isSuperAdmin && (
-                                                    <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />
-                                                )}
-                                                <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
-                                                <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
-                                                <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
-                                                <NavItem href="/dashboard/admin/iban-list" icon={CreditCard} label="IBAN Bilgileri" />
-                                                <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
                                             </CollapsibleNavSection>
                                         )}
+
+                                        {/* 2. Fon ve Taahhüt Yönetimi */}
+                                        {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                                            <CollapsibleNavSection title="Fon ve Taahhüt Yönetimi" storageKey="fund-admin" defaultExpanded={false}>
+                                                <NavItem href="/dashboard/admin/funds" icon={Briefcase} label="Fon Takip" />
+                                                <NavItem href="/dashboard/admin/pledges" icon={Briefcase} label="Burs Taahhütleri" />
+                                            </CollapsibleNavSection>
+                                        )}
+
+                                        {/* 3. Bursiyer Yönetimi */}
+                                        {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                                            <CollapsibleNavSection title="Bursiyer Yönetimi" storageKey="applicant-admin" defaultExpanded={false}>
+                                                <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
+                                                <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
+                                                <NavItem href="/dashboard/admin/iban-list" icon={CreditCard} label="IBAN Bilgileri" />
+                                            </CollapsibleNavSection>
+                                        )}
+
+                                        {/* Ayarlar Menüsü (Tüm Roller + Admin Ayarları) */}
+                                        <CollapsibleNavSection title="Ayarlar" storageKey="user">
+                                            <NavItem href="/dashboard/settings" icon={Settings} label="Kişisel Ayarlar" />
+                                            {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                                                <>
+                                                    <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
+                                                    <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
+                                                    <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
+                                                    <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
+                                                    {tenantData?.isSuperAdmin && (
+                                                        <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />
+                                                    )}
+                                                </>
+                                            )}
+                                        </CollapsibleNavSection>
 
                                     </nav>
                                     <div className="p-4 border-t border-white/10 mt-auto">
