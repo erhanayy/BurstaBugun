@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { tenantApiTokens, parametersTenantSeasons, funds, fundSelections, applications, fundContributors, users } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 
 export async function GET(req: Request) {
     try {
@@ -23,12 +23,13 @@ export async function GET(req: Request) {
 
         const tenantId = validTokenRecord.tenantId;
 
-        // Get active season
+        // Get active season (pick the latest one if multiple are active)
         const activeSeason = await db.query.parametersTenantSeasons.findFirst({
             where: and(
                 eq(parametersTenantSeasons.tenantId, tenantId),
                 eq(parametersTenantSeasons.isActive, true)
-            )
+            ),
+            orderBy: [desc(parametersTenantSeasons.period)]
         });
 
         if (!activeSeason) {
