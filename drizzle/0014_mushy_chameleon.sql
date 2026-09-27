@@ -1,0 +1,1 @@
+ALTER TABLE "parameters_tenant_seasons" ADD COLUMN "admin_only" boolean DEFAULT false NOT NULL;

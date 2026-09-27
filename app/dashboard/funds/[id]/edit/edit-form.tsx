@@ -105,15 +105,53 @@ export function EditFundForm({ fundId, initialData, minimumAllowedCount }: EditF
 
             <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Fon Logosu (URL)
+                    Fon Görseli / Kapak Fotoğrafı
                 </label>
-                <input
-                    type="url"
-                    value={photoUrl}
-                    onChange={(e) => setPhotoUrl(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 dark:text-white"
-                    placeholder="https://ornek.com/logo.jpg"
-                />
+                <div className="flex flex-col gap-3">
+                    {photoUrl && (
+                        <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
+                            <img src={photoUrl} alt="Fon Logosu" className="w-full h-full object-cover" />
+                            <button 
+                                type="button" 
+                                onClick={() => setPhotoUrl("")}
+                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-md text-xs hover:bg-red-600 shadow-sm"
+                                title="Fotoğrafı Kaldır"
+                            >
+                                Kaldır
+                            </button>
+                        </div>
+                    )}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 dark:text-white file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                        onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                                const loadingToast = toast.loading("Fotoğraf yükleniyor...");
+                                const formData = new FormData();
+                                formData.append("file", file);
+                                try {
+                                    const res = await fetch('/api/upload', {
+                                        method: 'POST',
+                                        body: formData
+                                    });
+                                    const data = await res.json();
+                                    toast.dismiss(loadingToast);
+                                    if (data.url) {
+                                        setPhotoUrl(data.url);
+                                        toast.success("Fotoğraf başarıyla eklendi.");
+                                    } else {
+                                        toast.error(data.error || "Yükleme başarısız.");
+                                    }
+                                } catch (error) {
+                                    toast.dismiss(loadingToast);
+                                    toast.error("Dosya yüklenemedi.");
+                                }
+                            }
+                        }}
+                    />
+                </div>
             </div>
 
             <div>
