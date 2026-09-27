@@ -3,6 +3,15 @@ import { db } from '@/lib/db';
 import { tenantApiTokens, parametersTenantSeasons, funds, fundSelections, applications, fundContributors, users } from '@/lib/db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 
+function toTitleCase(str: string | undefined | null) {
+    if (!str) return "";
+    let cleanStr = str;
+    if (cleanStr.includes('@')) {
+        cleanStr = cleanStr.split('@')[0];
+    }
+    return cleanStr.toLocaleLowerCase('tr-TR').split(' ').map(word => word.charAt(0).toLocaleUpperCase('tr-TR') + word.slice(1)).join(' ');
+}
+
 export async function GET(req: Request) {
     try {
         const authHeader = req.headers.get('Authorization');
@@ -83,8 +92,8 @@ export async function GET(req: Request) {
             };
 
             if (fund.showOwnerName) {
-                responseItem.ownerName = fund.owner?.fullName || "Bilinmiyor";
-                responseItem.contributors = fund.contributors.map(c => c.user?.fullName).filter(Boolean);
+                responseItem.ownerName = fund.owner?.fullName ? toTitleCase(fund.owner.fullName) : "Bilinmiyor";
+                responseItem.contributors = fund.contributors.map(c => toTitleCase(c.user?.fullName)).filter(Boolean);
                 // Ensure owner is unique from contributors list
                 responseItem.contributors = Array.from(new Set(responseItem.contributors));
             }
