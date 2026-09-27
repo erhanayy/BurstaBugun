@@ -13,7 +13,11 @@ export async function getDashboardPeriods() {
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
         orderBy: (p, { desc }) => [desc(p.period)]
     });
-    return items.map(i => i.period).filter(Boolean) as string[];
+    
+    const isAdmin = tenantData.userRole === 'admin';
+    const filteredItems = items.filter(i => isAdmin || !i.adminOnly);
+    
+    return filteredItems.map(i => i.period).filter(Boolean) as string[];
 }
 
 export async function getAdminDashboardData(period: string | null) {
