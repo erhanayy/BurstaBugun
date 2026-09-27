@@ -82,6 +82,7 @@ export const parametersTenantSeasons = pgTable('parameters_tenant_seasons', {
     defaultFundStartDate: timestamp('default_fund_start_date'),
     defaultFundEndDate: timestamp('default_fund_end_date'),
     globalStudentQuota: integer('global_student_quota'),
+    publishOnWebsite: boolean('publish_on_website').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (t) => ({
     tenantPeriodUnq: unique().on(t.tenantId, t.period),

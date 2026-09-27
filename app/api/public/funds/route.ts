@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { tenantApiTokens, parametersTenantSeasons, funds, fundSelections, applications, fundContributors, users } from '@/lib/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 
 export async function GET(req: Request) {
     try {
@@ -23,24 +23,26 @@ export async function GET(req: Request) {
 
         const tenantId = validTokenRecord.tenantId;
 
-        // Get active season (pick the latest one if multiple are active)
-        const activeSeason = await db.query.parametersTenantSeasons.findFirst({
+        // Fetch ALL published seasons
+        const publishedSeasons = await db.query.parametersTenantSeasons.findMany({
             where: and(
                 eq(parametersTenantSeasons.tenantId, tenantId),
-                eq(parametersTenantSeasons.isActive, true)
+                eq(parametersTenantSeasons.publishOnWebsite, true)
             ),
             orderBy: [desc(parametersTenantSeasons.period)]
         });
 
-        if (!activeSeason) {
+        if (publishedSeasons.length === 0) {
             return NextResponse.json({ success: true, data: [] });
         }
 
-        // Fetch published funds for this tenant and season
+        const seasonIds = publishedSeasons.map(s => s.id);
+
+        // Fetch published funds for this tenant in published seasons
         const activeFunds = await db.query.funds.findMany({
             where: and(
                 eq(funds.tenantId, tenantId),
-                eq(funds.period, activeSeason.id),
+                inArray(funds.period, seasonIds),
                 eq(funds.isActive, true),
                 eq(funds.publishOnWebsite, true)
             ),
@@ -66,6 +68,9 @@ export async function GET(req: Request) {
             // Count active students
             const activeStudents = fund.selections.filter(s => s.application && s.application.isActive === true).length;
             
+            const matchedSeason = publishedSeasons.find(s => s.id === fund.period);
+            const seasonPeriod = matchedSeason ? matchedSeason.period : "Bilinmiyor";
+
             // Format response
             const responseItem: any = {
                 id: fund.id,
@@ -74,7 +79,7 @@ export async function GET(req: Request) {
                 photoUrl: fund.photoUrl,
                 targetStudentCount: fund.targetStudentCount,
                 studentCount: activeStudents,
-                season: activeSeason.period
+                season: seasonPeriod
             };
 
             if (fund.showOwnerName) {
