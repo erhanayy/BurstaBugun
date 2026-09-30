@@ -10,6 +10,7 @@ Sistem Google Cloud Run üzerinde barındırılmaktadır. Yeni bir geliştirici 
 - **Cloud Run Servis Adı:** `bursta-fbiad` (ÖNEMLİ: Servis adı `burstabugun` DEĞİLDİR! `burstabugun` eski bir test servisidir, canlı trafik `bursta-fbiad` üzerinden akar.)
 - **Bölge (Region):** `europe-west1`
 - **Canlı (Custom) Domain:** `burs.fbiadvakfi.org`
+- **Cloud Run Çıkış (Outbound) Statik IP Adresi:** `35.195.97.170` (Moka IP Whitelist için bu adres kullanılmıştır.)
 
 ### Nasıl Deploy Edilir?
 
