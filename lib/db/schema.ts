@@ -67,6 +67,7 @@ export const parametersTenantSeasons = pgTable('parameters_tenant_seasons', {
     tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
     period: text('period').notNull(), // Örn: 2026-2027
     isActive: boolean('is_active').default(true).notNull(),
+    isDefault: boolean('is_default').default(false).notNull(), // Default varsayılan dönem
     appStartDate: timestamp('app_start_date'),
     appEndDate: timestamp('app_end_date'),
     fundStartDate: timestamp('fund_start_date'),

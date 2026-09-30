@@ -1,7 +1,7 @@
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { db } from "@/lib/db";
-import { funds, users } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { funds, users, tenantUsers } from "@/lib/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import { PaymentForm } from "./payment-form";
 
 export default async function NewPaymentPage() {
@@ -20,10 +20,20 @@ export default async function NewPaymentPage() {
         orderBy: (f, { desc }) => [desc(f.createdAt)]
     });
 
-    // Get all users for the dropdown
-    const allUsers = await db.query.users.findMany({
-        orderBy: (u, { asc }) => [asc(u.fullName)]
+    // Get all users for the dropdown (exclude applicants)
+    const tenantUsersRecords = await db.query.tenantUsers.findMany({
+        where: and(
+            eq(tenantUsers.tenantId, tenantData.tenantId),
+            inArray(tenantUsers.role, ['sponsor', 'admin'])
+        ),
+        with: {
+            user: true
+        }
     });
+
+    const allUsers = tenantUsersRecords
+        .map(tu => tu.user)
+        .sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">

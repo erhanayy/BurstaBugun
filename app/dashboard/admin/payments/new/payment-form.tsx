@@ -40,30 +40,71 @@ const paymentSchema = z.object({
     studentCountTarget: z.coerce.number().min(0).default(0),
     supporterType: z.string().default("recurring"),
     notes: z.string().optional(),
+    pledgeId: z.string().optional(),
 });
 
-export function PaymentForm({ eftFunds, tenantId }: { eftFunds: any[], tenantId: string }) {
+export function PaymentForm({ 
+    eftFunds, 
+    users = [], 
+    tenantId,
+    initialData,
+    onSuccess 
+}: { 
+    eftFunds: any[], 
+    users?: any[], 
+    tenantId: string,
+    initialData?: { newUserName?: string, newUserEmail?: string, newUserPhone?: string, amount?: number, pledgeId?: string },
+    onSuccess?: () => void
+}) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [isNewUser, setIsNewUser] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+
     const form = useForm<z.infer<typeof paymentSchema>>({
         resolver: zodResolver(paymentSchema),
         defaultValues: {
             fundId: "",
-            newUserName: "",
-            newUserEmail: "",
-            newUserPhone: "",
-            amount: 0,
-            paymentDate: "", // initialized in useEffect to avoid hydration error
+            newUserName: initialData?.newUserName || "",
+            newUserEmail: initialData?.newUserEmail || "",
+            newUserPhone: initialData?.newUserPhone || "",
+            amount: initialData?.amount || 0,
+            paymentDate: "", 
             studentCountTarget: 0,
             supporterType: "recurring",
             notes: "",
+            pledgeId: initialData?.pledgeId,
         },
     });
 
     useEffect(() => {
         form.setValue("paymentDate", new Date().toISOString().split("T")[0]);
     }, [form]);
+
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        form.setValue("newUserName", value, { shouldValidate: true });
+        
+        if (value.length > 1) {
+            const matches = users.filter(u => 
+                u.fullName?.toLowerCase().includes(value.toLowerCase()) || 
+                u.email?.toLowerCase().includes(value.toLowerCase())
+            ).slice(0, 5); // top 5
+            setFilteredUsers(matches);
+            setShowSuggestions(true);
+        } else {
+            setShowSuggestions(false);
+        }
+    };
+
+    const handleSelectUser = (user: any) => {
+        form.setValue("newUserName", user.fullName, { shouldValidate: true });
+        form.setValue("newUserEmail", user.email, { shouldValidate: true });
+        if (user.phone) {
+            form.setValue("newUserPhone", user.phone, { shouldValidate: true });
+        }
+        setShowSuggestions(false);
+    };
 
     function onSubmit(values: z.infer<typeof paymentSchema>) {
         startTransition(async () => {
@@ -79,8 +120,8 @@ export function PaymentForm({ eftFunds, tenantId }: { eftFunds: any[], tenantId:
                         amount: 0,
                         studentCountTarget: 0
                     });
-                    // We don't redirect so the user can enter another one quickly
                     router.refresh();
+                    onSuccess?.();
                 } else {
                     toast.error(result.error || "Tahsilat eklenirken hata oluştu.");
                 }
@@ -92,7 +133,7 @@ export function PaymentForm({ eftFunds, tenantId }: { eftFunds: any[], tenantId:
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" onClick={() => setShowSuggestions(false)}>
                 
                 {/* FON SEÇİMİ */}
                 <FormField
@@ -132,11 +173,35 @@ export function PaymentForm({ eftFunds, tenantId }: { eftFunds: any[], tenantId:
                             control={form.control}
                             name="newUserName"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="relative">
                                     <FormControl>
                                         <div className="relative">
                                             <UserIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                                            <Input placeholder="Ad Soyad *" className="pl-10 h-12" {...field} value={field.value || ""} />
+                                            <Input 
+                                                placeholder="Ad Soyad veya E-posta ara..." 
+                                                className="pl-10 h-12" 
+                                                {...field} 
+                                                value={field.value || ""} 
+                                                onChange={handleNameChange}
+                                                onFocus={(e) => handleNameChange(e)}
+                                            />
+                                            {showSuggestions && filteredUsers.length > 0 && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-md shadow-lg overflow-hidden">
+                                                    {filteredUsers.map((u) => (
+                                                        <div 
+                                                            key={u.id} 
+                                                            className="px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 border-b border-gray-50 dark:border-zinc-800/50 last:border-0"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleSelectUser(u);
+                                                            }}
+                                                        >
+                                                            <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{u.fullName}</div>
+                                                            <div className="text-xs text-gray-500">{u.email}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </FormControl>
                                     <FormMessage />

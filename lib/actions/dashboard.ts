@@ -11,7 +11,7 @@ export async function getDashboardPeriods() {
 
     const items = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
-        orderBy: (p, { desc }) => [desc(p.period)]
+        orderBy: (p, { desc }) => [desc(p.isDefault), desc(p.period)]
     });
     
     const isAdmin = tenantData.userRole === 'admin';

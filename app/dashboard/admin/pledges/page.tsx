@@ -1,7 +1,7 @@
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { db } from "@/lib/db";
-import { parametersTenantSeasons } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { parametersTenantSeasons, funds, tenantUsers } from "@/lib/db/schema";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { PledgesClient } from "./pledges-client";
 import { getPledges, getUnmatchedPayments } from "@/lib/actions/admin-pledges";
@@ -26,12 +26,12 @@ export default async function PledgesPage({
     // Fetch all active periods
     const periods = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
-        orderBy: (p, { desc }) => [desc(p.isActive), desc(p.createdAt)]
+        orderBy: (p, { desc }) => [desc(p.isDefault), desc(p.period)]
     });
 
     const activePeriod = selectedPeriodId 
         ? periods.find(p => p.id === selectedPeriodId)
-        : periods.find(p => p.isActive) || periods[0];
+        : periods.find(p => p.isDefault) || periods.find(p => p.isActive) || periods[0];
 
     if (!activePeriod) {
         return (
@@ -44,7 +44,29 @@ export default async function PledgesPage({
 
     // Fetch data for the active period
     const pledges = await getPledges(activePeriod.id);
-    const unmatchedPayments = await getUnmatchedPayments(); // Unmatched payments are not strictly bound to a period conceptually but can be manually matched
+    const unmatchedPayments = await getUnmatchedPayments(activePeriod.id); // Filter by period dates
+
+    // Fetch EFT Funds for the manual payment popup
+    const eftFunds = await db.query.funds.findMany({
+        where: and(
+            eq(funds.tenantId, tenantData.tenantId),
+            eq(funds.paymentMethod, 'wire_transfer'),
+            eq(funds.isActive, true)
+        ),
+        orderBy: (f, { desc }) => [desc(f.createdAt)]
+    });
+
+    // Fetch users (sponsors/admins) for the manual payment popup
+    const tenantUsersRecords = await db.query.tenantUsers.findMany({
+        where: and(
+            eq(tenantUsers.tenantId, tenantData.tenantId),
+            inArray(tenantUsers.role, ['sponsor', 'admin'])
+        ),
+        with: { user: true }
+    });
+    const allUsers = tenantUsersRecords
+        .map(tu => tu.user)
+        .sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
 
     return (
         <div className="space-y-6">
@@ -62,6 +84,9 @@ export default async function PledgesPage({
                 activePeriod={activePeriod} 
                 initialPledges={pledges}
                 unmatchedPayments={unmatchedPayments}
+                eftFunds={eftFunds}
+                allUsers={allUsers}
+                tenantId={tenantData.tenantId}
             />
         </div>
     );

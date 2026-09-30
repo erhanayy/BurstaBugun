@@ -15,10 +15,12 @@ export default async function NewApplicationPage({ searchParams }: { searchParam
     // Sistemde kayıtlı kısıtları (sezon parametrelerini) alalım
     const allActiveSeasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenant.tenantId),
+        orderBy: (s, { desc }) => [desc(s.isDefault), desc(s.period)],
     });
 
     // Öğrenciye gösterilecek dönem listesi (Veritabanındaki Aktif Sezonlar)
     const activeSeasons = allActiveSeasons.filter(s => s.isActive && (tenant.userRole === 'admin' || !s.adminOnly));
+    const defaultSeasonId = activeSeasons.find(s => s.isDefault)?.id || (activeSeasons.length > 0 ? activeSeasons[0].id : "");
 
     if (activeSeasons.length === 0) {
         return (
@@ -49,9 +51,10 @@ export default async function NewApplicationPage({ searchParams }: { searchParam
                             <select 
                                 name="period" 
                                 required
+                                defaultValue={defaultSeasonId}
                                 className="w-full h-11 px-3 py-2 text-sm border rounded-lg bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                <option value="">Seçiniz...</option>
+                                <option value="" disabled>Seçiniz...</option>
                                 {activeSeasons.map(season => (
                                     <option key={season.id} value={season.id}>{season.period}</option>
                                 ))}

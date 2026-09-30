@@ -97,31 +97,42 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
         for (const [groupKey, group] of groups.entries()) {
             let tokenCode = "";
             try {
-                const cardListPayload = {
-                    DealerCustomerAuthentication: {
-                        DealerCode: MOKA_DEALER_CODE,
-                        Username: MOKA_USERNAME,
-                        Password: MOKA_PASSWORD,
-                        CheckKey: createCheckKey()
-                    },
-                    DealerCustomerRequest: {
-                        DealerCustomerId: "",
-                        CustomerCode: group.userId
-                    }
-                };
-                const cardListRes = await fetch(`${MOKA_API_URL}/DealerCustomer/GetCardList`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(cardListPayload)
+                // First try to get token from our local database
+                const localToken = await db.query.mokaTokens.findFirst({
+                    where: eq(mokaTokens.userId, group.userId)
                 });
-                if (cardListRes.ok) {
-                    const cardListData = await cardListRes.json();
-                    if (cardListData.ResultCode === "Success" && cardListData.Data?.CardList?.length > 0) {
-                        tokenCode = cardListData.Data.CardList[0].CardToken;
+                
+                if (localToken && localToken.tokenCode) {
+                    tokenCode = localToken.tokenCode;
+                } else {
+                    // Fallback to Moka API if not found locally
+                    const cardListPayload = {
+                        DealerCustomerAuthentication: {
+                            DealerCode: MOKA_DEALER_CODE,
+                            Username: MOKA_USERNAME,
+                            Password: MOKA_PASSWORD,
+                            CheckKey: createCheckKey()
+                        },
+                        DealerCustomerRequest: {
+                            DealerCustomerId: "",
+                            CustomerCode: group.userId
+                        }
+                    };
+                    const cardListRes = await fetch(`${MOKA_API_URL}/DealerCustomer/GetCardList`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(cardListPayload),
+                        signal: AbortSignal.timeout(5000) // prevent long timeouts
+                    });
+                    if (cardListRes.ok) {
+                        const cardListData = await cardListRes.json();
+                        if (cardListData.ResultCode === "Success" && cardListData.Data?.CardList?.length > 0) {
+                            tokenCode = cardListData.Data.CardList[0].CardToken;
+                        }
                     }
                 }
             } catch (err) {
-                console.error("Moka GetCardList Error:", err);
+                console.error("Moka Token Fetch Error:", err);
             }
 
             if (!tokenCode) {
@@ -190,6 +201,7 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
         return { 
             success: successCount > 0, 
             message: `${paymentIds.length} işlemden ${successCount} tanesi başarıyla çekildi.${successCount === 0 && results.length > 0 ? ' Hata: ' + results[0].error : ''}`,
+            error: successCount === 0 && results.length > 0 ? results[0].error : undefined,
             results 
         };
 

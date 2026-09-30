@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { 
     FileSpreadsheet, Upload, Download, Plus, Search, 
-    User, Mail, Phone, Calendar, ArrowRightLeft, Loader2, CheckCircle2, AlertCircle, Link as LinkIcon, Edit2, Trash2, Check, X
+    User, Mail, Phone, Calendar, ArrowRightLeft, Loader2, CheckCircle2, AlertCircle, Link as LinkIcon, Edit2, Trash2, Check, X, Banknote
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,18 +30,25 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { PledgeForm } from "./pledge-form";
-import { importPledgesFromExcel, matchPaymentToPledge, deletePledge, updatePledgeTarget } from "@/lib/actions/admin-pledges";
+import { PaymentForm } from "../payments/new/payment-form";
+import { importPledgesFromExcel, matchPaymentToPledge, deletePledge, updatePledgeTarget, getPledgePayments, deletePledgePayment } from "@/lib/actions/admin-pledges";
 
 export function PledgesClient({
     periods,
     activePeriod,
     initialPledges,
-    unmatchedPayments
+    unmatchedPayments,
+    eftFunds = [],
+    allUsers = [],
+    tenantId
 }: {
     periods: any[];
     activePeriod: any;
     initialPledges: any[];
     unmatchedPayments: any[];
+    eftFunds?: any[];
+    allUsers?: any[];
+    tenantId?: string;
 }) {
     const router = useRouter();
     const pathname = usePathname();
@@ -56,6 +63,24 @@ export function PledgesClient({
     const [matchModalOpen, setMatchModalOpen] = useState(false);
     const [selectedPledgeForMatch, setSelectedPledgeForMatch] = useState<any>(null);
     const [matchSearchTerm, setMatchSearchTerm] = useState("");
+
+    // Manual Payment Entry State
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [selectedPledgeForPayment, setSelectedPledgeForPayment] = useState<any>(null);
+    const [pledgePayments, setPledgePayments] = useState<any[]>([]);
+    const [isFetchingPayments, setIsFetchingPayments] = useState(false);
+
+    useEffect(() => {
+        if (selectedPledgeForPayment && paymentModalOpen) {
+            setIsFetchingPayments(true);
+            getPledgePayments(selectedPledgeForPayment.id)
+                .then(data => setPledgePayments(data))
+                .catch(err => console.error("Error fetching payments:", err))
+                .finally(() => setIsFetchingPayments(false));
+        } else {
+            setPledgePayments([]);
+        }
+    }, [selectedPledgeForPayment, paymentModalOpen]);
 
     // Edit Target State
     const [editingPledgeId, setEditingPledgeId] = useState<string | null>(null);
@@ -170,6 +195,20 @@ export function PledgesClient({
         startTransition(async () => {
             const result = await deletePledge(pledgeId);
             if (result.success) toast.success("Taahhüt silindi.");
+        });
+    };
+
+    const handleDeletePayment = (transactionId: string) => {
+        if (!confirm("Bu tahsilatı silmek/geri almak istediğinize emin misiniz?")) return;
+        startTransition(async () => {
+            const result = await deletePledgePayment(transactionId);
+            if (result.success) {
+                toast.success("Tahsilat silindi.");
+                if (selectedPledgeForPayment) {
+                    getPledgePayments(selectedPledgeForPayment.id)
+                        .then(data => setPledgePayments(data));
+                }
+            }
         });
     };
 
@@ -343,26 +382,50 @@ export function PledgesClient({
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
-                                                        <div className="flex justify-end gap-2">
-                                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(p.id)} disabled={isPending}>
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
+                                                        <div className="flex justify-end gap-1">
                                                             {!isFulfilled && (
-                                                                <Button variant="outline" size="sm" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50">
-                                                                    <Mail className="w-3.5 h-3.5 mr-1" />
-                                                                    Hatırlat
+                                                                <Button 
+                                                                    size="icon" 
+                                                                    variant="ghost" 
+                                                                    className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+                                                                    title="Hatırlat"
+                                                                >
+                                                                    <Mail className="w-4 h-4" />
                                                                 </Button>
                                                             )}
                                                             <Button 
-                                                                variant="outline" 
-                                                                size="sm" 
+                                                                size="icon" 
+                                                                variant="ghost" 
+                                                                className="h-8 w-8 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50"
+                                                                title="Eşleştir"
                                                                 onClick={() => {
                                                                     setSelectedPledgeForMatch(p);
                                                                     setMatchModalOpen(true);
                                                                 }}
                                                             >
-                                                                <LinkIcon className="w-3.5 h-3.5 mr-1" />
-                                                                Eşleştir
+                                                                <LinkIcon className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button 
+                                                                size="icon" 
+                                                                variant="ghost" 
+                                                                className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                                                title="Tahsilat Gir"
+                                                                onClick={() => {
+                                                                    setSelectedPledgeForPayment(p);
+                                                                    setPaymentModalOpen(true);
+                                                                }}
+                                                            >
+                                                                <Banknote className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button 
+                                                                size="icon" 
+                                                                variant="ghost" 
+                                                                className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50" 
+                                                                title="Sil"
+                                                                onClick={() => handleDelete(p.id)} 
+                                                                disabled={isPending}
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
                                                             </Button>
                                                         </div>
                                                     </td>
@@ -498,6 +561,84 @@ export function PledgesClient({
                             </table>
                         </div>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Manual Payment Modal */}
+            <Dialog open={paymentModalOpen} onOpenChange={open => { 
+                setPaymentModalOpen(open); 
+                if (!open) {
+                    setSelectedPledgeForPayment(null);
+                    setPledgePayments([]);
+                }
+            }}>
+                <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Tahsilat Yönetimi: {selectedPledgeForPayment?.fullName}</DialogTitle>
+                    </DialogHeader>
+                    {selectedPledgeForPayment && tenantId && (
+                        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div>
+                                <h3 className="text-sm font-semibold mb-4 text-gray-700 dark:text-gray-300">Yeni Tahsilat Gir</h3>
+                                <PaymentForm 
+                                    eftFunds={eftFunds} 
+                                    users={allUsers} 
+                                    tenantId={tenantId}
+                                    initialData={{
+                                        pledgeId: selectedPledgeForPayment.id,
+                                        newUserName: selectedPledgeForPayment.fullName,
+                                        newUserEmail: selectedPledgeForPayment.email || "",
+                                        newUserPhone: selectedPledgeForPayment.phone || "",
+                                        amount: selectedPledgeForPayment.targetAmount - selectedPledgeForPayment.actualAmount > 0 ? selectedPledgeForPayment.targetAmount - selectedPledgeForPayment.actualAmount : 0
+                                    }}
+                                    onSuccess={() => {
+                                        // setPaymentModalOpen(false) yapmıyoruz, tahsilatları güncelliyoruz.
+                                        getPledgePayments(selectedPledgeForPayment.id)
+                                            .then(data => setPledgePayments(data));
+                                    }}
+                                />
+                            </div>
+                            
+                            <div className="bg-gray-50/50 dark:bg-zinc-800/20 p-4 rounded-xl border border-gray-100 dark:border-zinc-800 flex flex-col h-full">
+                                <h3 className="text-sm font-semibold mb-4 text-gray-700 dark:text-gray-300">Geçmiş Tahsilatlar (Bu Dönem)</h3>
+                                
+                                {isFetchingPayments ? (
+                                    <div className="flex justify-center items-center py-8">
+                                        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                                    </div>
+                                ) : pledgePayments.length === 0 ? (
+                                    <div className="text-sm text-gray-500 text-center py-8 bg-white dark:bg-zinc-900 rounded-lg border border-dashed border-gray-200 dark:border-zinc-700">
+                                        Henüz tahsilat bulunmuyor.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3 overflow-y-auto max-h-[60vh] pr-2">
+                                        {pledgePayments.map(tx => (
+                                            <div key={tx.id} className="flex justify-between items-center bg-white dark:bg-zinc-900 p-3 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-sm">
+                                                <div>
+                                                    <div className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                                        {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(tx.allocatedAmount)}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 mt-0.5">
+                                                        {format(new Date(tx.payment?.paymentDate || tx.createdAt), "dd MMM yyyy", { locale: tr })}
+                                                    </div>
+                                                </div>
+                                                <Button 
+                                                    size="icon" 
+                                                    variant="ghost" 
+                                                    className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50"
+                                                    title="Tahsilatı Sil"
+                                                    onClick={() => handleDeletePayment(tx.id)}
+                                                    disabled={isPending}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

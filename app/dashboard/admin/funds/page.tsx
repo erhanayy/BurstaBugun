@@ -15,7 +15,26 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
     const resolvedParams = await searchParams;
     const searchObj = resolvedParams;
 
-    const targetPeriod = searchObj.period || "all";
+    // Fetch seasons to map UUIDs to period text and get default parameters
+    const allSeasons = await db.query.parametersTenantSeasons.findMany({
+        where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+        orderBy: (s, { desc }) => [desc(s.isDefault), desc(s.period)],
+    });
+    
+    const seasonMap = new Map<string, string>();
+    const seasonDataMap = new Map<string, any>();
+    allSeasons.forEach(s => {
+        seasonMap.set(s.id, s.period);
+        seasonDataMap.set(s.id, s);
+    });
+    
+    const defaultSeasonId = allSeasons.find(s => s.isDefault)?.id || (allSeasons.length > 0 ? allSeasons[0].id : "all");
+
+    let targetPeriod = searchObj.period;
+    if (!targetPeriod) {
+        targetPeriod = defaultSeasonId;
+    }
+
     const targetStatus = searchObj.status || "active";
 
     const conditions = [];
@@ -49,16 +68,7 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
         }
     });
 
-    // Fetch seasons to map UUIDs to period text and get default parameters
-    const allSeasons = await db.query.parametersTenantSeasons.findMany({
-        where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
-    });
-    const seasonMap = new Map<string, string>();
-    const seasonDataMap = new Map<string, any>();
-    allSeasons.forEach(s => {
-        seasonMap.set(s.id, s.period);
-        seasonDataMap.set(s.id, s);
-    });
+    // Seasons were fetched above
 
     const uiFunds = fundsList.map(f => {
         // Fon araması owner ismi ile de eşleşmeli
@@ -110,11 +120,20 @@ export default async function AdminFundsPage({ searchParams }: { searchParams: {
     
     // We create a list of {id, text} for the dropdown
     const uniquePeriodIds = Array.from(new Set(allPeriods.map(p => p.period).filter(Boolean)));
-    const uniquePeriods = uniquePeriodIds.map(id => ({
-        id: id as string,
-        text: seasonMap.get(id as string) || id as string
-    }));
-    uniquePeriods.sort((a, b) => b.text.localeCompare(a.text));
+    const uniquePeriods = uniquePeriodIds.map(id => {
+        const season = seasonDataMap.get(id as string);
+        return {
+            id: id as string,
+            text: season?.period || id as string,
+            isDefault: season?.isDefault || false,
+            rawPeriod: season?.period || id as string
+        };
+    });
+    uniquePeriods.sort((a, b) => {
+        if (a.isDefault) return -1;
+        if (b.isDefault) return 1;
+        return b.rawPeriod.localeCompare(a.rawPeriod);
+    });
 
     return (
         <div className="space-y-6">

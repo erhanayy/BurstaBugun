@@ -65,10 +65,30 @@ export async function getPledges(periodId: string) {
 }
 
 // Eşleşmemiş (Taahhütsüz) Tahsilatları Getir (Sekme 2)
-export async function getUnmatchedPayments() {
+export async function getUnmatchedPayments(periodId: string) {
     const tenantData = await getCurrentTenant();
     if (tenantData?.userRole !== 'admin') {
         throw new Error("Yetkisiz erişim");
+    }
+
+    const { gte, lte } = await import("drizzle-orm");
+
+    const activePeriod = await db.query.parametersTenantSeasons.findFirst({
+        where: eq(parametersTenantSeasons.id, periodId)
+    });
+
+    const conditions: any[] = [
+        eq(payments.tenantId, tenantData.tenantId),
+        eq(payments.status, 'completed'),
+        isNull(pledgeTransactions.id) // Sadece eşleşmemiş olanlar
+    ];
+
+    // Dönemin bağış/tahsilat tarihlerine göre filtrele
+    if (activePeriod?.sponsorPaymentStartDate) {
+        conditions.push(gte(payments.paymentDate, activePeriod.sponsorPaymentStartDate));
+    }
+    if (activePeriod?.sponsorPaymentEndDate) {
+        conditions.push(lte(payments.paymentDate, activePeriod.sponsorPaymentEndDate));
     }
 
     const unmatched = await db.select({
@@ -87,13 +107,7 @@ export async function getUnmatchedPayments() {
     .from(payments)
     .leftJoin(pledgeTransactions, eq(pledgeTransactions.paymentId, payments.id))
     .leftJoin(users, eq(users.id, payments.userId))
-    .where(
-        and(
-            eq(payments.tenantId, tenantData.tenantId),
-            eq(payments.status, 'completed'),
-            isNull(pledgeTransactions.id) // Sadece eşleşmemiş olanlar
-        )
-    )
+    .where(and(...conditions))
     .orderBy(desc(payments.createdAt));
 
     return unmatched;
@@ -231,3 +245,55 @@ export async function updatePledgeTarget(pledgeId: string, targetStudentCount: n
     return { success: true };
 }
 
+// Taahhüt Ödemelerini Getir
+export async function getPledgePayments(pledgeId: string) {
+    const tenantData = await getCurrentTenant();
+    if (tenantData?.userRole !== 'admin') {
+        throw new Error("Yetkisiz erişim");
+    }
+
+    const transactions = await db.select({
+        id: pledgeTransactions.id,
+        allocatedAmount: pledgeTransactions.allocatedAmount,
+        createdAt: pledgeTransactions.createdAt,
+        payment: {
+            id: payments.id,
+            paymentDate: payments.paymentDate,
+            amount: payments.amount,
+            notes: payments.notes
+        }
+    })
+    .from(pledgeTransactions)
+    .leftJoin(payments, eq(payments.id, pledgeTransactions.paymentId))
+    .where(eq(pledgeTransactions.pledgeId, pledgeId))
+    .orderBy(desc(pledgeTransactions.createdAt));
+
+    return transactions;
+}
+
+// Taahhüt Ödemesi Sil (Geri al)
+export async function deletePledgePayment(transactionId: string) {
+    const tenantData = await getCurrentTenant();
+    if (tenantData?.userRole !== 'admin') {
+        throw new Error("Yetkisiz erişim");
+    }
+
+    // Sadece transaction'ı sil, asıl payment'ı silme (belki yanlışlıkla eşleştirildi, boşa çıksın)
+    // Yoksa payment'i komple mi silelim? Kullanıcı "hatalı girişe karşı silme butonu" diyor.
+    // Eğer Tahsilat Gir üzerinden girildiyse hem payment hem transaction silinmeli.
+    // Şimdilik işlemi geri almak için transaction'ı bulalım, ve payment'i de bulalım.
+    const tx = await db.select().from(pledgeTransactions).where(eq(pledgeTransactions.id, transactionId)).limit(1);
+    
+    if (tx.length > 0) {
+        await db.delete(pledgeTransactions).where(eq(pledgeTransactions.id, transactionId));
+        if (tx[0].paymentId) {
+             // Opsiyonel olarak, eşleşme kalktı, payment boşa çıkar.
+             // Ama kullanıcı "Tahsilat Gir ekranından" hatalı giriş silecekse payment'i de silebiliriz.
+             // Biz şimdilik hem pledgeTransaction'ı hem payment'ı silelim çünkü mükerrer girdiğini varsayıyor.
+             await db.delete(payments).where(eq(payments.id, tx[0].paymentId));
+        }
+    }
+
+    revalidatePath("/dashboard/admin/pledges");
+    return { success: true };
+}

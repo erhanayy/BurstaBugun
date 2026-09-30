@@ -23,10 +23,15 @@ export async function createSeason(data: {
     globalStudentQuota?: number | null;
     publishOnWebsite?: boolean;
     adminOnly?: boolean;
+    isDefault?: boolean;
 }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData || tenantData.userRole !== 'admin') {
         throw new Error("Yetkisiz işlem.");
+    }
+
+    if (data.isDefault) {
+        await db.update(parametersTenantSeasons).set({ isDefault: false }).where(eq(parametersTenantSeasons.tenantId, tenantData.tenantId));
     }
 
     await db.insert(parametersTenantSeasons).values({
@@ -47,6 +52,7 @@ export async function createSeason(data: {
         globalStudentQuota: data.globalStudentQuota,
         publishOnWebsite: data.publishOnWebsite ?? false,
         adminOnly: data.adminOnly ?? false,
+        isDefault: data.isDefault ?? false,
         isActive: true,
     });
 
@@ -71,10 +77,15 @@ export async function updateSeason(seasonId: string, data: {
     globalStudentQuota?: number | null;
     publishOnWebsite?: boolean;
     adminOnly?: boolean;
+    isDefault?: boolean;
 }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData || tenantData.userRole !== 'admin') {
         throw new Error("Yetkisiz işlem.");
+    }
+
+    if (data.isDefault) {
+        await db.update(parametersTenantSeasons).set({ isDefault: false }).where(eq(parametersTenantSeasons.tenantId, tenantData.tenantId));
     }
 
     await db.update(parametersTenantSeasons)
@@ -95,6 +106,7 @@ export async function updateSeason(seasonId: string, data: {
             globalStudentQuota: data.globalStudentQuota,
             publishOnWebsite: data.publishOnWebsite ?? false,
             adminOnly: data.adminOnly ?? false,
+            isDefault: data.isDefault ?? false,
         })
         .where(and(eq(parametersTenantSeasons.id, seasonId), eq(parametersTenantSeasons.tenantId, tenantData.tenantId)));
 

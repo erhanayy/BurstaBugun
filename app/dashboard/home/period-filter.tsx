@@ -10,7 +10,7 @@ export function PeriodFilter({ periods, currentPeriod }: { periods: string[], cu
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Dönem Seçimi:</span>
             <select
                 className="form-select rounded-lg border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px] transition-colors"
-                value={currentPeriod || ""}
+                value={currentPeriod === null ? "all" : currentPeriod}
                 onChange={(e) => {
                     const val = e.target.value;
                     const sp = new URLSearchParams();
@@ -18,7 +18,7 @@ export function PeriodFilter({ periods, currentPeriod }: { periods: string[], cu
                     router.push(`/dashboard/home?${sp.toString()}`);
                 }}
             >
-                <option value="">Hepsi (Tüm Zamanlar)</option>
+                <option value="all">Hepsi (Tüm Zamanlar)</option>
                 {periods.map(p => (
                     <option key={p} value={p}>{p}</option>
                 ))}

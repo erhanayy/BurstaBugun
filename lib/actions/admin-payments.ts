@@ -50,7 +50,7 @@ export async function submitManualPayment(data: any, tenantId: string) {
         }
         
         if (!userId) throw new Error("Bağışçı bilgisi eksik.");
-        await db.insert(payments).values({
+        const [newPayment] = await db.insert(payments).values({
             tenantId,
             fundId: data.fundId,
             userId: userId,
@@ -59,7 +59,17 @@ export async function submitManualPayment(data: any, tenantId: string) {
             paymentMethod: 'wire_transfer',
             paymentDate: new Date(data.paymentDate),
             notes: data.notes || "Manuel EFT/Havale tahsilatı"
-        });
+        }).returning({ id: payments.id });
+
+        // If this payment was initiated from a specific pledge, match it automatically
+        if (data.pledgeId) {
+            const { pledgeTransactions } = await import("@/lib/db/schema");
+            await db.insert(pledgeTransactions).values({
+                pledgeId: data.pledgeId,
+                paymentId: newPayment.id,
+                allocatedAmount: data.amount,
+            });
+        }
 
         // Also add to donations table so it shows up in Web Bağış
         await db.insert(donations).values({

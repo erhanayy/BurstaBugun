@@ -13,9 +13,19 @@ export default async function DashboardHome({ searchParams }: { searchParams: Pr
     if (!tenantData) return null;
 
     const resolvedParams = await searchParams;
-    const period = resolvedParams?.period || null;
-
     const periods = await getDashboardPeriods();
+    
+    // Determine the active period based on URL params or default
+    const urlPeriod = resolvedParams?.period;
+    let period = null;
+    
+    if (urlPeriod === "all") {
+        period = null; // Explicitly selected "All Time"
+    } else if (urlPeriod) {
+        period = urlPeriod; // Selected a specific period
+    } else {
+        period = periods.length > 0 ? periods[0] : null; // Fallback to default (first item, sorted by isDefault)
+    }
 
     // Fetch data for all roles the user might have
     const adminData = await getAdminDashboardData(period);

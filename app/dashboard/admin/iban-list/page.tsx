@@ -24,7 +24,7 @@ export default async function AdminIbanListPage({
     const periodsRes = await db.select({ id: parametersTenantSeasons.id, period: parametersTenantSeasons.period })
         .from(parametersTenantSeasons)
         .where(eq(parametersTenantSeasons.tenantId, tenantData.tenantId))
-        .orderBy(desc(parametersTenantSeasons.isActive), desc(parametersTenantSeasons.createdAt));
+        .orderBy(desc(parametersTenantSeasons.isDefault), desc(parametersTenantSeasons.period));
     
     const availablePeriods = periodsRes.map(p => ({ id: p.id, period: p.period }));
     

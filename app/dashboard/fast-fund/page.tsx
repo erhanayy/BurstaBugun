@@ -21,7 +21,7 @@ export default async function FastFundPage({ searchParams }: { searchParams: Pro
     const isAdmin = tenantData.userRole === 'admin';
     const allSeasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
-        orderBy: (s, { desc }) => [desc(s.createdAt)]
+        orderBy: (s, { desc }) => [desc(s.isDefault), desc(s.period)]
     });
     const seasons = allSeasons.filter(s => isAdmin || !s.adminOnly);
 

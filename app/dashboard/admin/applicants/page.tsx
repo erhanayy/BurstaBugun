@@ -30,10 +30,10 @@ export default async function AdminApplicantsPage({ searchParams }: { searchPara
 
     const seasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
-        orderBy: (s, { desc }) => [desc(s.period)]
+        orderBy: (s, { desc }) => [desc(s.isDefault), desc(s.period)]
     });
 
-    const activeSeason = seasons.find(s => s.isActive) || seasons[0];
+    const activeSeason = seasons.find(s => s.isDefault) || seasons.find(s => s.isActive) || seasons[0];
     const currentPeriod = parsedParams?.period || activeSeason?.id || '';
 
     const applicants = await getAdminApplicants(currentStatus, currentPeriod, activeStatus);

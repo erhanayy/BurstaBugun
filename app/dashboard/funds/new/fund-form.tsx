@@ -63,6 +63,7 @@ type Season = {
     seasonEndDate: Date | null;
     defaultFundAmount: number | null;
     defaultFundDuration: number | null;
+    isDefault: boolean | null;
 };
 
 export function FundForm({ seasons, isAdmin, onSuccessRedirect }: { seasons?: Season[], isAdmin?: boolean, onSuccessRedirect?: string }) {
@@ -72,13 +73,14 @@ export function FundForm({ seasons, isAdmin, onSuccessRedirect }: { seasons?: Se
     
     // Aktif sezonları filtreleyelim
     const activeSeasons = useMemo(() => seasons?.filter(s => s.isActive) || [], [seasons]);
+    const defaultSeasonId = activeSeasons.find(s => s.isDefault)?.id || (activeSeasons.length > 0 ? activeSeasons[0].id : "");
 
     const form = useForm<any>({
         resolver: zodResolver(fundSchema),
         defaultValues: {
             title: "",
             description: "",
-            period: "",
+            period: defaultSeasonId,
             monthlyLimit: 0,
             paymentMethod: "monthly",
             photoUrl: "",

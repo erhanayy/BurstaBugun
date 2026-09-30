@@ -22,14 +22,14 @@ export default async function SponsorFundsPage(props: { searchParams: Promise<{ 
     // Fetch seasons for the filter
     const allSeasons = await db.query.parametersTenantSeasons.findMany({
         where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
-        orderBy: (s, { desc }) => [desc(s.period)]
+        orderBy: (s, { desc }) => [desc(s.isDefault), desc(s.period)]
     });
     const isAdmin = tenantData.userRole === 'admin';
     const seasons = allSeasons.filter(s => isAdmin || !s.adminOnly);
 
     let currentPeriod = searchParams?.period;
     if (!currentPeriod) {
-        const activeSeason = seasons.find(s => s.isActive);
+        const activeSeason = seasons.find(s => s.isDefault) || seasons.find(s => s.isActive);
         currentPeriod = activeSeason ? activeSeason.id : "all";
     }
 
