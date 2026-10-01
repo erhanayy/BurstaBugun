@@ -29,7 +29,7 @@ export function MobileMenu({ children }: { children: React.ReactNode }) {
             {/* Mobile Sidebar */}
             <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[var(--nav-bg)] text-[var(--menu-text)] transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {/* Close Button */}
-                <div className="absolute top-3 right-3 z-50">
+                <div className="absolute right-3 z-50" style={{ top: 'calc(env(safe-area-inset-top) + 0.75rem)' }}>
                     <button onClick={() => setIsOpen(false)} className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors">
                         <X className="w-5 h-5" />
                     </button>

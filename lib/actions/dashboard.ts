@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { users, tenantUsers, funds, fundContributors, fundSelections, applications, references, payments, loginLogs, fundInvitations, parametersTenantSeasons } from "@/lib/db/schema";
+import { users, tenantUsers, funds, fundContributors, fundSelections, applications, references, payments, loginLogs, fundInvitations, parametersTenantSeasons, pledges, pledgeTransactions, studentPaymentLogs } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, and, sql, desc, isNotNull, or, gte, inArray } from "drizzle-orm";
 
@@ -27,14 +27,138 @@ export async function getAdminDashboardData(period: string | null) {
     const userObj = await db.query.users.findFirst({ where: eq(users.id, tenantData.userId) });
     if (!userObj?.isApplicationAdmin) return null;
 
-    const baseFundCondition = period
-        ? and(eq(funds.tenantId, tenantData.tenantId), eq(funds.period, period))
-        : eq(funds.tenantId, tenantData.tenantId);
+    let seasonId: string | null = null;
+    let seasonObj: typeof parametersTenantSeasons.$inferSelect | null = null;
 
-    const activeFunds = await db.select({ count: sql<number>`count(*)` })
-        .from(funds)
-        .where(and(baseFundCondition, eq(funds.isActive, true)));
+    if (period) {
+        const season = await db.query.parametersTenantSeasons.findFirst({
+            where: and(
+                eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+                eq(parametersTenantSeasons.period, period)
+            )
+        });
+        if (season) {
+            seasonId = season.id;
+            seasonObj = season;
+        }
+    } else {
+        const defaultSeason = await db.query.parametersTenantSeasons.findFirst({
+            where: and(
+                eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+                eq(parametersTenantSeasons.isDefault, true)
+            )
+        });
+        if (defaultSeason) {
+            seasonId = defaultSeason.id;
+            seasonObj = defaultSeason;
+        }
+    }
 
+    const defaultAmount = seasonObj?.defaultFundAmount || 5000;
+    const defaultDuration = seasonObj?.defaultFundDuration || 10;
+
+    // 1. FONLAR
+    const fundCondition = seasonId
+        ? and(eq(funds.tenantId, tenantData.tenantId), eq(funds.period, seasonId), eq(funds.isActive, true))
+        : and(eq(funds.tenantId, tenantData.tenantId), eq(funds.isActive, true));
+
+    const activeFundsList = await db.query.funds.findMany({
+        where: fundCondition
+    });
+
+    const activeFunds = activeFundsList.length;
+    const commonPoolFundsCount = activeFundsList.filter(f => f.paymentMethod === 'wire_transfer' || f.title.includes('EFT') || f.title.includes('Havale')).length;
+    const memberFundsCount = activeFunds - commonPoolFundsCount;
+
+    // 2. BURSVEREN BİLGİLERİ (Pledges & Targets)
+    const pledgeCondition = seasonId
+        ? and(eq(pledges.tenantId, tenantData.tenantId), eq(pledges.periodId, seasonId))
+        : eq(pledges.tenantId, tenantData.tenantId);
+
+    const pledgesList = await db.query.pledges.findMany({
+        where: pledgeCondition
+    });
+
+    const pledgeSupportersCount = pledgesList.length;
+    const pledgedTargetStudentsCount = pledgesList.reduce((acc, p) => acc + (p.targetStudentCount || 0), 0);
+    const totalPledgedAmount = pledgedTargetStudentsCount * defaultDuration * defaultAmount;
+
+    // 3. BURSİYER BİLGİLERİ
+    const appCondition = seasonId
+        ? and(eq(applications.tenantId, tenantData.tenantId), eq(applications.period, seasonId))
+        : eq(applications.tenantId, tenantData.tenantId);
+
+    const periodApplications = await db.query.applications.findMany({
+        where: appCondition
+    });
+
+    const totalApplicationsCount = periodApplications.length;
+    const inPoolStudents = periodApplications.filter(a => a.status === 'in_pool').length;
+
+    // Fona Atanan Bursiyerler (Active Fund Selections)
+    const activeSelectionsList = await db.query.fundSelections.findMany({
+        where: eq(fundSelections.isActive, true),
+        with: { fund: true }
+    });
+
+    const periodSelections = activeSelectionsList.filter(s => 
+        s.fund && 
+        s.fund.isActive && 
+        (!seasonId || s.fund.period === seasonId)
+    );
+
+    const selectedStudentsCount = periodSelections.length;
+
+    let memberFundStudentsCount = 0;
+    let commonPoolStudentsCount = 0;
+
+    periodSelections.forEach(s => {
+        if (s.fund.paymentMethod === 'wire_transfer' || s.fund.title.includes('EFT') || s.fund.title.includes('Havale')) {
+            commonPoolStudentsCount++;
+        } else {
+            memberFundStudentsCount++;
+        }
+    });
+
+    // 4. ÖDEMELER BİLGİLERİ
+    const pledgeTxnList = await db.query.pledgeTransactions.findMany({
+        with: { pledge: true, payment: true }
+    });
+
+    const periodTxns = pledgeTxnList.filter(pt => pt.pledge && (!seasonId || pt.pledge.periodId === seasonId));
+    
+    let totalCollectedAmount = 0;
+    let wireTransferCollectedAmount = 0;
+    let creditCardCollectedAmount = 0;
+
+    periodTxns.forEach(t => {
+        totalCollectedAmount += t.allocatedAmount;
+        if (t.payment) {
+            if (t.payment.paymentMethod === 'credit_card' || t.payment.paymentMethod === 'subscription') {
+                creditCardCollectedAmount += t.allocatedAmount;
+            } else {
+                wireTransferCollectedAmount += t.allocatedAmount;
+            }
+        } else {
+            wireTransferCollectedAmount += t.allocatedAmount;
+        }
+    });
+
+    // Öğrencilere Yapılan Ödemeler Toplamı (Student Payment Logs)
+    const allStudentLogs = await db.query.studentPaymentLogs.findMany({
+        where: eq(studentPaymentLogs.tenantId, tenantData.tenantId),
+        with: { fund: true }
+    });
+
+    const periodStudentLogs = allStudentLogs.filter(l => 
+        l.fund && 
+        l.fund.isActive && 
+        (!seasonId || l.fund.period === seasonId)
+    );
+
+    const totalStudentPayoutsAmount = periodStudentLogs.reduce((acc, l) => acc + (l.amount || 0), 0);
+
+    // General user stats
     const allUsers = await db.select({ count: sql<number>`count(*)` })
         .from(tenantUsers)
         .where(eq(tenantUsers.tenantId, tenantData.tenantId));
@@ -50,34 +174,37 @@ export async function getAdminDashboardData(period: string | null) {
             )
         );
 
-    const baseAppCondition = period
-        ? and(eq(applications.tenantId, tenantData.tenantId), eq(applications.period, period))
-        : eq(applications.tenantId, tenantData.tenantId);
-
-    const activeStudents = await db.select({ count: sql<number>`count(*)` })
-        .from(applications)
-        .where(and(baseAppCondition, eq(applications.status, 'active')));
-
-    const inPoolStudents = await db.select({ count: sql<number>`count(*)` })
-        .from(applications)
-        .where(and(baseAppCondition, eq(applications.status, 'in_pool')));
-
-    const selectedStudents = await db.select({ count: sql<number>`count(*)` })
-        .from(applications)
-        .where(and(baseAppCondition, eq(applications.status, 'selected')));
-
     const activeSponsors = await db.select({ count: sql<number>`count(*)` })
         .from(tenantUsers)
         .where(and(eq(tenantUsers.tenantId, tenantData.tenantId), eq(tenantUsers.role, 'sponsor')));
 
     return {
         totalUsers: Number(allUsers[0]?.count || 0),
-        activeFunds: Number(activeFunds[0]?.count || 0),
+        activeFunds,
+        memberFundsCount,
+        commonPoolFundsCount,
+        memberFundStudentsCount,
+        commonPoolStudentsCount,
         recentActiveUsers: Number(recentLoginQuery[0]?.count || 0),
-        activeStudents: Number(activeStudents[0]?.count || 0),
-        inPoolStudents: Number(inPoolStudents[0]?.count || 0),
-        selectedStudents: Number(selectedStudents[0]?.count || 0),
+        
+        // Bursveren
+        pledgeSupportersCount,
+        pledgedTargetStudentsCount,
+        defaultAmount,
+        defaultDuration,
+        totalPledgedAmount,
         activeSponsors: Number(activeSponsors[0]?.count || 0),
+
+        // Bursiyer
+        totalApplicationsCount,
+        selectedStudents: selectedStudentsCount,
+        inPoolStudents,
+
+        // Ödemeler
+        totalCollectedAmount,
+        wireTransferCollectedAmount,
+        creditCardCollectedAmount,
+        totalStudentPayoutsAmount,
     };
 }
 

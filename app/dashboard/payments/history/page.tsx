@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { payments, funds, applications, users, studentPaymentLogs } from "@/lib/db/schema";
+import { payments, funds, applications, users, studentPaymentLogs, parametersTenantSeasons } from "@/lib/db/schema";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { eq, desc, and, like, ilike } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import HistoryTable from "./history-table";
 
-export default async function PaymentsHistoryPage({ searchParams }: { searchParams: { search?: string, fundId?: string, year?: string, month?: string } }) {
+export default async function PaymentsHistoryPage({ searchParams }: { searchParams: { search?: string, fundId?: string, year?: string, month?: string, period?: string } }) {
     const tenantData = await getCurrentTenant();
     if (!tenantData) return redirect("/login");
 
@@ -19,6 +19,16 @@ export default async function PaymentsHistoryPage({ searchParams }: { searchPara
         where: eq(funds.tenantId, tenantData.tenantId),
         orderBy: (funds, { desc }) => [desc(funds.createdAt)],
     });
+
+    const activeSeasons = await db.query.parametersTenantSeasons.findMany({
+        where: eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+        orderBy: (s, { desc }) => [desc(s.isDefault), desc(s.period)],
+    });
+
+    let currentPeriod = searchObj.period;
+    if (!currentPeriod && activeSeasons.length > 0) {
+        currentPeriod = activeSeasons.find(s => s.isDefault)?.id || activeSeasons[0]?.id;
+    }
 
     const conditions = [];
     conditions.push(eq(studentPaymentLogs.tenantId, tenantData.tenantId));
@@ -49,6 +59,10 @@ export default async function PaymentsHistoryPage({ searchParams }: { searchPara
         fund: allFunds.find(f => f.id === log.fundId)
     }));
 
+    if (currentPeriod) {
+        mappedHistory = mappedHistory.filter(p => p.fund?.period === currentPeriod);
+    }
+
     // In-memory filters for nested fields / dates:
     if (searchObj.search) {
         const searchLower = searchObj.search.toLowerCase();
@@ -74,6 +88,12 @@ export default async function PaymentsHistoryPage({ searchParams }: { searchPara
                         placeholder="Öğrenci arayın..."
                         className="w-full pl-9 h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                </div>
+                <div className="flex-1">
+                    <select name="period" defaultValue={currentPeriod || ""} className="w-full h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-gray-100">
+                        <option value="">Tüm Dönemler</option>
+                        {activeSeasons.map(s => <option key={s.id} value={s.id}>{s.period}</option>)}
+                    </select>
                 </div>
                 <div className="flex-1">
                     <select name="fundId" defaultValue={searchObj.fundId || ""} className="w-full h-10 rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent text-sm text-gray-900 dark:text-gray-100">

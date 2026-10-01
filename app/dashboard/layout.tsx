@@ -276,8 +276,11 @@ export default async function DashboardLayout({
                             {/* Mobile menu trigger */}
                             <div className="lg:hidden p-2">
                                 <MobileMenu>
-                                    <div className="h-16 flex items-center px-6 border-b border-gray-200/20 dark:border-zinc-800 font-bold text-lg text-[var(--menu-text)]">
-                                        {tenantData?.userName}
+                                    <div 
+                                        className="flex items-center px-6 border-b border-gray-200/20 dark:border-zinc-800 font-bold text-lg text-[var(--menu-text)] pb-4"
+                                        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}
+                                    >
+                                        <span className="pr-8 truncate">{tenantData?.userName}</span>
                                     </div>
                                     <nav className="flex-1 p-4 overflow-y-auto space-y-1 custom-scrollbar">
 

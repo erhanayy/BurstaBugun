@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'BurstaBugun',
   webDir: 'public',
   server: {
-    url: 'http://192.168.1.35:3001',
+    url: 'http://localhost:3004',
     cleartext: true
   }
 };

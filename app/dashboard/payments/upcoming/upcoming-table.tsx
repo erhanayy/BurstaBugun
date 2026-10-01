@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { addMultipleStudentPaymentLogs } from "@/lib/actions/student-payments";
 import { toast } from "sonner";
-import { CheckCircle2, Loader2, Link as LinkIcon, Download } from "lucide-react";
+import { CheckCircle2, Loader2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 export default function UpcomingTable({
     upcoming
@@ -12,12 +12,14 @@ export default function UpcomingTable({
 }) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isSaving, setIsSaving] = useState(false);
+    const [sortField, setSortField] = useState<string>("date");
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
     const toggleAll = () => {
-        if (selectedIds.length === upcoming.length) {
+        if (selectedIds.length === sortedUpcoming.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(upcoming.map(u => u.id));
+            setSelectedIds(sortedUpcoming.map(u => u.id));
         }
     };
 
@@ -28,6 +30,39 @@ export default function UpcomingTable({
             setSelectedIds([...selectedIds, id]);
         }
     };
+
+    const handleSort = (field: string) => {
+        if (sortField === field) {
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortOrder("asc");
+        }
+    };
+
+    const sortedUpcoming = [...upcoming].sort((a, b) => {
+        let aVal: any;
+        let bVal: any;
+        if (sortField === "date") {
+            aVal = a.year * 100 + a.month;
+            bVal = b.year * 100 + b.month;
+        } else if (sortField === "fundTitle") {
+            aVal = a.fundTitle.toLowerCase();
+            bVal = b.fundTitle.toLowerCase();
+        } else if (sortField === "studentName") {
+            aVal = a.studentName.toLowerCase();
+            bVal = b.studentName.toLowerCase();
+        } else if (sortField === "amount") {
+            aVal = a.amount;
+            bVal = b.amount;
+        } else {
+            return 0;
+        }
+
+        if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+    });
 
     const handleMarkAsPaid = async () => {
         if (selectedIds.length === 0) return;
@@ -56,8 +91,17 @@ export default function UpcomingTable({
         setIsSaving(false);
     };
 
+    const renderSortIcon = (field: string) => {
+        if (sortField !== field) return <ArrowUpDown className="w-3.5 h-3.5 inline ml-1 opacity-40 hover:opacity-100" />;
+        return sortOrder === "asc" ? <ArrowUp className="w-3.5 h-3.5 inline ml-1 text-blue-600" /> : <ArrowDown className="w-3.5 h-3.5 inline ml-1 text-blue-600" />;
+    };
+
     return (
         <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+            <div className="px-6 py-3 border-b border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/30 flex justify-between items-center text-xs text-gray-600 dark:text-gray-400 font-medium">
+                <span>Toplam <strong>{upcoming.length}</strong> adet beklenen ödeme kaydı bulundu.</span>
+                <span>Toplam Beklenen Tutar: <strong>{upcoming.reduce((acc, curr) => acc + (curr.amount || 0), 0).toLocaleString('tr-TR')} ₺</strong></span>
+            </div>
             {selectedIds.length > 0 && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 px-6 py-3 border-b border-blue-100 dark:border-blue-900/30 flex justify-between items-center">
                     <span className="text-sm font-medium text-blue-800 dark:text-blue-300">
@@ -76,31 +120,51 @@ export default function UpcomingTable({
 
             <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50 dark:bg-zinc-800/50 border-b border-gray-200 dark:border-zinc-800">
+                    <thead className="bg-gray-50 dark:bg-zinc-800/50 border-b border-gray-200 dark:border-zinc-800 select-none">
                         <tr>
                             <th className="px-6 py-4 w-12">
                                 <input
                                     type="checkbox"
                                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    checked={upcoming.length > 0 && selectedIds.length === upcoming.length}
+                                    checked={sortedUpcoming.length > 0 && selectedIds.length === sortedUpcoming.length}
                                     onChange={toggleAll}
                                 />
                             </th>
-                            <th className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-100">Hedef Tarih</th>
-                            <th className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-100">Fon Adı</th>
-                            <th className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-100">Bursiyer</th>
-                            <th className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-100 text-right">Beklenen Tutar</th>
+                            <th 
+                                className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                onClick={() => handleSort("date")}
+                            >
+                                Hedef Tarih {renderSortIcon("date")}
+                            </th>
+                            <th 
+                                className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                onClick={() => handleSort("fundTitle")}
+                            >
+                                Fon Adı {renderSortIcon("fundTitle")}
+                            </th>
+                            <th 
+                                className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                onClick={() => handleSort("studentName")}
+                            >
+                                Bursiyer {renderSortIcon("studentName")}
+                            </th>
+                            <th 
+                                className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-100 text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                onClick={() => handleSort("amount")}
+                            >
+                                Beklenen Tutar {renderSortIcon("amount")}
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
-                        {upcoming.length === 0 ? (
+                        {sortedUpcoming.length === 0 ? (
                             <tr>
                                 <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                                     Seçili dönem için yaklaşan bir ödeme planı bulunamadı.
                                 </td>
                             </tr>
                         ) : (
-                            upcoming.map((plan) => (
+                            sortedUpcoming.map((plan) => (
                                 <tr key={plan.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/30">
                                     <td className="px-6 py-4">
                                         <input

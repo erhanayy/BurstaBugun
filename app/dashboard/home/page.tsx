@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { getCurrentTenant } from "@/lib/data/tenant";
 import { PeriodFilter } from "./period-filter";
 import { getDashboardPeriods, getAdminDashboardData, getSponsorDashboardData, getReferenceDashboardData, getApplicantDashboardData } from "@/lib/actions/dashboard";
-import { Users, Wallet, CheckCircle2, DollarSign, TrendingUp, Presentation, Users2, GraduationCap, Clock, ShieldCheck, CalendarCheck, Clock3 } from "lucide-react";
+import { Users, Wallet, CheckCircle2, DollarSign, TrendingUp, Presentation, Users2, GraduationCap, Clock, ShieldCheck, CalendarCheck, Clock3, Layers, CreditCard, Landmark, UserCheck } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -51,75 +51,195 @@ export default async function DashboardHome({ searchParams }: { searchParams: Pr
 
             {/* ADMIN PANEL */}
             {adminData && (
-                <div className="space-y-4">
+                <div className="space-y-8">
                     <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-zinc-800">
                         <Presentation className="h-5 w-5 text-indigo-600" />
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Admin Sistem Özeti</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
-                                <Users2 className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Toplam Kullanıcı</p>
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.totalUsers}</h3>
-                            </div>
+
+                    {/* BÖLÜM 1: FONLAR */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            <Layers className="h-4 w-4 text-blue-600" />
+                            <span>Fonlar</span>
                         </div>
-                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
-                                <Wallet className="h-6 w-6" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bireysel Üye Fonları</p>
+                                    <div className="flex items-baseline gap-3 mt-1">
+                                        <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                                            {adminData.memberFundsCount} <span className="text-base font-medium text-gray-500">Adet Fon</span>
+                                        </h3>
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                                            {adminData.memberFundStudentsCount} Seçilen Bursiyer
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2">Bursveren üyelerimiz tarafından oluşturulan fonlar</p>
+                                </div>
+                                <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                    <Wallet className="h-7 w-7" />
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktif Fonlar</p>
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.activeFunds}</h3>
-                            </div>
-                        </div>
-                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400">
-                                <TrendingUp className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">30 Günlük Aktivite</p>
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.recentActiveUsers || "-"}</h3>
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ortak Havuz Fonu</p>
+                                    <div className="flex items-baseline gap-3 mt-1">
+                                        <h3 className="text-3xl font-extrabold text-amber-600 dark:text-amber-400">
+                                            {adminData.commonPoolFundsCount} <span className="text-base font-medium text-gray-500">Adet Fon</span>
+                                        </h3>
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                            {adminData.commonPoolStudentsCount} Seçilen Bursiyer
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2">Dernek Hesabına Havale/EFT ortak havuz fonu</p>
+                                </div>
+                                <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400">
+                                    <Landmark className="h-7 w-7" />
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-4">
-                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
-                                <GraduationCap className="h-6 w-6" />
+
+                    {/* BÖLÜM 2: BURSVEREN BİLGİLERİ */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            <Users2 className="h-4 w-4 text-indigo-600" />
+                            <span>Bursveren Bilgileri</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Taahhüt Veren Bursveren Sayısı</p>
+                                    <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">
+                                        {adminData.pledgeSupportersCount} <span className="text-base font-medium text-gray-500">Kişi</span>
+                                    </h3>
+                                </div>
+                                <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
+                                    <Users2 className="h-6 w-6" />
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktif Öğrenci</p>
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.activeStudents}</h3>
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Taahhüt Edilen Bursiyer Sayısı</p>
+                                    <h3 className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">
+                                        {adminData.pledgedTargetStudentsCount} <span className="text-base font-medium text-gray-500">Öğrenci</span>
+                                    </h3>
+                                </div>
+                                <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
+                                    <ShieldCheck className="h-6 w-6" />
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Taahhüt Edilen Toplam Tutar</p>
+                                    <h3 className="text-2xl font-black text-gray-900 dark:text-white mt-1">
+                                        {adminData.totalPledgedAmount.toLocaleString('tr-TR')} ₺
+                                    </h3>
+                                    <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium mt-1">
+                                        ({adminData.pledgedTargetStudentsCount} X {adminData.defaultDuration} X {adminData.defaultAmount.toLocaleString('tr-TR')} ₺)
+                                    </p>
+                                </div>
+                                <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+                                    <DollarSign className="h-6 w-6" />
+                                </div>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400">
-                                <Users className="h-6 w-6" />
+                    </div>
+
+                    {/* BÖLÜM 3: BURSİYER BİLGİLERİ */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            <GraduationCap className="h-4 w-4 text-fuchsia-600" />
+                            <span>Bursiyer Bilgileri</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sisteme Kayıt Olan Bursiyer Sayısı</p>
+                                    <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">
+                                        {adminData.totalApplicationsCount} <span className="text-base font-medium text-gray-500">Öğrenci</span>
+                                    </h3>
+                                </div>
+                                <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                    <GraduationCap className="h-6 w-6" />
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Havuza Dahil</p>
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.inPoolStudents}</h3>
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktif Seçilen (Fona Atanan)</p>
+                                    <h3 className="text-3xl font-extrabold text-fuchsia-600 dark:text-fuchsia-400 mt-1">
+                                        {adminData.selectedStudents} <span className="text-base font-medium text-gray-500">Öğrenci</span>
+                                    </h3>
+                                </div>
+                                <div className="p-3 rounded-lg bg-fuchsia-50 dark:bg-fuchsia-900/20 text-fuchsia-600 dark:text-fuchsia-400">
+                                    <CheckCircle2 className="h-6 w-6" />
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aday Havuzundaki Bursiyer Sayısı</p>
+                                    <h3 className="text-3xl font-extrabold text-orange-600 dark:text-orange-400 mt-1">
+                                        {adminData.inPoolStudents} <span className="text-base font-medium text-gray-500">Öğrenci</span>
+                                    </h3>
+                                </div>
+                                <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400">
+                                    <Users className="h-6 w-6" />
+                                </div>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-fuchsia-50 dark:bg-fuchsia-900/20 text-fuchsia-600 dark:text-fuchsia-400">
-                                <CheckCircle2 className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fona Atanan</p>
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.selectedStudents}</h3>
-                            </div>
+                    </div>
+
+                    {/* BÖLÜM 4: ÖDEMELER */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            <DollarSign className="h-4 w-4 text-emerald-600" />
+                            <span>Ödemeler</span>
                         </div>
-                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
-                                <ShieldCheck className="h-6 w-6" />
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div className="bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-emerald-900/40 rounded-xl p-6 shadow-sm flex items-center justify-between bg-emerald-50/20">
+                                <div>
+                                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Toplam Gelen Ödeme (Tahsilat)</p>
+                                    <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                                        {adminData.totalCollectedAmount.toLocaleString('tr-TR')} ₺
+                                    </h3>
+                                </div>
+                                <div className="p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                                    <DollarSign className="h-6 w-6" />
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktif Bursveren</p>
-                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{adminData.activeSponsors}</h3>
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Havale/EFT İle Gelen Toplam</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                                        {adminData.wireTransferCollectedAmount.toLocaleString('tr-TR')} ₺
+                                    </h3>
+                                </div>
+                                <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                    <Landmark className="h-6 w-6" />
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kredi Kartı İle Yapılan Ödeme</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                                        {adminData.creditCardCollectedAmount.toLocaleString('tr-TR')} ₺
+                                    </h3>
+                                </div>
+                                <div className="p-3 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400">
+                                    <CreditCard className="h-6 w-6" />
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-zinc-900 border border-purple-200 dark:border-purple-900/40 rounded-xl p-6 shadow-sm flex items-center justify-between bg-purple-50/10">
+                                <div>
+                                    <p className="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Öğrencilere Yapılan Ödemeler</p>
+                                    <h3 className="text-2xl font-extrabold text-purple-600 dark:text-purple-400 mt-1">
+                                        {adminData.totalStudentPayoutsAmount.toLocaleString('tr-TR')} ₺
+                                    </h3>
+                                </div>
+                                <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                                    <GraduationCap className="h-6 w-6" />
+                                </div>
                             </div>
                         </div>
                     </div>
