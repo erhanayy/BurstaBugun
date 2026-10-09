@@ -94,14 +94,38 @@ export async function getApplicationPool(fundPeriod?: string | null) {
 
 
 
-export async function getStudentsAllocationsStats(userIds: string[]) {
+export async function getStudentsAllocationsStats(userIds: string[], targetPeriod?: string | null) {
     if (userIds.length === 0) return {};
+
+    const tenantData = await getCurrentTenant();
+
+    let targetPeriods: string[] = [];
+    if (targetPeriod && targetPeriod !== "none" && tenantData) {
+        targetPeriods.push(targetPeriod);
+        const matchedSeason = await db.query.parametersTenantSeasons.findFirst({
+            where: and(
+                eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+                or(
+                    eq(parametersTenantSeasons.id, targetPeriod),
+                    eq(parametersTenantSeasons.period, targetPeriod)
+                )
+            )
+        });
+        if (matchedSeason) {
+            targetPeriods.push(matchedSeason.id);
+            targetPeriods.push(matchedSeason.period);
+        }
+        targetPeriods = Array.from(new Set(targetPeriods));
+    }
 
     const apps = await db.query.applications.findMany({
         where: inArray(applications.userId, userIds),
         with: {
             selections: {
-                where: eq(fundSelections.isActive, true)
+                where: eq(fundSelections.isActive, true),
+                with: {
+                    fund: true
+                }
             }
         }
     });
@@ -114,6 +138,17 @@ export async function getStudentsAllocationsStats(userIds: string[]) {
     apps.forEach(app => {
         if (app.selections && app.selections.length > 0) {
             app.selections.forEach((fs: any) => {
+                if (targetPeriods.length > 0) {
+                    const fundPeriodVal = fs.fund?.period;
+                    const appPeriodVal = app.period;
+                    const matchesPeriod = 
+                        (fundPeriodVal && targetPeriods.includes(fundPeriodVal)) ||
+                        (appPeriodVal && targetPeriods.includes(appPeriodVal));
+
+                    if (!matchesPeriod) {
+                        return;
+                    }
+                }
                 stats[app.userId] += (fs.amount || 0);
             });
         }
@@ -197,11 +232,33 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
     if (!appObj) throw new Error("Başvuru bulunamadı.");
 
     // MAX LIMIT CHECK
+    let targetPeriods: string[] = [];
+    if (fundObj.period && fundObj.period !== "none") {
+        targetPeriods.push(fundObj.period);
+        const matchedSeason = await db.query.parametersTenantSeasons.findFirst({
+            where: and(
+                eq(parametersTenantSeasons.tenantId, tenantData.tenantId),
+                or(
+                    eq(parametersTenantSeasons.id, fundObj.period),
+                    eq(parametersTenantSeasons.period, fundObj.period)
+                )
+            )
+        });
+        if (matchedSeason) {
+            targetPeriods.push(matchedSeason.id);
+            targetPeriods.push(matchedSeason.period);
+        }
+        targetPeriods = Array.from(new Set(targetPeriods));
+    }
+
     const studentUserApps = await db.query.applications.findMany({
         where: eq(applications.userId, appObj.userId),
         with: {
             selections: {
-                where: eq(fundSelections.isActive, true)
+                where: eq(fundSelections.isActive, true),
+                with: {
+                    fund: true
+                }
             }
         }
     });
@@ -209,6 +266,17 @@ export async function selectBursiyer(applicationId: string, fundId: string) {
     studentUserApps.forEach(a => {
         if (a.selections) {
             a.selections.forEach((s: any) => {
+                if (targetPeriods.length > 0) {
+                    const fundPeriodVal = s.fund?.period;
+                    const appPeriodVal = a.period;
+                    const matchesPeriod = 
+                        (fundPeriodVal && targetPeriods.includes(fundPeriodVal)) ||
+                        (appPeriodVal && targetPeriods.includes(appPeriodVal));
+
+                    if (!matchesPeriod) {
+                        return;
+                    }
+                }
                 currentTotalAllocated += (s.amount || 0);
             });
         }

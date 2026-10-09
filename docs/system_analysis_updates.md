@@ -72,3 +72,11 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
 - **Dinamik Dashboard Durum Bildirimleri:** Öğrenci ana ekranında (Dashboard) gösterilen "Referans Onayları Bekleniyor" metni, eğer öğrencinin henüz hiç referansı yoksa "Referans Bilgileri Bekleniyor (Lütfen Giriniz)" olarak daha anlaşılır bir formata güncellendi.
 - **Gelişmiş Bildirim (Notification) Sistemi:** Genel menüsü altına tüm kullanıcılar için "Bildirimler" sekmesi eklendi. Kullanıcıların geçmişe dönük aldıkları tüm onay/red/ödeme vb. sistem bildirimlerini geriye dönük görüntüleyebileceği, okundu/okunmadı takibini yapabileceği bir arayüz geliştirildi.
 - **Localhost SIFRELER.md Loglama:** Kayıt aşamasında üretilen ilk şifrelerin ve OTP kodlarının, yalnızca yerel geliştirme (development) ortamında `SIFRELER.md` dosyasına yazılması sağlandı. Canlı ortamda bu işlem atlanarak güvenlik standartları korundu.
+
+## 10. 09.10.2026 Dönem Bazlı Kümülatif Limit ve Havuz Tahsisat Kontrolü
+- **Açıklama:** Bursiyer havuzundaki fon seçiminde ve fona atama anındaki kümülatif burs limiti (`MAX_MONTHLY_LIMIT`) kontrolünde, öğrencinin geçmiş tüm yıllardaki (2024-2025, 2025-2026 vb.) eski burslarının yeni dönem limitini kilitlemesi sorunu çözüldü.
+- **Mantık:**
+  - `getStudentsAllocationsStats(userIds, targetPeriod)` ve `selectBursiyer(applicationId, fundId)` fonksiyonlarına hedef fon dönemi filtresi eklendi.
+  - Hedef dönemin UUID'si veya metin karşılığı (`parametersTenantSeasons`) dinamik olarak çözümlenerek, yalnızca seçilen fon ile **aynı döneme ait** aktif fon seçimleri (`fundSelections.isActive = true`) toplama dahil edildi.
+  - Böylece eski bursiyerlerin (örn: Evin Darılmaz) geçmiş yıllarda aldığı tutarlar yeni sezondaki (2026-2027) bursiyer havuzunda temiz (0 TL) görünmekte ve yeni fona atanmaları limit aşımı hatasına takılmadan sağlanmaktadır.
+

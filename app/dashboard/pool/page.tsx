@@ -33,7 +33,7 @@ export default async function PoolPage({ searchParams }: { searchParams: Promise
     });
 
     const userIds = Array.from(new Set(sortedPoolData.map((a: any) => a.userId)));
-    const allocationStats = await getStudentsAllocationsStats(userIds);
+    const allocationStats = await getStudentsAllocationsStats(userIds, fundPeriod);
 
     const capacity = selectedFund?.targetStudentCount !== null ? selectedFund?.targetStudentCount : Infinity;
     const filled = selectedFund?.selections?.length || 0;
