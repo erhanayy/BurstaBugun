@@ -128,3 +128,6 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
      - `lib/actions/moka-actions.ts` içerisinde: Admin toplu çekim yaptığında her zaman kullanıcının en son aktif token'ını (`isActive: true`, `orderBy: desc(createdAt)`) getiren sorgu devreye alındı.
 
 
+- **Canlıya Dağıtım ve Doğrulama (Revision: bursta-fbiad-00081-dnw):**
+  - Google Cloud Run servisine başarıyla deploy edildi (%100 trafik yönlendirildi).
+  - Bursveren menüsünde "Ödeme Yöntemini Değiştir" bağlantısı ve `/dashboard/payment-method` ekranı canlı ortamda doğrulanarak kullanıma açıldı.
