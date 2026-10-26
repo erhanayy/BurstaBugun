@@ -192,7 +192,10 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
             } else {
                 // Payment failed
                 console.error("Moka Charge Error:", JSON.stringify(data));
-                group.payments.forEach(p => results.push({ paymentId: p.id, success: false, error: data.ResultMessage || data.ResultCode || "Moka işlemi reddetti." }));
+                const bankError = data.Data?.ResultMessage || data.Data?.ResultDetail || (data.Data?.ResultCode && data.Data.ResultCode !== "Success" ? `Banka Red Kodu: ${data.Data.ResultCode}` : undefined);
+                const mokaError = data.ResultMessage || (data.ResultCode !== "Success" ? data.ResultCode : undefined);
+                const finalError = bankError || mokaError || "Moka/Banka işlemi reddetti.";
+                group.payments.forEach(p => results.push({ paymentId: p.id, success: false, error: finalError }));
             }
         }
 
