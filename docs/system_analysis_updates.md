@@ -102,3 +102,10 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
     - **Tek Tıkla Teslim Kontrolü (Check):** Tablodaki Checkbox ile sayfa yenilenmeden (Optimistic UI) evrak teslim durumu anında kaydedilir, teslim tarihi ve işleyen admin loglanır.
     - **Excel Aktarımı:** Filtrelenmiş tüm liste tek tıkla Excel formatında indirilebilir.
 
+## 13. 26.10.2026 Canlı Ortam (Production) Dağıtımı (Revision: bursta-fbiad-00079-5rf)
+- **Açıklama:** Son dönemde geliştirilen özellikler ve hata düzeltmeleri Google Cloud Run üzerinde `bursta-fbiad` servisine deploy edildi (%100 trafik yönlendirildi).
+- **Canlıya Alınan Başlıca Yenilikler:**
+  - **Moka Detaylı Hata Gösterimi:** Kredi Kartı Abonelikleri (`/dashboard/subscriptions`) ekranında Moka'dan dönen genel "Success" yerine, saklı kart bulunamaması vb. durumlarda detaylı hata mesajı (`Moka üzerinde bu kullanıcıya ait saklı kart bulunamadı`) gösterimi canlıya alındı.
+  - **2 Saatlik Oturum Güvenliği (Session Timeout):** 2 saatlik oturum süresi ve inaktif kullanıcıların doğrudan `/login` sayfasına yönlendirilmesi (Next.js 16 `proxy.ts`) canlı ortamda aktif edildi.
+  - **İmzalı Evrak Yönetimi:** "İmzalı Evrak Tanımları" (`/dashboard/admin/required-documents`) ve "İmzalı Evrak Takibi" (`/dashboard/admin/document-tracking`) ekranları canlıya taşındı.
+
