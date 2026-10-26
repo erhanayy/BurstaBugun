@@ -4,6 +4,11 @@ export const authConfig = {
     pages: {
         signIn: '/login',
     },
+    session: {
+        strategy: 'jwt',
+        maxAge: 2 * 60 * 60, // 2 saat (7.200 saniye)
+        updateAge: 15 * 60,  // 15 dakika (900 saniye) aktif gezindikçe süreyi yeniler
+    },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;

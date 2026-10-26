@@ -20,7 +20,8 @@ import {
     ChevronDown,
     UploadCloud,
     Briefcase,
-    MessageSquare
+    MessageSquare,
+    FileCheck
 } from "lucide-react";
 
 import { getCurrentTenant } from "@/lib/data/tenant";
@@ -42,6 +43,9 @@ export default async function DashboardLayout({
     children: React.ReactNode;
 }) {
     const session = await auth();
+    if (!session?.user) {
+        redirect("/login");
+    }
 
     const tenantData = await getCurrentTenant();
     if (!tenantData) {
@@ -199,6 +203,7 @@ export default async function DashboardLayout({
                             <CollapsibleNavSection title="Bursiyer Yönetimi" storageKey="applicant-admin" defaultExpanded={false}>
                                 <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
                                 <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
+                                <NavItem href="/dashboard/admin/document-tracking" icon={FileCheck} label="İmzalı Evrak Takibi" />
                                 <NavItem href="/dashboard/admin/iban-list" icon={CreditCard} label="IBAN Bilgileri" />
                             </CollapsibleNavSection>
                         )}
@@ -211,6 +216,7 @@ export default async function DashboardLayout({
                                     <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
                                     <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
                                     <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
+                                    <NavItem href="/dashboard/admin/required-documents" icon={FileCheck} label="İmzalı Evrak Tanımları" />
                                     <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
                                     {tenantData?.isSuperAdmin && (
                                         <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />
@@ -352,6 +358,7 @@ export default async function DashboardLayout({
                                             <CollapsibleNavSection title="Bursiyer Yönetimi" storageKey="applicant-admin" defaultExpanded={false}>
                                                 <NavItem href="/dashboard/admin/applicants" icon={Users} label="Bursiyer Takip" />
                                                 <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
+                                                <NavItem href="/dashboard/admin/document-tracking" icon={FileCheck} label="İmzalı Evrak Takibi" />
                                                 <NavItem href="/dashboard/admin/iban-list" icon={CreditCard} label="IBAN Bilgileri" />
                                             </CollapsibleNavSection>
                                         )}
@@ -364,6 +371,7 @@ export default async function DashboardLayout({
                                                     <NavItem href="/dashboard/admin/users" icon={Users} label="Kullanıcı Bilgileri" />
                                                     <NavItem href="/dashboard/admin/forms" icon={CheckSquare} label="Başvuru Tasarımcısı" />
                                                     <NavItem href="/dashboard/admin/agreements" icon={FileText} label="Sözleşmeler" />
+                                                    <NavItem href="/dashboard/admin/required-documents" icon={FileCheck} label="İmzalı Evrak Tanımları" />
                                                     <NavItem href="/dashboard/admin/parameters" icon={Settings} label="Parametreler" />
                                                     {tenantData?.isSuperAdmin && (
                                                         <NavItem href="/dashboard/admin/tenants" icon={Building2} label="Vakıflar (Tenants)" />

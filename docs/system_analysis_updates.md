@@ -80,3 +80,25 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
   - Hedef dönemin UUID'si veya metin karşılığı (`parametersTenantSeasons`) dinamik olarak çözümlenerek, yalnızca seçilen fon ile **aynı döneme ait** aktif fon seçimleri (`fundSelections.isActive = true`) toplama dahil edildi.
   - Böylece eski bursiyerlerin (örn: Evin Darılmaz) geçmiş yıllarda aldığı tutarlar yeni sezondaki (2026-2027) bursiyer havuzunda temiz (0 TL) görünmekte ve yeni fona atanmaları limit aşımı hatasına takılmadan sağlanmaktadır.
 
+## 11. 23.10.2026 Oturum Süresi (Session Timeout) ve Güvenlik Yönlendirmesi
+- **Açıklama:** Kullanıcıların doğrudan linklere tıkladığında varsayılan 30 günlük NextAuth oturum süresi nedeniyle şifresiz giriş yapması engellendi; finansal ve kişisel veri güvenliği için kurumsal oturum zaman aşımı devreye alındı.
+- **Mantık:**
+  - `auth.config.ts` dosyasına `session` yapılandırması eklenerek `maxAge: 7200` (2 saat) ve `updateAge: 900` (15 dakika) olarak sınırlandırıldı.
+  - **Kayan Oturum (Rolling Session):** Kullanıcı platformda aktif işlem yaptıkça oturum süresi otomatik olarak uzar; inaktif kaldığında ise 2 saat sonra oturum düşer.
+  - `app/dashboard/layout.tsx` içerisinde oturumsuz (`!session?.user`) durumlar doğrudan `/login` sayfasına yönlendirilecek şekilde güncellendi.
+  - Next.js 16 standartlarına uygun olarak `proxy.ts` dosyası yapılandırıldı ve `/dashboard` rotalarına gelen yetkisiz veya oturumu dolmuş isteklerin sayfa derlenmeden önce ağ katmanında anında `/login`'e yönlendirilmesi sağlandı.
+  - `auth.ts` içerisindeki callbacks bloğuna `...authConfig.callbacks` eklenerek yapılandırma bütünlüğü ve yetkilendirme kontrolleri korundu.
+
+## 12. 23.10.2026 İmzalı Evrak Tanımları ve Takip Modülü (Signed Document Tracking)
+- **Açıklama:** Vakfın yasal ve idari süreçlerde öğrencilerden/ilgililerden ıslak imzalı fiziki kağıtları (örn: KVKK Onay Formu, Burs Taahhütnamesi) teslim alması ve eksik evrak takibini dijital olarak yönetebilmesi için tanım tabanlı takip altyapısı geliştirildi.
+- **Veritabanı Modeli:**
+  - `signed_document_definitions`: Doküman adı, kimden alınacağı (`applicant`, `sponsor_reference`, `all`), dönem bazlı mı (`is_periodic: true/false`), tenantId ve aktiflik alanları eklendi.
+  - `signed_document_submissions`: Öğrencinin teslim durumu (`is_received: true/false`), teslim tarihi (`received_at`), teslimi sisteme işleyen admin (`received_by`), dönem (`period`), öğrenci (`user_id`, `application_id`) alanlarıyla takip kayıtları modellendi.
+- **Ekranlar ve İşlevsellik:**
+  - **İmzalı Evrak Tanımları (`/dashboard/admin/required-documents`):** Sistem Yönetimi (Ayarlar) menüsü altına eklendi. Yöneticilerin yeni evrak tanımlayabilmesini, dönemlik mi tek seferlik mi olduğunu belirleyebilmesini, mevcut tanımları düzenleyip silebilmesini sağlayan form ve liste yapısı kuruldu.
+  - **İmzalı Evrak Takibi (`/dashboard/admin/document-tracking`):** Bursiyer Yönetimi menüsü altına Seçenek B (Dikey Liste) formatında eklendi.
+    - **Öğrenci Kapsamı:** Yalnızca fona seçilmiş olan bursiyerler listelenir.
+    - **Filtreler:** Dönem (Season), Doküman Adı, Ad Soyad (Arama Çubuğu) ve Teslim Durumu (Tümü / Teslim Alınanlar / Eksikler).
+    - **Tek Tıkla Teslim Kontrolü (Check):** Tablodaki Checkbox ile sayfa yenilenmeden (Optimistic UI) evrak teslim durumu anında kaydedilir, teslim tarihi ve işleyen admin loglanır.
+    - **Excel Aktarımı:** Filtrelenmiş tüm liste tek tıkla Excel formatında indirilebilir.
+

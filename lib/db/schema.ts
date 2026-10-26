@@ -735,3 +735,59 @@ export const pledgeTransactionsRelations = relations(pledgeTransactions, ({ one 
         references: [payments.id],
     }),
 }));
+
+// --- Required Signed Documents (İmzalı Evrak Tanımları ve Takip) ---
+
+export const signedDocumentDefinitions = pgTable('signed_document_definitions', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    name: text('name').notNull(),
+    targetRole: text('target_role', { enum: ['all', 'applicant', 'sponsor_reference'] }).default('applicant').notNull(),
+    isPeriodic: boolean('is_periodic').default(true).notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const signedDocumentSubmissions = pgTable('signed_document_submissions', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    documentDefinitionId: uuid('document_definition_id').references(() => signedDocumentDefinitions.id, { onDelete: 'cascade' }).notNull(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    applicationId: uuid('application_id').references(() => applications.id),
+    period: text('period'), // nullable if not periodic, or period string/id if periodic
+    isReceived: boolean('is_received').default(false).notNull(),
+    receivedAt: timestamp('received_at'),
+    receivedBy: uuid('received_by').references(() => users.id),
+    notes: text('notes'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const signedDocumentDefinitionsRelations = relations(signedDocumentDefinitions, ({ one, many }) => ({
+    tenant: one(tenants, {
+        fields: [signedDocumentDefinitions.tenantId],
+        references: [tenants.id],
+    }),
+    submissions: many(signedDocumentSubmissions),
+}));
+
+export const signedDocumentSubmissionsRelations = relations(signedDocumentSubmissions, ({ one }) => ({
+    definition: one(signedDocumentDefinitions, {
+        fields: [signedDocumentSubmissions.documentDefinitionId],
+        references: [signedDocumentDefinitions.id],
+    }),
+    user: one(users, {
+        fields: [signedDocumentSubmissions.userId],
+        references: [users.id],
+    }),
+    receiver: one(users, {
+        fields: [signedDocumentSubmissions.receivedBy],
+        references: [users.id],
+    }),
+    application: one(applications, {
+        fields: [signedDocumentSubmissions.applicationId],
+        references: [applications.id],
+    }),
+}));
+

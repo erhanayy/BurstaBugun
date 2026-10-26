@@ -58,6 +58,7 @@ const nextAuthResult = NextAuth({
         }),
     ],
     callbacks: {
+        ...authConfig.callbacks,
         async jwt({ token, user }) {
             if (user) {
                 token.forcePasswordChange = user.forcePasswordChange;
