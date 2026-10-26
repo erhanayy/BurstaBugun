@@ -123,12 +123,19 @@ export async function POST(request: Request) {
 
     // Save Moka Token if provided
     if (tokenCode && userId) {
+        // Deactivate older tokens for this user
+        await db.update(mokaTokens)
+            .set({ isActive: false })
+            .where(eq(mokaTokens.userId, userId));
+
+        // Insert new active token
         await db.insert(mokaTokens).values({
             userId: userId,
             tokenCode: tokenCode,
+            isActive: true,
             cardMask: null // Moka might not return this, so we leave it null for now
         });
-        console.log(`Saved Moka token for user ${userId}`);
+        console.log(`Saved new active Moka token for user ${userId}`);
     }
 
     return NextResponse.json({ success: true });

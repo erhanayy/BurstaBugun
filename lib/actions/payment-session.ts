@@ -183,3 +183,85 @@ export async function createPaymentSession(fundId: string) {
   }
 }
 
+export async function createSinglePaymentSession(paymentId: string) {
+  try {
+    const session = await auth();
+    const tenantData = await getCurrentTenant();
+    if (!tenantData) {
+      return { success: false, error: 'Oturum bulunamadı' };
+    }
+
+    const payment = await db.query.payments.findFirst({
+      where: eq(payments.id, paymentId),
+      with: {
+        fund: true,
+        user: true,
+      },
+    });
+
+    if (!payment) {
+      return { success: false, error: 'Ödeme kaydı bulunamadı' };
+    }
+
+    // Yetki kontrolü (kullanıcı kendi ödemesini veya admin ödeyebilir)
+    if (payment.userId !== tenantData.userId && tenantData.userRole !== 'admin' && !tenantData.isSuperAdmin) {
+      return { success: false, error: 'Bu ödeme için yetkiniz bulunmuyor' };
+    }
+
+    const adSoyad = payment.user?.fullName || session?.user?.name || 'Bursveren';
+
+    const plan: PaymentPlanItem[] = [
+      {
+        id: payment.id,
+        amount: payment.amount,
+        date: payment.paymentDate?.toISOString() || new Date().toISOString(),
+        status: payment.status || 'pending',
+      },
+    ];
+
+    const isProdEnv = process.env.LIVE_ENV === 'true';
+    const appDomain = isProdEnv ? 'https://burs.fbiadvakfi.org' : 'http://localhost:3000';
+
+    const headersList = await headers();
+    let origin = headersList.get('origin');
+    if (!origin || origin === 'null') {
+      origin = process.env.NEXT_PUBLIC_APP_URL || appDomain;
+    }
+
+    if (isProdEnv && origin.includes('localhost')) {
+      origin = appDomain;
+    }
+
+    const returnUrl = `${origin}/dashboard/payment-method?success=true`;
+
+    const payload: PaymentSessionPayload = {
+      fundId: payment.fundId,
+      userId: payment.userId,
+      adSoyad,
+      tekilTutar: payment.amount,
+      toplamTutar: payment.amount,
+      taksitMi: true, // Moka'da IsTokenized = 1 yapılması için taksitMi true olmalıdır
+      plan,
+      returnUrl,
+    };
+
+    const secretKey = process.env.AUTH_SECRET || 'super_secret_generated_key_for_local_dev';
+    const secret = new TextEncoder().encode(secretKey);
+
+    const token = await new SignJWT(payload as any)
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('15m')
+      .sign(secret);
+
+    const isProd = process.env.LIVE_ENV === 'true' || process.env.NODE_ENV === 'production';
+    const webAppUrl = isProd ? 'https://www.fbiadvakfi.org' : 'http://localhost:3005';
+    const paymentUrl = `${webAppUrl}/app-payment?token=${token}`;
+
+    return { success: true, url: paymentUrl };
+  } catch (error) {
+    console.error('Failed to create single payment session:', error);
+    return { success: false, error: 'Oturum oluşturulamadı' };
+  }
+}
+

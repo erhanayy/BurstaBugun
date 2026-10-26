@@ -97,9 +97,13 @@ export async function chargeSubscriptionPayments(paymentIds: string[]) {
         for (const [groupKey, group] of groups.entries()) {
             let tokenCode = "";
             try {
-                // First try to get token from our local database
+                // First try to get token from our local database (latest active token)
                 const localToken = await db.query.mokaTokens.findFirst({
-                    where: eq(mokaTokens.userId, group.userId)
+                    where: and(
+                        eq(mokaTokens.userId, group.userId),
+                        eq(mokaTokens.isActive, true)
+                    ),
+                    orderBy: (mokaTokens, { desc }) => [desc(mokaTokens.createdAt)]
                 });
                 
                 if (localToken && localToken.tokenCode) {

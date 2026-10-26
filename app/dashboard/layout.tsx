@@ -160,6 +160,7 @@ export default async function DashboardLayout({
                                 <NavItem href="/dashboard/funds/flow" icon={Workflow} label="Fon Akışı" />
                                 <NavItem href="/dashboard/fast-fund" icon={PlusCircle} label="Hızlı Fon (Sihirbaz)" />
                                 <NavItem href="/dashboard/funds" icon={Landmark} label="Fonlarım / Desteklerim" />
+                                <NavItem href="/dashboard/payment-method" icon={CreditCard} label="Ödeme Yöntemini Değiştir" />
                                 <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
                                 <NavItem href="/dashboard/pool" icon={Users} label="Bursiyer Havuzu" />
                             </CollapsibleNavSection>
@@ -169,6 +170,7 @@ export default async function DashboardLayout({
                         {(userRole === 'contributor') && (
                             <CollapsibleNavSection title="Destekçi" storageKey="contributor">
                                 <NavItem href="/dashboard/funds" icon={Landmark} label="Destek Olduğum Fonlar" />
+                                <NavItem href="/dashboard/payment-method" icon={CreditCard} label="Ödeme Yöntemini Değiştir" />
                             </CollapsibleNavSection>
                         )}
 
@@ -315,6 +317,7 @@ export default async function DashboardLayout({
                                             <CollapsibleNavSection title="Burs Fonları" storageKey="sponsor">
                                                 <NavItem href="/dashboard/funds/flow" icon={Workflow} label="Fon Akışı" />
                                                 <NavItem href="/dashboard/funds" icon={Landmark} label="Fonlarım / Desteklerim" />
+                                                <NavItem href="/dashboard/payment-method" icon={CreditCard} label="Ödeme Yöntemini Değiştir" />
                                                 <NavItem href="/dashboard/invitations" icon={CheckSquare} label="Davetler / Onaylar" />
                                                 <NavItem href="/dashboard/pool" icon={Users} label="Bursiyer Havuzu" />
                                             </CollapsibleNavSection>
@@ -324,6 +327,7 @@ export default async function DashboardLayout({
                                         {(userRole === 'contributor') && (
                                             <CollapsibleNavSection title="Destekçi" storageKey="contributor">
                                                 <NavItem href="/dashboard/funds" icon={Landmark} label="Destek Olduğum Fonlar" />
+                                                <NavItem href="/dashboard/payment-method" icon={CreditCard} label="Ödeme Yöntemini Değiştir" />
                                             </CollapsibleNavSection>
                                         )}
 

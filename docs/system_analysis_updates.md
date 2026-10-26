@@ -102,10 +102,29 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
     - **Tek Tıkla Teslim Kontrolü (Check):** Tablodaki Checkbox ile sayfa yenilenmeden (Optimistic UI) evrak teslim durumu anında kaydedilir, teslim tarihi ve işleyen admin loglanır.
     - **Excel Aktarımı:** Filtrelenmiş tüm liste tek tıkla Excel formatında indirilebilir.
 
-## 13. 26.10.2026 Canlı Ortam (Production) Dağıtımı (Revision: bursta-fbiad-00079-5rf)
+## 13. 26.10.2026 Canlı Ortam (Production) Dağıtımı (Revision: bursta-fbiad-00079-5rf / bursta-fbiad-00080-pvr)
 - **Açıklama:** Son dönemde geliştirilen özellikler ve hata düzeltmeleri Google Cloud Run üzerinde `bursta-fbiad` servisine deploy edildi (%100 trafik yönlendirildi).
 - **Canlıya Alınan Başlıca Yenilikler:**
-  - **Moka Detaylı Hata Gösterimi:** Kredi Kartı Abonelikleri (`/dashboard/subscriptions`) ekranında Moka'dan dönen genel "Success" yerine, saklı kart bulunamaması vb. durumlarda detaylı hata mesajı (`Moka üzerinde bu kullanıcıya ait saklı kart bulunamadı`) gösterimi canlıya alındı.
+  - **Moka Detaylı Hata Gösterimi:** Kredi Kartı Abonelikleri (`/dashboard/subscriptions`) ekranında Moka'dan dönen genel "Success" yerine, saklı kart bulunamaması veya banka ret sebepleri (`Kart Sahibine Açık Olmayan İşlem`, `Banka Red Kodu` vb.) detaylı hata mesajı gösterimi canlıya alındı.
   - **2 Saatlik Oturum Güvenliği (Session Timeout):** 2 saatlik oturum süresi ve inaktif kullanıcıların doğrudan `/login` sayfasına yönlendirilmesi (Next.js 16 `proxy.ts`) canlı ortamda aktif edildi.
   - **İmzalı Evrak Yönetimi:** "İmzalı Evrak Tanımları" (`/dashboard/admin/required-documents`) ve "İmzalı Evrak Takibi" (`/dashboard/admin/document-tracking`) ekranları canlıya taşındı.
+
+## 14. 26.10.2026 Bursveren Ödeme Yöntemi Güncelleme Modülü (Payment Method Update & 3D Secure Re-auth)
+- **Açıklama:** Kredi kartı son kullanım tarihi dolan veya kartını değiştirmek isteyen bursverenlerin, 3D Secure SMS doğrulaması ile yeni kartlarını sisteme kaydedebilmelerini ve sıradaki bekleyen taksitlerini tahsil ederek sonraki aylık çekimleri bu yeni kart üzerinden devam ettirebilmelerini sağlayan modül geliştirildi.
+- **Mimari Mantık:**
+  - PCI-DSS ve güvenlik gereği BurstaBugün platformunda kart numarası/CVC tutulmamakta, kart saklama ve ilk 3D doğrulama FBİAD Vakfı Web (`FBIADVakfiWeb`) sanal POS katmanı üzerinden yürütülmektedir.
+  - Bankacılık ve Moka kuralı gereği yeni bir `CardToken` oluşturulabilmesi için gerçek bir 3D Secure ödeme işleminin (`IsTokenized: 1`) başarıyla tamamlanması şarttır.
+- **Geliştirilen Bileşenler ve İş Akışı:**
+  1. **Sol Menü (Navigasyon):** `app/dashboard/layout.tsx` üzerinde Sponsor ve Katılımcı (Contributor) rolleri için masaüstü ve mobil menülere **"Ödeme Yöntemini Değiştir"** (`/dashboard/payment-method`) linki eklendi.
+  2. **Yeni Ekran (`/dashboard/payment-method`):**
+     - Bursverenin bekleyen en erken tarihli taksiti (`status = 'pending'`, `paymentMethod = 'subscription'`) dinamik olarak sorgulanır.
+     - Fon Adı, Taksit Dönemi (Ay/Yıl), Tutar ve Kalan Taksit Sayısı gösterilir.
+     - "Nasıl Çalışır?" bilgilendirmesi ile sıradaki taksitin yeni karttan 3D Secure ile çekileceği ve gelecek ayların bu karta bağlanacağı şeffafça açıklanır.
+     - `PaymentMethodButton` bileşeni ile kullanıcı doğrudan güvenli web ödeme akışına yönlendirilir.
+  3. **Tekil Taksit Ödeme Oturumu (`lib/actions/payment-session.ts`):**
+     - `createSinglePaymentSession(paymentId)` fonksiyonu yazıldı. Tüm fon borcu yerine yalnızca seçilen tekil taksit tutarını kapsayan güvenli JWT üretilerek `FBIADVakfiWeb/app-payment` rotasına yönlendirme sağlandı.
+  4. **Token Yönetimi ve İleriki Kayıtların Güncellenmesi:**
+     - `app/api/webhooks/payment-complete/route.ts` içerisinde: 3D Secure başarıyla tamamlandığında Moka'dan dönen yeni `tokenCode` kaydedilirken, kullanıcının önceki süresi dolmuş tüm token'ları `isActive: false` yapılarak yeni token `isActive: true` olarak eklendi.
+     - `lib/actions/moka-actions.ts` içerisinde: Admin toplu çekim yaptığında her zaman kullanıcının en son aktif token'ını (`isActive: true`, `orderBy: desc(createdAt)`) getiren sorgu devreye alındı.
+
 
