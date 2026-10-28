@@ -1,8 +1,12 @@
 node_modules/
 .git/
 .next/
+.next-fbiad/
 android/
 ios/
+tmp/
 .env.local
 .env.local.cloud
 scratch*
+build_log.txt
+*.dump

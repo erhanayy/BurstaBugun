@@ -586,6 +586,10 @@ export function PledgesClient({
                                     tenantId={tenantId}
                                     initialData={{
                                         pledgeId: selectedPledgeForPayment.id,
+                                        pledgeFullName: selectedPledgeForPayment.fullName,
+                                        pledgeTargetAmount: selectedPledgeForPayment.targetAmount,
+                                        pledgeActualAmount: selectedPledgeForPayment.actualAmount,
+                                        pledgeTargetStudentCount: selectedPledgeForPayment.targetStudentCount,
                                         newUserName: selectedPledgeForPayment.fullName,
                                         newUserEmail: selectedPledgeForPayment.email || "",
                                         newUserPhone: selectedPledgeForPayment.phone || "",
@@ -595,6 +599,7 @@ export function PledgesClient({
                                         // setPaymentModalOpen(false) yapmıyoruz, tahsilatları güncelliyoruz.
                                         getPledgePayments(selectedPledgeForPayment.id)
                                             .then(data => setPledgePayments(data));
+                                        router.refresh();
                                     }}
                                 />
                             </div>

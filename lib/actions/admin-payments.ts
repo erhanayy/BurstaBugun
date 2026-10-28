@@ -129,6 +129,8 @@ export async function submitManualPayment(data: any, tenantId: string) {
 
         revalidatePath(`/dashboard/funds/${data.fundId}`);
         revalidatePath('/dashboard/admin/payments/new');
+        revalidatePath('/dashboard/admin/pledges');
+        revalidatePath('/dashboard/admin/donations');
 
         return { success: true };
     } catch (error: any) {

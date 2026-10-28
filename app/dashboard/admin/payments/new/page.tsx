@@ -31,8 +31,16 @@ export default async function NewPaymentPage() {
         }
     });
 
-    const allUsers = tenantUsersRecords
-        .map(tu => tu.user)
+    const userMap = new Map();
+    tenantUsersRecords.forEach(tu => {
+        if (tu.user && !userMap.has(tu.user.id)) {
+            userMap.set(tu.user.id, {
+                ...tu.user,
+                role: tu.role
+            });
+        }
+    });
+    const allUsers = Array.from(userMap.values())
         .sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
 
     return (

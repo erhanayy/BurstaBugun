@@ -131,3 +131,20 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
 - **Canlıya Dağıtım ve Doğrulama (Revision: bursta-fbiad-00081-dnw):**
   - Google Cloud Run servisine başarıyla deploy edildi (%100 trafik yönlendirildi).
   - Bursveren menüsünde "Ödeme Yöntemini Değiştir" bağlantısı ve `/dashboard/payment-method` ekranı canlı ortamda doğrulanarak kullanıma açıldı.
+
+## 15. 28.10.2026 Burs Taahhütleri (Pledge CRM) ve Manuel Tahsilat Akıllı Bursveren Seçim Modülü
+- **Açıklama:** Burs Taahhütleri (`/dashboard/admin/pledges`) ekranından "Tahsilat Gir" yapıldığında veya Manuel Tahsilat (`/dashboard/admin/payments/new`) ekranında bağışçı e-postasını harici ekranlardan arayıp kopyalama zorunluluğunu ortadan kaldıran, kayıtlı bursverenleri akıllı eşleştiren ve aranabilir seçim sunan altyapı geliştirildi.
+- **Geliştirilen Bileşenler ve İş Akışı:**
+  1. **Taahhüt Özet Bilgi Kartı:**
+     - Taahhüt satırından tahsilat modalı açıldığında, en üstte taahhüt sahibinin adı, hedeflenen toplam tutar, taahhüt edilen öğrenci sayısı ve kalan bakiye şık bir özet kartı olarak gösterilir.
+  2. **Akıllı Otomatik Eşleştirme (Smart Matching):**
+     - Taahhüt sahibinin adı, soyadı ve telefonu sistemdeki kayıtlı bursverenler (`sponsor` / `admin`) ile taranır.
+     - Eşleşme sağlandığında bağışçı seçim alanında ilgili bursveren otomatik olarak seçili getirilir (`userId`, `email`, `phone`). Yöneticinin e-posta arama ve yazma ihtiyacı ortadan kaldırılır.
+  3. **Aranabilir Bursveren Seçici (Combobox):**
+     - Türkçe karakter (İ/ı, Ş/ş vb.) destekli ve telefon/e-posta aramalı hızlı filtreleme mekanizması eklendi.
+     - Seçilen kullanıcı yeşil onay kartında gösterilir, istenirse tek tıkla "Değiştir" butonuyla başka bir bursverene geçilebilir.
+  4. **Yeni / Gölge Bağışçı Modu:**
+     - Sistemde kayıtlı olmayan kişiler için "+ Listede Yok, Yeni Bağışçı Gir" butonuyla manuel giriş moduna geçiş imkanı sağlandı.
+     - Girilen e-posta adresiyle sistemde kayıt yoksa otomatik `shadow_user` şifresi ve `sponsor` rolüyle gölge bursveren hesabı oluşturulur.
+  5. **Önbellek Revalidasyonu:**
+     - `submitManualPayment` fonksiyonunda `/dashboard/admin/pledges` ve `/dashboard/admin/donations` sayfaları revalidate edilerek taahhüt tablosundaki gerçekleşen tutarın ve durumun anında güncellenmesi sağlandı.
