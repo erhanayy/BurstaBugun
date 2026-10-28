@@ -628,8 +628,8 @@ export function PaymentForm({
                     )}
                 </div>
 
-                {/* 4. TUTAR, TARİH VE DETAYLAR */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 4. TUTAR, TARİH VE DETAYLAR (1 SATIRA 2 ALAN) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
                         name="amount"
