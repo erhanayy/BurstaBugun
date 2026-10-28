@@ -4,18 +4,43 @@ import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
 import { db } from './lib/db';
 import { users } from './lib/db/schema';
-import { eq, or, and, isNull } from 'drizzle-orm';
+import { eq, or, and, isNull, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
-async function getUser(identifier: string) {
+async function getUserByIdentifier(identifier: string, tenantId?: string) {
     try {
-        const user = await db.select().from(users).where(
-            eq(users.email, identifier)
-        ).limit(1);
-        return user[0];
+        const trimmed = identifier.trim();
+        const isEmail = trimmed.includes('@');
+        const digits = trimmed.replace(/\D/g, '');
+        const last10 = digits.length >= 10 ? digits.slice(-10) : digits;
+
+        let identifierFilter;
+        if (isEmail) {
+            identifierFilter = eq(users.email, trimmed.toLowerCase());
+        } else if (digits.length >= 7) {
+            identifierFilter = or(
+                eq(users.phoneNumber, trimmed),
+                sql`regexp_replace(${users.phoneNumber}, '[^0-9]', '', 'g') LIKE ${'%' + last10}`
+            );
+        } else {
+            identifierFilter = eq(users.email, trimmed.toLowerCase());
+        }
+
+        const whereClause = tenantId 
+            ? and(
+                identifierFilter,
+                or(
+                    eq(users.tenantId, tenantId),
+                    isNull(users.tenantId) // allow super admins
+                )
+            )
+            : identifierFilter;
+
+        const userResult = await db.select().from(users).where(whereClause).limit(1);
+        return userResult[0];
     } catch (error) {
-        console.error('Failed to fetch user:', error);
-        throw new Error('Failed to fetch user.');
+        console.error('Failed to fetch user by identifier:', error);
+        return null;
     }
 }
 
@@ -30,19 +55,7 @@ const nextAuthResult = NextAuth({
 
                 if (parsedCredentials.success) {
                     const { identifier, password, tenantId } = parsedCredentials.data;
-                    
-                    const whereClause = tenantId 
-                        ? and(
-                            eq(users.email, identifier),
-                            or(
-                                eq(users.tenantId, tenantId),
-                                isNull(users.tenantId) // allow super admins
-                            )
-                        )
-                        : eq(users.email, identifier);
-                    
-                    const userResult = await db.select().from(users).where(whereClause).limit(1);
-                    const user = userResult[0];
+                    const user = await getUserByIdentifier(identifier, tenantId);
 
                     if (!user) return null;
                     if (!user.password) return null; // No password set

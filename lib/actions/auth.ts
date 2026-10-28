@@ -4,12 +4,13 @@ import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "../db";
 import { users } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { getCurrentTenant } from "../data/tenant";
 import { revalidatePath } from "next/cache";
 import { sendEmail, EMAIL_CODES } from "../email";
+import { sendSms, isSmsAuthEnabled } from "../sms";
 
 import { cookies } from "next/headers";
 
@@ -168,4 +169,155 @@ export async function forgotPassword(prevState: any, formData: FormData) {
     // Always return success to prevent user enumeration
     return { message: "Eğer kayıtlıysa, şifre sıfırlama bağlantısı gönderildi.", success: true };
 }
+
+export async function checkSmsAuthEnabled(): Promise<boolean> {
+    return isSmsAuthEnabled();
+}
+
+export async function sendPasswordResetOtp(phone: string) {
+    try {
+        const cleanPhone = (phone || "").trim();
+        const digits = cleanPhone.replace(/\D/g, "");
+        if (digits.length < 10) {
+            return {
+                success: false,
+                message: "Lütfen geçerli 10 haneli cep telefonu numaranızı giriniz (örn: 05XX XXX XX XX)."
+            };
+        }
+        const last10 = digits.slice(-10);
+
+        const cookieStore = await cookies();
+        const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+        const tenantId = envTenantId || cookieStore.get('dernekte_tenant_id')?.value || '';
+
+        const user = await db.query.users.findFirst({
+            where: (users, { and, or, isNull }) => and(
+                sql`regexp_replace(${users.phoneNumber}, '[^0-9]', '', 'g') LIKE ${'%' + last10}`,
+                tenantId ? or(eq(users.tenantId, tenantId), isNull(users.tenantId)) : undefined
+            )
+        });
+
+        if (!user) {
+            return {
+                success: false,
+                message: "Bu telefon numarasına ait bir kullanıcı hesabı bulunamadı."
+            };
+        }
+
+        // 6 haneli OTP kodu üret
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 3 * 60 * 1000); // 3 dakika geçerli
+
+        await db.update(users)
+            .set({
+                verificationCode: otp,
+                verificationCodeExpiresAt: expiresAt,
+            })
+            .where(eq(users.id, user.id));
+
+        // SMS gönder
+        const targetPhone = user.phoneNumber || cleanPhone;
+        const smsResult = await sendSms({
+            to: targetPhone,
+            message: `Sayin ${user.fullName || 'Uyemiz'}, DernekteBugun sifre sifirlama dogrulama kodunuz: ${otp}. Bu kod 3 dakika gecerlidir.`,
+            screen: 'forgot-password'
+        });
+
+        if (!smsResult.success) {
+            return {
+                success: false,
+                message: smsResult.error || "SMS gönderilirken bir hata oluştu. Lütfen tekrar deneyin."
+            };
+        }
+
+        // Maskelenmiş telefon (örn: 0532 *** ** 12)
+        const masked = `05${last10.slice(1, 4)} *** ** ${last10.slice(-2)}`;
+
+        return {
+            success: true,
+            maskedPhone: masked,
+            phone: targetPhone,
+            isMock: smsResult.isMock || false,
+            message: smsResult.isMock
+                ? `Test Modu: Doğrulama kodunuz (${otp}) oluşturuldu (SIFRELER.md dosyasında görüntülenebilir).`
+                : `${masked} numaralı telefonunuza 6 haneli doğrulama kodu gönderildi.`
+        };
+    } catch (error: any) {
+        console.error("[sendPasswordResetOtp] Hata:", error);
+        return { success: false, message: "İşlem sırasında beklenmeyen bir hata oluştu." };
+    }
+}
+
+export async function resetPasswordWithOtp(data: {
+    phone: string;
+    otp: string;
+    newPassword: string;
+    confirmPassword: string;
+}) {
+    try {
+        const { phone, otp, newPassword, confirmPassword } = data;
+
+        if (!newPassword || newPassword.length < 6) {
+            return { success: false, message: "Yeni şifre en az 6 karakter olmalıdır." };
+        }
+        if (newPassword !== confirmPassword) {
+            return { success: false, message: "Girilen şifreler birbiriyle eşleşmiyor." };
+        }
+        if (!otp || otp.trim().length !== 6) {
+            return { success: false, message: "Lütfen 6 haneli doğrulama kodunu eksiksiz giriniz." };
+        }
+
+        const digits = (phone || "").replace(/\D/g, "");
+        if (digits.length < 10) {
+            return { success: false, message: "Geçersiz telefon numarası." };
+        }
+        const last10 = digits.slice(-10);
+
+        const cookieStore = await cookies();
+        const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+        const tenantId = envTenantId || cookieStore.get('dernekte_tenant_id')?.value || '';
+
+        const user = await db.query.users.findFirst({
+            where: (users, { and, or, isNull }) => and(
+                sql`regexp_replace(${users.phoneNumber}, '[^0-9]', '', 'g') LIKE ${'%' + last10}`,
+                tenantId ? or(eq(users.tenantId, tenantId), isNull(users.tenantId)) : undefined
+            )
+        });
+
+        if (!user) {
+            return { success: false, message: "Kullanıcı bulunamadı." };
+        }
+
+        if (!user.verificationCode || user.verificationCode.trim() !== otp.trim()) {
+            return { success: false, message: "Girdiğiniz doğrulama kodu hatalı." };
+        }
+
+        if (!user.verificationCodeExpiresAt || new Date() > new Date(user.verificationCodeExpiresAt)) {
+            return {
+                success: false,
+                message: "Doğrulama kodunun süresi dolmuş. Lütfen 'Kodu Tekrar Gönder' butonuna basarak yeni kod isteyin."
+            };
+        }
+
+        // Yeni şifreyi hashle ve kaydet, doğrulama kodunu temizle
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.update(users)
+            .set({
+                password: hashedPassword,
+                verificationCode: null,
+                verificationCodeExpiresAt: null,
+                forcePasswordChange: false,
+            })
+            .where(eq(users.id, user.id));
+
+        return {
+            success: true,
+            message: "Şifreniz başarıyla güncellendi! Yeni şifrenizle giriş yapabilirsiniz."
+        };
+    } catch (error: any) {
+        console.error("[resetPasswordWithOtp] Hata:", error);
+        return { success: false, message: "Şifre güncellenirken bir hata oluştu." };
+    }
+}
+
 

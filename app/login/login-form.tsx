@@ -41,7 +41,7 @@ export function LoginForm({ tenantName, logoUrl, primaryColor, backgroundColor }
                             id="identifier"
                             type="text"
                             name="identifier"
-                            placeholder="user@example.com"
+                            placeholder="user@example.com veya 05XX XXX XX XX"
                             required
                         />
                     </div>

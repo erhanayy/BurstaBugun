@@ -148,3 +148,25 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
      - Girilen e-posta adresiyle sistemde kayıt yoksa otomatik `shadow_user` şifresi ve `sponsor` rolüyle gölge bursveren hesabı oluşturulur.
   5. **Önbellek Revalidasyonu:**
      - `submitManualPayment` fonksiyonunda `/dashboard/admin/pledges` ve `/dashboard/admin/donations` sayfaları revalidate edilerek taahhüt tablosundaki gerçekleşen tutarın ve durumun anında güncellenmesi sağlandı.
+
+## 16. 28.10.2026 Telefon Odaklı Kimlik Doğrulama, NetGSM Entegrasyonu ve Özellik Bayrağı (Feature Flag)
+- **Açıklama:** Kullanıcıların sisteme sadece e-posta ile değil, cep telefonu numarası ile de giriş yapabilmesini sağlayan ikili kimlik doğrulama mimarisi kuruldu. Sürekli SMS OTP maliyetini engellemek için normal girişlerde şifre doğrulaması korunurken, "Şifremi Unuttum" akışı NetGSM SMS OTP (6 haneli tek kullanımlık kod) mekanizmasına taşındı. Süreç, geçiş sürecinde esneklik sağlamak amacıyla `ENABLE_SMS_AUTH` özellik bayrağına (Feature Flag) bağlandı.
+- **Geliştirilen Bileşenler ve İş Akışı:**
+  1. **İkili Kimlik ile Giriş (E-Posta VEYA Cep Telefonu):**
+     - `auth.ts` içerisindeki `getUserByIdentifier` fonksiyonu geliştirildi.
+     - Giriş alanına girilen değer `@` içeriyorsa e-posta üzerinden, içermiyorsa tüm boşluk ve özel karakterler temizlenerek son 10 hanesi üzerinden `users.phoneNumber` ile eşleştirilir.
+     - `0532...`, `532...`, `0090...` veya `+90...` formatlarındaki tüm girişler sorunsuz karşılanır.
+     - Kullanıcı her girişte SMS maliyetine katlanmadan şifresiyle hızlıca giriş yapabilir.
+  2. **NetGSM Servis Modülü (`lib/sms.ts`):**
+     - NetGSM GET API (`https://api.netgsm.com.tr/sms/send/get`) entegrasyonu yazıldı.
+     - Telefon numaralarını NetGSM standartı olan `905XXXXXXXXX` formatına normalize eden `normalizePhoneForNetgsm` fonksiyonu eklendi.
+     - `sendSms` fonksiyonu; `NETGSM_USERCODE`, `NETGSM_PASSWORD`, `NETGSM_HEADER` ortam değişkenleri tanımlıysa gerçek SMS iletimi yapar.
+     - Bilgiler tanımlı değilse güvenli **Test (Mock) Modu**'nda çalışır: Üretilen OTP kodunu ve SMS metnini sunucu konsoluna ve `SIFRELER.md` dosyasına kaydeder.
+  3. **Şifre Sıfırlama OTP Sunucu Aksiyonları (`lib/actions/auth.ts`):**
+     - `sendPasswordResetOtp(phone)`: Telefon numarasını doğrular, kullanıcıyı bulur, 3 dakika geçerli 6 haneli OTP kodu üretir, veritabanına kaydeder ve SMS gönderir.
+     - `resetPasswordWithOtp({ phone, otp, newPassword, confirmPassword })`: Girilen OTP kodunu ve geçerlilik süresini doğrular. Yeni şifreyi bcrypt ile hash'leyerek günceller, OTP kodunu temizler.
+  4. **Özellik Bayrağı (Feature Flag) Kontrollü Ekran (`app/forgot-password/page.tsx`):**
+     - `isSmsAuthEnabled()` fonksiyonu (`ENABLE_SMS_AUTH === 'true'`) kontrol edilir.
+     - `ENABLE_SMS_AUTH=true` olduğunda: Telefon girilen, SMS OTP doğrulanan ve yeni şifre belirlenen 3 adımlı modern arayüz (`sms-forgot-password-form.tsx`) çalışır (3 dakikalık geri sayım sayacı, kodu tekrar gönder, numarayı değiştir seçenekleriyle).
+     - `ENABLE_SMS_AUTH=false` olduğunda: Mevcut e-posta ve telefon doğrulama akışı (`legacy-forgot-password-form.tsx`) hiçbir kesintiye uğramadan çalışmaya devam eder.
+
