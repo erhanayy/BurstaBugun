@@ -1,11 +1,11 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.burstabugun.app',
-  appName: 'BurstaBugun',
+  appId: 'org.fbiadvakfi.burs',
+  appName: 'FBİAD Vakfı',
   webDir: 'public',
   server: {
-    url: 'http://localhost:3004',
+    url: 'https://burs.fbiadvakfi.org',
     cleartext: true
   }
 };

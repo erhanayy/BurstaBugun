@@ -170,3 +170,112 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
      - `ENABLE_SMS_AUTH=true` olduğunda: Telefon girilen, SMS OTP doğrulanan ve yeni şifre belirlenen 3 adımlı modern arayüz (`sms-forgot-password-form.tsx`) çalışır (3 dakikalık geri sayım sayacı, kodu tekrar gönder, numarayı değiştir seçenekleriyle).
      - `ENABLE_SMS_AUTH=false` olduğunda: Mevcut e-posta ve telefon doğrulama akışı (`legacy-forgot-password-form.tsx`) hiçbir kesintiye uğramadan çalışmaya devam eder.
 
+## 17. 28.10.2026 Vakıf Dönemsel Bütçe, Kasa ve Nakit Akışı Yönetim Modülü
+- **Açıklama:** Vakfın burs bağışları, bursiyer ödemeleri, açılış kasa/banka devirleri, operasyonel idari giderleri ve ek finansman gelirlerini tek çatı altında konsolide eden "Yönetimsel Dönemsel Bütçe ve Kasa/Nakit Akışı" modülü geliştirildi.
+- **Menü Yapısı ve Yetkilendirme:**
+  - Ana menüde (Desktop & Mobile) yalnızca `admin` ve `isSuperAdmin` yetkisine sahip kullanıcıların görebileceği yeni **"Bütçe"** başlığı (`storageKey="budget-admin"`) açıldı.
+  - Başlık altında iki ana sayfa konumlandırıldı:
+    1. **Bütçe ve Kasa Raporu** (`/dashboard/admin/budget`, İkon: `PieChart`)
+    2. **Banka Hesapları** (`/dashboard/admin/bank-accounts`, İkon: `Landmark`)
+- **Veritabanı Mimarisi (PostgreSQL DDL):**
+  1. `tenant_bank_accounts`: Vakfa ait banka ve nakit kasa hesap tanımları (Banka adı, hesap tanımı, IBAN, para birimi, aktiflik durumu, sıra).
+  2. `budget_opening_balances`: Dönem açılış kasa/banka devir bakiyeleri (Akademik dönem bazlı, hesap ID'si veya serbest metin hesap tanımı, devir tarihi, tutar, notlar).
+  3. `budget_transactions`: Ek gelirler (`type = 'income'`) ve operasyonel giderler (`type = 'expense'`) için ortak hareket tablosu (Kategori, başlık, ilgili kurum/kişi, tutar, işlem tarihi, belge/fatura no, banka hesabı, notlar).
+- **Konsolidasyon ve Hesaplama Mantığı (Single Source of Truth):**
+  - Burs bağışları (`payments`) ve bursiyer ödemeleri (`student_payment_logs`) mükerrer kayıt oluşturulmadan doğrudan fon ve dönem ilişkisi üzerinden dinamik olarak toplanır.
+  - Toplam Gelir = Burs Bağışları (Abonelik/KK + Havale/EFT) + Ek Finansman Gelirleri.
+  - Toplam Gider = Bursiyer Dağıtımları + Operasyonel Giderler (Yazılım, danışmanlık, noter, muhasebe, banka masrafları vb.).
+  - Güncel Kasa = Dönem Açılış Bakiyesi + Toplam Gelir - Toplam Gider.
+  - Aylık Nakit Akışı Matrisi: Akademik sezon boyunca (Eylül-Ağustos) ay ay başlangıç kasa, gelirler, giderler, net akış ve kümülatif kapanış kasası.
+- **Ekran Tasarımı ve Mobil Uyumluluk:**
+  - 5 adet modern KPI Özet Kartı (Dönem Açılış, Toplam Gelir, Toplam Gider, Güncel Kasa/Banka, Taahhüt Gerçekleşme Oranı).
+  - Mobil cihazlarda tablo yerine dikey kart görünümüne otomatik geçiş.
+  - Hızlı İşlem Ekle modalı (`[+ Gelir / - Gider]` anlık geçiş düğmesi).
+  - Hesap bazında Dönem Açılış Bakiyesi Yönetimi modalı.
+  - Çok sekmeli Excel (.xlsx) dışa aktarımı (`Özet Bütçe`, `Aylık Nakit Akışı`, `İşlem Hareketleri`, `Açılış Bakiyeleri`).
+- **Dağıtım Durumu:**
+  - Kullanıcı talebi doğrultusunda canlıya dağıtım bekletildi. Local dev ortamında (`localhost:3004`) test için hazırlandı.
+
+---
+
+### 18. Burs Taahhütleri CRM — Dinamik Vade Borcu (+35 Gün Kuralı), WhatsApp & E-Posta Hatırlatma Entegrasyonu (29 Ekim 2026)
+
+- **Gereksinim & Arka Plan:**
+  - Sanal POS (Moka) ödemelerinin vakıf hesabına 33 günlük blokaj süresiyle aktarılması ve bağışçıların hatırlatma sonrasında hemen ödeme yapmama ihtimali nedeniyle nakit akışı koruma emniyeti sağlandı.
+  - Formül kuralı: **Bulunduğumuz Gün + 35 Takvim Günü**.
+  - Örneğin 29 Ekim 2026 için +35 gün, **3 Aralık 2026** tarihine denk gelmekte olup vadesi gelen ay **Aralık** olarak tespit edilmektedir.
+  - Sezon başlangıç ayı olan Ağustos'tan Aralık ayı sonuna kadar geçen 5 aylık burs katkı payının karşılanması beklenmektedir.
+
+- **Hesaplama Parametreleri & İş Mantığı:**
+  - `dueMonths = Math.min(defaultFundDuration, Math.max(1, elapsedMonths))` (Örnek: 5 Ay)
+  - `dueTargetAmount = targetStudentCount * defaultFundAmount * dueMonths` (Örnek: 1 öğrenci için 5 x 5.000 = 25.000 ₺)
+  - `dueRemainingDebt = Math.max(0, dueTargetAmount - actualAmount)`
+  - **Hücre Formatı & Satır Yüksekliği Optimizasyonu:**
+    - Alt satırdaki açıklama kaldırıldı; komşu kolonla tam simetrik olacak şekilde tek satırlık `Rozet` yapısına dönüştürüldü: `[Güncel Vade Borcu] / [Vadesi Gelen Tutar]` (örn. `-15.000 ₺ / 25.000 ₺`).
+    - Borçlu durumda (`dueRemainingDebt > 0`) belirgin **KIRMIZI rozet** (`-15.000 ₺ / 25.000 ₺`) ile gösterilir.
+    - Vadesinde veya ilerisinde olan bağışçılarda **YEŞİL rozet** (`0 ₺ / 25.000 ₺`) gösterilir.
+    - Rozet üzerine gelindiğinde (hover tooltip) ay detayı ve tam durum açıklaması görüntülenir.
+  - Mevcut tablodaki `Gerçekleşen / Hedef Tutar` kolonunun renk ve stil yapısı değiştirilmeden korunmuştur.
+
+- **WhatsApp Hatırlatma Entegrasyonu & Sekme Optimizasyonu:**
+  - Tablo İşlemler sütununa doğrudan yeşil WhatsApp ikonu eklendi.
+  - Bağışçının telefon numarası temizlenip uluslararası formata (`905XXXXXXXXX`) dönüştürülür.
+  - **Masaüstü WhatsApp Desktop & Akıllı Web Fallback Entegrasyonu (`whatsapp://`):** Masaüstü tarayıcılarda (MacBook / Windows) öncelikle `whatsapp://send` yerel uygulama protokolü tetiklenerek doğrudan bilgisayarda açık olan **WhatsApp Desktop** uygulaması öne getirilir (0 saniye bekleme, 0 yeni sekme). Eğer kullanılan bilgisayarda WhatsApp Desktop yüklü değilse (pencere odağı kaybolmazsa), sistem 1.5 saniye içinde bunu otomatik olarak algılayıp tarayıcıda **WhatsApp Web** sekmesini açarak akıllı geri dönüş (fallback) sağlar.
+  - Mobil cihazlarda ise doğrudan WhatsApp uygulamasını tetikleyen `https://wa.me/` protokolü çalışır.
+  - **Hazır Şablon İçeriği:**
+    - Bağışçı adı, bursiyer sayısı, vadesi gelen ay sonu bilgisi, vadesi gelen tutar ve güncel vade borcu şeffafça sunulur.
+    - **Neden Bir Sonraki Ay Baz Alınıyor Açıklaması:** Burs ücretlerinden komisyon/kesinti olmaması adına kredi kartı ödemelerinin aracı ödeme kuruluşunda (Moka) 33 gün yasal blokede tutulduğu ve bursiyer ödeme takviminin aksamaması için vadenin buna göre hesaplandığı net bir dille izah edilir.
+    - **Ödeme Yöntemlerine Özel Linkler:**
+      - Kredi Kartı: `https://burs.fbiadvakfi.org/` (veya mobil uygulama)
+      - Havale / EFT: `https://fbiadvakfi.org/bagis/havale`
+    - Havale/EFT açıklamasına ad-soyad yazılması ve dekontun **FBİAD Burs Komitesi** ile paylaşılması notu eklenir.
+
+- **E-Posta Hatırlatma Entegrasyonu & Veri Senkronizasyonu:**
+  - Taahhüt tablosu (`pledges`) ilk Excel içe aktarımında e-posta sütunu boş geldiği için, sistemdeki kullanıcılar (`users`) tablosu ile telefon ve isim bazında çapraz eşleştirme yapıldı. 37 bağışçının gerçek ve dummy e-posta adresleri otomatik olarak taahhüt tablosuna senkronize edildi.
+  - Daha önce işlevsiz olan e-posta ikonu, interaktif bir onay ve önizleme modalına bağlandı.
+  - Admin `E-Posta Gönder` dediğinde `sendPledgeEmailReminder(pledgeId)` Server Action'ı çalışır.
+  - Gönderilen e-postada kurumsal FBİAD Vakfı şablonu, detaylı özet tablosu, 33 günlük blokaj açıklaması, ayrıştırılmış kredi kartı ve havale linkleri ile komite dekont notu yer alır.
+
+- **Excel Dışa Aktarım Güncellemesi:**
+  - `Excel'e Aktar` çıktısına `Hedeflenen Vade`, `Vadesi Gelen Tutar (TL)`, `Güncel Vade Borcu (TL)` ve `Vade Durumu` kolonları eklendi.
+
+- **Dağıtım Durumu:**
+  - Canlıya (Cloud Run) dağıtım yapılmamıştır; yerel ortamda (`localhost:3004`) test edilmeye hazırdır.
+
+---
+
+### 19. Android Hibrit Mobil Uygulama & Capacitor WebView Container Mimarisi (29 Ekim 2026)
+
+- **Gereksinim & Mimari Yaklaşım (Remote WebView Container):**
+  - Google Play Store'a yüklenene kadar manuel APK indirme ve kurulum ile kullanıcıların sisteme mobil uygulama deneyimiyle erişmesi hedeflendi.
+  - Kod tabanında yapılan frontend/backend güncellemelerinde kullanıcıların tekrar tekrar yeni APK indirip kurmasını önlemek amacıyla **Capacitor Remote URL (Webview Container)** modeli benimsendi.
+  - Uygulama telefonda tam ekran (adres çubuğu ve tarayıcı butonları olmaksızın), kurumsal ikon ve açılış (splash) ekranı ile native bir uygulama gibi açılır; içeride doğrudan canlı sunucudaki (`https://burs.fbiadvakfi.org`) arayüzü yükler.
+  - Böylece web tarafında yapılan tüm geliştirmeler, hata düzeltmeleri ve ekran güncellemeleri APK'yı yeniden derlemeye gerek kalmadan anında mobil kullanıcıların ekranına yansır.
+
+- **Yapılandırma & Entegrasyon Parametreleri:**
+  - **Uygulama Adı:** `FBİAD Vakfı` (`strings.xml` ve `capacitor.config.ts`)
+  - **Paket Kimliği (Application ID):** `org.fbiadvakfi.burs`
+  - **Hedef Sunucu:** `https://burs.fbiadvakfi.org` (`server.url`, `cleartext: true`)
+  - **İzinler:** `android.permission.INTERNET`, `android:usesCleartextTraffic="true"` (`AndroidManifest.xml`)
+
+- **Asset & Görsel Üretimi:**
+  - `assets/icon.png` ve `assets/splash.png` (1024x1024 px) kaynaklarından `@capacitor/assets` aracıyla Android'in tüm ekran yoğunluklarına uygun (ldpi, mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi) 87 adet adaptif ikon ve splash görseli üretilerek `android/app/src/main/res/` dizinine yerleştirildi.
+
+- **Java & Gradle Derleme Uyumluluğu:**
+  - Capacitor 7 ve Android Gradle Plugin 8.7.2, Java 21 gereksinimi duymaktadır.
+  - Sistemdeki varsayılan Zulu 17'ye ek olarak macOS üzerindeki Android Studio uygulamasının yerleşik OpenJDK 21 çalışma zamanı (`/Applications/Android Studio.app/Contents/jbr/Contents/Home`) derleme zincirine bağlandı.
+  - `./gradlew assembleDebug` komutuyla hatasız olarak `app-debug.apk` derlendi.
+
+- **Üretilen Dosyalar ve Hızlı Komutlar:**
+  - APK Çıktısı: `fbiad-vakfi.apk` (Proje kök dizini) ve `android/app/build/outputs/apk/debug/app-debug.apk` (36 MB)
+  - `npm run cap:sync` -> Web varlıklarını ve ayarları Android ve iOS projelerine aktarır.
+  - `npm run android:open` -> Projeyi doğrudan Android Studio arayüzünde açar.
+  - `npm run android:build` -> Tek komutla Android Studio açılmadan anında yeni APK üretir.
+  - `npm run ios:open` -> iOS projesini doğrudan Xcode'da açar.
+
+- **iOS Platform Durumu & Dağıtım Notları:**
+  - iOS projesi (`ios/App/App.xcworkspace`) `FBİAD Vakfı`, `org.fbiadvakfi.burs` ve `https://burs.fbiadvakfi.org` ayarları ile senkronize edildi (`pod install` başarıyla çalıştırıldı).
+  - Apple'ın güvenlik ve imzalama kısıtlamaları gereği WhatsApp üzerinden doğrudan `.ipa` indirilerek kurulamamaktadır; iki test yolu sunulmuştur: (1) Safari üzerinden "Ana Ekrana Ekle" (PWA), (2) MacBook'a kabloyla bağlayıp Xcode üzerinden doğrudan cihaza derleme (Run on Device).
+
+
+

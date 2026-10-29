@@ -21,7 +21,8 @@ import {
     UploadCloud,
     Briefcase,
     MessageSquare,
-    FileCheck
+    FileCheck,
+    PieChart
 } from "lucide-react";
 
 import { getCurrentTenant } from "@/lib/data/tenant";
@@ -210,6 +211,14 @@ export default async function DashboardLayout({
                             </CollapsibleNavSection>
                         )}
 
+                        {/* 4. Bütçe */}
+                        {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                            <CollapsibleNavSection title="Bütçe" storageKey="budget-admin" defaultExpanded={false}>
+                                <NavItem href="/dashboard/admin/budget" icon={PieChart} label="Bütçe ve Kasa" />
+                                <NavItem href="/dashboard/admin/bank-accounts" icon={Landmark} label="Banka Hesapları" />
+                            </CollapsibleNavSection>
+                        )}
+
                         {/* Ayarlar Menüsü (Tüm Roller + Admin Ayarları) */}
                         <CollapsibleNavSection title="Ayarlar" storageKey="user">
                             <NavItem href="/dashboard/settings" icon={Settings} label="Kişisel Ayarlar" />
@@ -364,6 +373,14 @@ export default async function DashboardLayout({
                                                 <NavItem href="/dashboard/admin/exemptions" icon={CheckSquare} label="Muafiyet Onayları" />
                                                 <NavItem href="/dashboard/admin/document-tracking" icon={FileCheck} label="İmzalı Evrak Takibi" />
                                                 <NavItem href="/dashboard/admin/iban-list" icon={CreditCard} label="IBAN Bilgileri" />
+                                            </CollapsibleNavSection>
+                                        )}
+
+                                        {/* 4. Bütçe */}
+                                        {(userRole === 'admin' || tenantData?.isSuperAdmin) && (
+                                            <CollapsibleNavSection title="Bütçe" storageKey="budget-admin" defaultExpanded={false}>
+                                                <NavItem href="/dashboard/admin/budget" icon={PieChart} label="Bütçe ve Kasa" />
+                                                <NavItem href="/dashboard/admin/bank-accounts" icon={Landmark} label="Banka Hesapları" />
                                             </CollapsibleNavSection>
                                         )}
 

@@ -791,3 +791,105 @@ export const signedDocumentSubmissionsRelations = relations(signedDocumentSubmis
     }),
 }));
 
+// --- Tenant Bank Accounts (Vakıf Banka ve Kasa Hesapları) ---
+
+export const tenantBankAccounts = pgTable('tenant_bank_accounts', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    bankName: text('bank_name').notNull(),
+    accountName: text('account_name').notNull(),
+    iban: text('iban'),
+    accountNumber: text('account_number'),
+    currency: varchar('currency', { length: 10 }).default('TRY').notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    displayOrder: integer('display_order').default(0).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const tenantBankAccountsRelations = relations(tenantBankAccounts, ({ one, many }) => ({
+    tenant: one(tenants, {
+        fields: [tenantBankAccounts.tenantId],
+        references: [tenants.id],
+    }),
+    openingBalances: many(budgetOpeningBalances),
+    transactions: many(budgetTransactions),
+}));
+
+// --- Budget Opening Balances (Dönem Açılış Kasa / Banka Devirleri) ---
+
+export const budgetOpeningBalances = pgTable('budget_opening_balances', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    periodId: uuid('period_id').references(() => parametersTenantSeasons.id).notNull(),
+    bankAccountId: uuid('bank_account_id').references(() => tenantBankAccounts.id),
+    accountName: text('account_name').notNull(),
+    bankName: text('bank_name'),
+    iban: text('iban'),
+    amount: integer('amount').default(0).notNull(),
+    balanceDate: timestamp('balance_date').defaultNow().notNull(),
+    notes: text('notes'),
+    createdBy: uuid('created_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const budgetOpeningBalancesRelations = relations(budgetOpeningBalances, ({ one }) => ({
+    tenant: one(tenants, {
+        fields: [budgetOpeningBalances.tenantId],
+        references: [tenants.id],
+    }),
+    period: one(parametersTenantSeasons, {
+        fields: [budgetOpeningBalances.periodId],
+        references: [parametersTenantSeasons.id],
+    }),
+    bankAccount: one(tenantBankAccounts, {
+        fields: [budgetOpeningBalances.bankAccountId],
+        references: [tenantBankAccounts.id],
+    }),
+    creator: one(users, {
+        fields: [budgetOpeningBalances.createdBy],
+        references: [users.id],
+    }),
+}));
+
+// --- Budget Transactions (Ek Gelirler ve Operasyonel Giderler) ---
+
+export const budgetTransactions = pgTable('budget_transactions', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
+    periodId: uuid('period_id').references(() => parametersTenantSeasons.id).notNull(),
+    type: text('type', { enum: ['income', 'expense'] }).notNull(),
+    category: varchar('category', { length: 50 }).notNull(),
+    title: text('title').notNull(),
+    counterparty: text('counterparty'),
+    amount: integer('amount').notNull(),
+    bankAccountId: uuid('bank_account_id').references(() => tenantBankAccounts.id),
+    transactionDate: timestamp('transaction_date').defaultNow().notNull(),
+    documentNo: text('document_no'),
+    notes: text('notes'),
+    createdBy: uuid('created_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const budgetTransactionsRelations = relations(budgetTransactions, ({ one }) => ({
+    tenant: one(tenants, {
+        fields: [budgetTransactions.tenantId],
+        references: [tenants.id],
+    }),
+    period: one(parametersTenantSeasons, {
+        fields: [budgetTransactions.periodId],
+        references: [parametersTenantSeasons.id],
+    }),
+    bankAccount: one(tenantBankAccounts, {
+        fields: [budgetTransactions.bankAccountId],
+        references: [tenantBankAccounts.id],
+    }),
+    creator: one(users, {
+        fields: [budgetTransactions.createdBy],
+        references: [users.id],
+    }),
+}));
+
+

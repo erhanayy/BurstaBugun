@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { 
     FileSpreadsheet, Upload, Download, Plus, Search, 
-    User, Mail, Phone, Calendar, ArrowRightLeft, Loader2, CheckCircle2, AlertCircle, Link as LinkIcon, Edit2, Trash2, Check, X, Banknote
+    User, Mail, Phone, Calendar, ArrowRightLeft, Loader2, CheckCircle2, AlertCircle, Link as LinkIcon, Edit2, Trash2, Check, X, Banknote,
+    MessageCircle, Send
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,13 +26,22 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { PledgeForm } from "./pledge-form";
 import { PaymentForm } from "../payments/new/payment-form";
-import { importPledgesFromExcel, matchPaymentToPledge, deletePledge, updatePledgeTarget, getPledgePayments, deletePledgePayment } from "@/lib/actions/admin-pledges";
+import { 
+    importPledgesFromExcel, 
+    matchPaymentToPledge, 
+    deletePledge, 
+    updatePledgeTarget, 
+    getPledgePayments, 
+    deletePledgePayment,
+    sendPledgeEmailReminder 
+} from "@/lib/actions/admin-pledges";
 
 export function PledgesClient({
     periods,
@@ -85,6 +95,123 @@ export function PledgesClient({
     // Edit Target State
     const [editingPledgeId, setEditingPledgeId] = useState<string | null>(null);
     const [editingTargetValue, setEditingTargetValue] = useState(1);
+
+    // Email Reminder State
+    const [emailPledge, setEmailPledge] = useState<any>(null);
+    const [isEmailSending, setIsEmailSending] = useState(false);
+
+    // Format phone for WhatsApp
+    const formatPhoneForWhatsapp = (phone: string | null | undefined): string | null => {
+        if (!phone) return null;
+        let clean = phone.replace(/\D/g, '');
+        if (clean.startsWith('0090')) {
+            clean = clean.substring(2);
+        } else if (clean.startsWith('090')) {
+            clean = clean.substring(1);
+        } else if (clean.startsWith('90')) {
+            // ok
+        } else if (clean.startsWith('05')) {
+            clean = '9' + clean;
+        } else if (clean.startsWith('5')) {
+            clean = '90' + clean;
+        }
+        return clean.length >= 10 ? clean : null;
+    };
+
+    // Generate WhatsApp text
+    const generateWhatsappMessage = (p: any) => {
+        const formatTL = (val: number) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(val) + " ₺";
+        const dueMonth = p.dueMonthName || 'Aralık';
+        const dueMonthsCount = p.dueMonths || 5;
+
+        return `Sayın ${p.fullName},
+
+FBİAD Vakfı ${p.periodName || '2026-2027'} burs dönemi kapsamında ${p.targetStudentCount} öğrenci için vermiş olduğunuz değerli burs taahhüdünüz için teşekkür ederiz.
+
+Dönem burs planlamamız doğrultusunda ${dueMonth} ayı sonu dahil (${dueMonthsCount} aylık) vadesi gelen burs katkı payınız ${formatTL(p.dueTargetAmount)}, şu ana kadar sistemimize yansıyan ödemeniz ${formatTL(p.actualAmount)}'dir.
+
+📌 Güncel vadesi gelen bakiye: ${formatTL(p.dueRemainingDebt)}'dir.
+
+ℹ️ Neden Bir Sonraki Ayı (${dueMonth}) Baz Alıyoruz?
+Öğrencilerimize ulaştırılan burs tutarlarından herhangi bir komisyon veya banka kesintisi yapılmaması adına, kredi kartı tahsilatları aracı ödeme kuruluşunda 33 gün yasal blokede bekledikten sonra vakfımıza aktarılmaktadır. Burs ödemelerinin takviminde aksama yaşanmaması için planlamamız bu vadeye göre yürütülmektedir.
+
+💳 Kredi Kartı ile Ödeme İçin:
+Mobil uygulamamıza giriş yapabilir veya doğrudan burs portalımız üzerinden ödemenizi tamamlayabilirsiniz:
+https://burs.fbiadvakfi.org/
+
+🏦 Havale / EFT ile Ödeme İçin:
+Vakfımızın resmi banka hesap bilgilerine aşağıdaki sayfadan ulaşabilirsiniz:
+https://fbiadvakfi.org/bagis/havale
+
+(Not: Havale/EFT ödemelerinde açıklama kısmına adınızı-soyadınızı yazmayı ve dekontu FBİAD Burs Komitesi ile paylaşmayı lütfen unutmayınız.)
+
+Geleceğimiz olan öğrencilerimiz adına kıymetli destekleriniz için sonsuz teşekkür ederiz.
+FBİAD Vakfı Yönetimi`;
+    };
+
+    const handleWhatsappReminder = (p: any) => {
+        if (!p.phone) {
+            toast.error("Bu bağışçının kayıtlı telefon numarası bulunamadı.");
+            return;
+        }
+        const cleanPhone = formatPhoneForWhatsapp(p.phone);
+        if (!cleanPhone) {
+            toast.error("Geçerli bir telefon numarası bulunamadı.");
+            return;
+        }
+        const text = generateWhatsappMessage(p);
+
+        // Mobil cihazlarda doğrudan uygulamayı açması için wa.me, masaüstünde ise sekme açılmasını önleyip doğrudan WhatsApp Desktop uygulamasını açması için whatsapp://
+        const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        if (isMobile) {
+            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+            window.open(waUrl, "_blank");
+        } else {
+            // Önce WhatsApp Desktop uygulamasını (whatsapp://) dene
+            let hasAppOpened = false;
+            const handleBlur = () => {
+                hasAppOpened = true;
+            };
+            window.addEventListener('blur', handleBlur, { once: true });
+
+            const waDesktopUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`;
+            const link = document.createElement('a');
+            link.href = waDesktopUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Eğer WhatsApp Desktop yüklü değilse (bilgisayar uygulamayı açamaz ve pencere odağını kaybetmezse), 1.5 sn sonra otomatik WhatsApp Web'e yönlendir
+            setTimeout(() => {
+                window.removeEventListener('blur', handleBlur);
+                if (!hasAppOpened && document.hasFocus()) {
+                    const waWebUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`;
+                    window.open(waWebUrl, "_blank");
+                }
+            }, 1500);
+        }
+
+        toast.success(`${p.fullName} için WhatsApp açılıyor...`);
+    };
+
+    const handleConfirmSendEmail = async () => {
+        if (!emailPledge) return;
+        setIsEmailSending(true);
+        try {
+            const res = await sendPledgeEmailReminder(emailPledge.id);
+            if (res.success) {
+                toast.success(`${emailPledge.fullName} bağışçısına e-posta başarıyla gönderildi.`);
+                setEmailPledge(null);
+            } else {
+                toast.error(res.error || "E-posta gönderilemedi.");
+            }
+        } catch (err: any) {
+            toast.error("E-posta gönderilirken bir hata oluştu.");
+        } finally {
+            setIsEmailSending(false);
+        }
+    };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -232,9 +359,13 @@ export function PledgesClient({
             "Bursveren Adı": p.fullName,
             "İletişim": p.phone || p.email || "-",
             "Taahhüt Bursiyer Sayısı": p.targetStudentCount,
-            "Taahhüt Tutarı": p.targetAmount,
-            "Ödeme Toplamı": p.actualAmount,
-            "Statü": p.actualAmount >= p.targetAmount ? "Tamamlandı" : "Devam Ediyor"
+            "Hedeflenen Vade": `${p.dueMonthName || 'Aralık'} Sonu (${p.dueMonths || 5} Ay)`,
+            "Vadesi Gelen Tutar (TL)": p.dueTargetAmount || 0,
+            "Ödeme Toplamı (TL)": p.actualAmount || 0,
+            "Güncel Vade Borcu (TL)": p.dueRemainingDebt > 0 ? -p.dueRemainingDebt : 0,
+            "Vade Durumu": p.isDueFulfilled ? "Vadesinde Ödendi" : `Borçlu (-${p.dueRemainingDebt} TL)`,
+            "Sezon Toplam Taahhüt (TL)": p.targetAmount,
+            "Sezon Genel Statü": p.actualAmount >= p.targetAmount ? "Tamamlandı" : "Devam Ediyor"
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -338,6 +469,12 @@ export function PledgesClient({
                                         <th className="px-6 py-4">Bağışçı</th>
                                         <th className="px-6 py-4">İletişim</th>
                                         <th className="px-6 py-4 text-center">Taahhüt Edilen</th>
+                                        <th className="px-6 py-4 text-center">
+                                            <div>Güncel Vade Borcu</div>
+                                            <div className="text-[10px] font-normal text-gray-400 normal-case">
+                                                (Bugün + 35 Gün: {filteredPledges[0]?.dueMonthName || 'Aralık'} Sonu)
+                                            </div>
+                                        </th>
                                         <th className="px-6 py-4 text-center">Gerçekleşen / Hedef Tutar</th>
                                         <th className="px-6 py-4 text-right">İşlemler</th>
                                     </tr>
@@ -345,7 +482,7 @@ export function PledgesClient({
                                 <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
                                     {filteredPledges.length === 0 ? (
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                            <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                                                 Bu kriterlere uygun taahhüt bulunamadı.
                                             </td>
                                         </tr>
@@ -375,6 +512,27 @@ export function PledgesClient({
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
+                                                        <div className="flex items-center justify-center">
+                                                            {p.dueRemainingDebt > 0 ? (
+                                                                <Badge 
+                                                                    variant="outline" 
+                                                                    className="px-3 py-1 border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 font-bold"
+                                                                    title={`Güncel Vade Borcu: -${new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(p.dueRemainingDebt)} ₺ / Vadesi Gelen: ${new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(p.dueTargetAmount)} ₺ (${p.dueMonths} Ay)`}
+                                                                >
+                                                                    -{new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(p.dueRemainingDebt)} ₺ / {new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(p.dueTargetAmount)} ₺
+                                                                </Badge>
+                                                            ) : (
+                                                                <Badge 
+                                                                    variant="outline" 
+                                                                    className="px-3 py-1 border-green-200 bg-green-100 text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-300 font-semibold"
+                                                                    title={`Vadesinde Ödendi (Borç: 0 ₺) / Vadesi Gelen: ${new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(p.dueTargetAmount)} ₺ (${p.dueMonths} Ay)`}
+                                                                >
+                                                                    0 ₺ / {new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(p.dueTargetAmount)} ₺
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
                                                         <div className="flex items-center justify-center gap-2 group">
                                                             <Badge variant="outline" className={`px-3 py-1 ${isFulfilled ? 'border-green-200 bg-green-100 text-green-700' : 'border-yellow-200 bg-yellow-100 text-yellow-700'}`}>
                                                                 {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(p.actualAmount)} / {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(p.targetAmount)}
@@ -384,14 +542,32 @@ export function PledgesClient({
                                                     <td className="px-6 py-4 text-right">
                                                         <div className="flex justify-end gap-1">
                                                             {!isFulfilled && (
-                                                                <Button 
-                                                                    size="icon" 
-                                                                    variant="ghost" 
-                                                                    className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-50"
-                                                                    title="Hatırlat"
-                                                                >
-                                                                    <Mail className="w-4 h-4" />
-                                                                </Button>
+                                                                <>
+                                                                    <Button 
+                                                                        size="icon" 
+                                                                        variant="ghost" 
+                                                                        className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                                                                        title="WhatsApp ile Hatırlat"
+                                                                        onClick={() => handleWhatsappReminder(p)}
+                                                                    >
+                                                                        <MessageCircle className="w-4 h-4" />
+                                                                    </Button>
+                                                                    <Button 
+                                                                        size="icon" 
+                                                                        variant="ghost" 
+                                                                        className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+                                                                        title="E-Posta ile Hatırlat"
+                                                                        onClick={() => {
+                                                                            if (!p.email) {
+                                                                                toast.error(`${p.fullName} için sistemde kayıtlı e-posta adresi bulunamadı.`);
+                                                                                return;
+                                                                            }
+                                                                            setEmailPledge(p);
+                                                                        }}
+                                                                    >
+                                                                        <Mail className="w-4 h-4" />
+                                                                    </Button>
+                                                                </>
                                                             )}
                                                             <Button 
                                                                 size="icon" 
@@ -641,6 +817,89 @@ export function PledgesClient({
                                         ))}
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Email Reminder Confirmation Dialog */}
+            <Dialog open={!!emailPledge} onOpenChange={(open) => { if (!open) setEmailPledge(null); }}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-indigo-950 dark:text-white">
+                            <Mail className="w-5 h-5 text-indigo-600" />
+                            E-Posta Hatırlatması Gönder
+                        </DialogTitle>
+                        <DialogDescription>
+                            Bağışçıya dönem burs katkı payı ve güncel vade durumunu içeren bilgilendirme e-postası gönderilecektir.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {emailPledge && (
+                        <div className="space-y-4 py-2 text-sm">
+                            <div className="bg-gray-50 dark:bg-zinc-800/60 p-3 rounded-lg border border-gray-100 dark:border-zinc-700 space-y-1.5">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Bağışçı:</span>
+                                    <span className="font-semibold text-gray-900 dark:text-white">{emailPledge.fullName}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">E-Posta:</span>
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">{emailPledge.email}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Taahhüt:</span>
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">{emailPledge.targetStudentCount} Öğrenci</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Vadesi Gelen Tutar:</span>
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                                        {new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(emailPledge.dueTargetAmount)} ₺ ({emailPledge.dueMonths} Ay)
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Sistemdeki Ödeme:</span>
+                                    <span className="font-medium text-emerald-600">
+                                        {new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(emailPledge.actualAmount)} ₺
+                                    </span>
+                                </div>
+                                <div className="flex justify-between pt-1 border-t border-gray-200 dark:border-zinc-700 font-semibold">
+                                    <span className="text-red-600">Güncel Vade Borcu:</span>
+                                    <span className="text-red-600 text-base">
+                                        {new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(emailPledge.dueRemainingDebt)} ₺
+                                    </span>
+                                </div>
+                            </div>
+
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                E-posta içerisinde kredi kartı ödemeleri için mobil uygulama yönlendirmesi, Havale/EFT için vakıf web sitesi linki ve dekont paylaşım notu yer alacaktır.
+                            </p>
+
+                            <div className="flex justify-end gap-2 pt-2">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={() => setEmailPledge(null)}
+                                    disabled={isEmailSending}
+                                >
+                                    Vazgeç
+                                </Button>
+                                <Button 
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2"
+                                    onClick={handleConfirmSendEmail}
+                                    disabled={isEmailSending}
+                                >
+                                    {isEmailSending ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Gönderiliyor...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="w-4 h-4" />
+                                            E-Posta Gönder
+                                        </>
+                                    )}
+                                </Button>
                             </div>
                         </div>
                     )}

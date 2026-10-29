@@ -40,3 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .next-fbiad
+
+# mobile builds
+*.apk
+*.aab
+
+# scratch scripts
+scratch*
