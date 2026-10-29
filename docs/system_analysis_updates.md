@@ -194,7 +194,7 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
   - Hesap bazında Dönem Açılış Bakiyesi Yönetimi modalı.
   - Çok sekmeli Excel (.xlsx) dışa aktarımı (`Özet Bütçe`, `Aylık Nakit Akışı`, `İşlem Hareketleri`, `Açılış Bakiyeleri`).
 - **Dağıtım Durumu:**
-  - Kullanıcı talebi doğrultusunda canlıya dağıtım bekletildi. Local dev ortamında (`localhost:3004`) test için hazırlandı.
+  - Canlıya (Google Cloud Run) başarıyla dağıtıldı (`bursta-fbiad-00085-mv4`, 29 Ekim 2026).
 
 ---
 
@@ -240,7 +240,8 @@ Bu dosya yeni geliştirilen her özelliğin çalışma mantıklarını, akışla
   - `Excel'e Aktar` çıktısına `Hedeflenen Vade`, `Vadesi Gelen Tutar (TL)`, `Güncel Vade Borcu (TL)` ve `Vade Durumu` kolonları eklendi.
 
 - **Dağıtım Durumu:**
-  - Canlıya (Cloud Run) dağıtım yapılmamıştır; yerel ortamda (`localhost:3004`) test edilmeye hazırdır.
+  - Canlıya (Google Cloud Run) başarıyla dağıtıldı (`bursta-fbiad-00085-mv4`, 29 Ekim 2026).
+  - Canlı Alan Adı: `https://burs.fbiadvakfi.org`
 
 ---
 
