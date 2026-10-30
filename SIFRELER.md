@@ -238,3 +238,31 @@ Kayıtlarınızı ve veritabanlarınızı manuel kontrol etmek isterseniz:
 - Rol: applicant
 - İlk Şifre: Burs5480!
 - Doğrulama (OTP) Kodu: 768787
+
+[30.10.2026 12:11:45] YÖNETİCİ DÜZENLEME & İLK ŞİFRE TANIMLAMA (FBİAD Vakfı):
+- Ad Soyad: Selami Çakır
+- Email: selamicakir41@gmail.com (Eski: selamicakir@gmail.com)
+- Telefon: 00 90 532 769 73 23
+- Rol: admin (Vakıf Yöneticisi & Sistem Admini)
+- İlk Geçici Şifre: Burs4141!
+- İlk Girişte Şifre Değişimi: Zorunlu (forcePasswordChange: true)
+- Hesap Durumu: Aktif ✅
+
+[30.10.2026 12:28:24] YÖNETİCİ DÜZENLEME & İLK ŞİFRE TANIMLAMA (FBİAD Vakfı):
+- Ad Soyad: Kardelen Mıcık
+- Email: kardelenmck@icloud.com
+- Telefon: 00 90 555 483 19 07
+- Rol: admin (Vakıf Yöneticisi & Sistem Admini)
+- İlk Geçici Şifre: Burs1907!
+- İlk Girişte Şifre Değişimi: Zorunlu (forcePasswordChange: true)
+- Hesap Durumu: Aktif ✅
+
+[30.10.2026 13:55:46] GEÇİCİ ŞİFRE TANIMLAMA (FBİAD Vakfı):
+- Ad Soyad: GÖKHAN KESİCİ
+- Email: gknksc@gmail.com
+- Telefon: 00 54 625 206 53
+- Rol: sponsor
+- İlk / Geçici Şifre: Burs1907!
+- İlk Girişte Şifre Değişimi: Zorunlu (forcePasswordChange: true)
+- Hesap Durumu: Aktif ✅
+
